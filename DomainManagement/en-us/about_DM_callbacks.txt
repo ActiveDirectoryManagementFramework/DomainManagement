@@ -1,0 +1,35 @@
+﻿TOPIC
+	about_DM_callbacks
+	
+SHORT DESCRIPTION
+	Explains how the callback feature works.
+	
+LONG DESCRIPTION
+	Callbacks are a system in the DomainManagement module that allows the caller to register a
+    scriptblock that will be executed at the beginning of each command that applies configuration
+    settings or tests for compliance.
+    This allows integrating logic, for example to validate configuration, prompt for user choice
+    or other integrated logic.
+
+    When running one of those commands, all callbacks will sequentially be called. Keep execution
+    time in mind, as this might cause a significant delay in execution, especially when chaining
+    multiple commands!
+    Any uncaught exception in any scriptblock will cause the execution to fail.
+
+    The scriptblocks will each receive four arguments:
+    - The Server targeted (if any)
+    - The credentials used to do the targeting (if any)
+    - The Forest the two earlier pieces of information map to (if any)
+    - The Domain the two earlier pieces of information map to (if any)
+    Any and all of these pieces of information may be empty.
+
+    Commands to manage the callbacks:
+    - Register-DMCallback
+    - Get-DMCallback
+    - Unregister-DMCallback
+
+    Internally, each Test-* and Invoke-* command should call Invoke-Callback as part of its begin
+    block.
+
+KEYWORDS
+	DomainManagement callback

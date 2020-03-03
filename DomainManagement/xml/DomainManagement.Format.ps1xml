@@ -1,0 +1,409 @@
+﻿<?xml version="1.0" encoding="utf-16"?>
+<Configuration>
+    <SelectionSets>
+        <SelectionSet>
+            <Name>DomainManagement.TestResults</Name>
+            <Types>
+                <TypeName>DomainManagement.AccessRule.TestResult</TypeName>
+                <TypeName>DomainManagement.Acl.TestResult</TypeName>
+                <TypeName>DomainManagement.GPLink.TestResult</TypeName>
+				<TypeName>DomainManagement.GPPermission.TestResult</TypeName>
+                <TypeName>DomainManagement.Group.TestResult</TypeName>
+                <TypeName>DomainManagement.GroupPolicy.TestResult</TypeName>
+                <TypeName>DomainManagement.GroupMembership.TestResult</TypeName>
+                <TypeName>DomainManagement.Object.TestResult</TypeName>
+                <TypeName>DomainManagement.OrganizationalUnit.TestResult</TypeName>
+                <TypeName>DomainManagement.PSO.TestResult</TypeName>
+                <TypeName>DomainManagement.User.TestResult</TypeName>
+            </Types>
+        </SelectionSet>
+    </SelectionSets>
+
+    <ViewDefinitions>
+        <!-- DomainManagement.*.TestResult -->
+        <View>
+            <Name>DomainManagement.TestResult</Name>
+            <ViewSelectedBy>
+                <SelectionSetName>DomainManagement.TestResults</SelectionSetName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Server</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ObjectType</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Changed</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.Configuration.GPPermissionFilter -->
+        <View>
+            <Name>DomainManagement.Configuration.GPPermissionFilter</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Configuration.GPPermissionFilter</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Target</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$___ = $_
+switch ($_.Type) {
+'Managed' { "Managed" }
+'GPName' { '{0}: {1}' -f $___.Mode, $___.GPName }
+'Path' { '{0}: {1}' -f $___.Scope, $___.Path }
+}
+
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Reverse</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ContextName</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.Group -->
+        <View>
+            <Name>DomainManagement.Group</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Group</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Present</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Scope</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Category</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.Configuration.GPPermission -->
+        <View>
+            <Name>DomainManagement.Configuration.GPPermission</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Configuration.GPPermission</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Target</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>IdentityType</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Permission</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Deny</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Managed</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+
+if ($_.Filter) { return $_.Filter }
+if ($_.GpoName) { return $_.GpoName }
+if ($_.All) { return "All" }
+
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.GroupPolicy.Linked -->
+        <View>
+            <Name>DomainManagement.GroupPolicy.Linked</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.GroupPolicy.Linked</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>LinkedTo</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>DisplayName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Modified</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+
+foreach ($ou in $_.LinkedTo) {
+  $array = ($ou.DistinguishedName -split "," | Where-Object { $_ -like "OU=*" }) -replace "OU="
+  if (-not $array) { return $ou -replace ",DC=","." -replace "DC=" }
+  [array]::Reverse($array)
+  $array -join "/"
+}
+
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.GroupPolicyObject -->
+        <View>
+            <Name>DomainManagement.GroupPolicyObject</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.GroupPolicyObject</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>DisplayName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.OrganizationalUnit -->
+        <View>
+            <Name>DomainManagement.OrganizationalUnit</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.OrganizationalUnit</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Present</PropertyName>
+                            </TableColumnItem>
+                           <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Path</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>OldNames</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        
+        <!-- DomainManagement.PasswordPolicy -->
+        <View>
+            <Name>DomainManagement.PasswordPolicy</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.PasswordPolicy</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Prec.</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>PwdLength</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Lockout</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Precedence</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>MaxPasswordAge</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>MinPasswordLength</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>LockoutThreshold</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>SubjectGroup</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.Result.GPPermission.Action -->
+        <View>
+            <Name>DomainManagement.Result.GPPermission.Action</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Result.GPPermission.Action</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>PolicyName</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+ $_.ADObject.DisplayName 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Action</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>DisplayName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Permission</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Allow</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+    </ViewDefinitions>
+</Configuration>

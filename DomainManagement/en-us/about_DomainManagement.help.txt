@@ -1,0 +1,125 @@
+﻿TOPIC
+	about_DomainManagement
+	
+SHORT DESCRIPTION
+	Explains how to use the DomainManagement powershell module
+	
+LONG DESCRIPTION
+     #------------------------------------------------------------------------#
+     #                                 Index                                  #
+     #------------------------------------------------------------------------#
+	
+	- Introduction
+	- Connection Protocols
+	- Configuration
+	- Names
+	- Execution Order
+	- Custom Credentials
+	- Callback System
+
+     #------------------------------------------------------------------------#
+     #                              Introduction                              #
+     #------------------------------------------------------------------------#
+	
+	The DomainManagement module is designed to bring a domain into the desired
+	state you define. This can affect a single type of object - e.g. ensuring
+	certain groups exists - or almost all resources available in a domain.
+
+	It _is_ similar in concept to Desired State Configuration - you define a
+	state you want to ensure, it makes that state happen. It is however far
+	more clesly tailored to the requirements of Active Directory and supports
+	a few twists that are simply impossible (or at least very, very hard) with
+	Desired State Configuration.
+
+	The basic concept is that you use the various Register-DM* commands to
+	define the way you want your domain to look. Then you can use the
+	respective Test-DM* commands to see, whether the targeted domain complies
+	with that state, or use the Invoke-DM* commands to make it come into
+	compliance with the configuration.
+
+	More on Configuration in the dedicated Configuration chapter.
+
+	# Examples
+	#-----------
+
+	Example using Organizational Units:
+	After defining configuration, run the following command to validate the
+	current domain:
+
+	  Test-DMOrganizationalUnit
+	
+	No further parameters needed. It will return a list of findings that are
+	out of compliance, for example a list of OUs to create and a list of OUs to
+	delete.
+	Applying the configuration is then an act of running:
+
+	  Invoke-DMOrganizationalUnit
+
+	Which will apply the required changes.
+	Note:
+	- Some Invoke-DM* commands include additional switch parameters to control
+	  seperate modes of operation, where useful. In case of organizational
+	  units, this means a -Delete parameter. By default it will only create or
+	  rename OUs, not delete them. From a workflow perspective, it is necessary
+	  to first create new OUs, then move or delete content from the old ones
+	  before finally deleting them.
+	  This means some Invoke-DM* commands will be called multiple times in
+	  different modes along a full workflow.
+	- All Invoke-DM* commands support the -WhatIf parameter to see what would
+	  be done without actually changing anything.
+	- All changes performed are fully logged using PSFramework logging.
+
+	For more details on the recommended execution order, see the chapter
+	"Execution Order"
+
+
+     #------------------------------------------------------------------------#
+     #                          Connection Protocols                          #
+     #------------------------------------------------------------------------#
+	
+	All commands in the system support remote and local execution. They can be
+	run from the targeted domain or from completely outside. Custom credentials
+	are very much supported, as is targeting a specific server or the domain in
+	its entirety.
+
+	The commands use three protocols, that may need to be enabled:
+	- ADWS : Active Directory WebServices
+	- LDAP : Leightweight Directory Access Protocol
+	- WinRM : Windows Remote Management
+
+	Most commands use ADWS exclusively. Some rely on LDAP via the directory
+	services components for identity lookup.
+	Commands handling Group Policy Objects will require WinRM, as the GPO
+	module does not natively support custom credentials.
+
+
+     #------------------------------------------------------------------------#
+     #                             Configuration                              #
+     #------------------------------------------------------------------------#
+
+	To manage the configuration that will be applied it is strongly recommended
+	to implement a dedicated management module, that handles the configuration
+	aspects. It is recommended to store the actual configuration data in a
+	structured data format, such as Json, and manage it within source control
+	(which has the added benefit of tracking all changes).
+	
+	One configuration management tool provided by this project is the ADMF
+	module. It allows using json file and provides the tools to hierarchically
+	combine and merge configuration-sets.
+
+
+     #------------------------------------------------------------------------#
+     #                                 Names                                  #
+     #------------------------------------------------------------------------#
+     #------------------------------------------------------------------------#
+     #                            Execution Order                             #
+     #------------------------------------------------------------------------#
+     #------------------------------------------------------------------------#
+     #                           Custom Credentials                           #
+     #------------------------------------------------------------------------#
+     #------------------------------------------------------------------------#
+     #                            Callback System                             #
+     #------------------------------------------------------------------------#
+
+KEYWORDS
+	DomainManagement
