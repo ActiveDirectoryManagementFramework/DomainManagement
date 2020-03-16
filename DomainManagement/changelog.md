@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: User - now supports setting the "Enabled" state.
+
 ## 1.1.27 (2020-03-02)
 
 - New: Group Policy Permissions can now be defined as configuration.

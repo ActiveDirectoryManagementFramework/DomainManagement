@@ -114,7 +114,7 @@
 
 					if ($testItem.Changed -contains 'Enabled') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.EnableDisable' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
-							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
+							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 				}
