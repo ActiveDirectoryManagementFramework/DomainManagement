@@ -110,6 +110,11 @@
 			if ($ouPath -ne (Resolve-String -Text $userDefinition.Path)) {
 				$null = $changes.Add('Path')
 			}
+			if ($userDefinition.Enabled -ne "Undefined") {
+				if ($adObject.Enabled -ne $userDefinition.Enabled) {
+					$null = $changes.Add('Enabled')
+				}
+			}
 			if ($changes.Count) {
 				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject
 			}

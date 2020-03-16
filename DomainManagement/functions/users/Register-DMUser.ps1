@@ -1,5 +1,4 @@
-﻿function Register-DMUser
-{
+﻿function Register-DMUser {
 	<#
 	.SYNOPSIS
 		Registers a user definition into the configuration domains are compared to.
@@ -42,6 +41,10 @@
 	.PARAMETER Path
 		The organizational unit the user should be placed in.
 		Subject to string insertion.
+
+	.PARAMETER Enabled
+		Whether the user object should be enabled or disabled.
+		Defaults to: Undefined
 	
 	.PARAMETER OldNames
 		Previous names the user object had.
@@ -88,6 +91,11 @@
 		$Path,
 
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[PSFramework.Utility.TypeTransformationAttribute([string])]
+		[DomainManagement.TriBool]
+		$Enabled = 'Undefined',
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string[]]
 		$OldNames = @(),
 
@@ -96,20 +104,20 @@
 		$Present = $true
 	)
 
-	process
-	{
+	process {
 
 		$userHash = @{
-			PSTypeName = 'DomainManagement.User'
-			SamAccountName = $SamAccountName
-			GivenName = $GivenName
-			Surname = $Surname
-			Description = $null
+			PSTypeName           = 'DomainManagement.User'
+			SamAccountName       = $SamAccountName
+			GivenName            = $GivenName
+			Surname              = $Surname
+			Description          = $null
 			PasswordNeverExpires = $PasswordNeverExpires.ToBool()
-			UserPrincipalName = $UserPrincipalName
-			Path = $Path
-			OldNames = $OldNames
-			Present = $Present
+			UserPrincipalName    = $UserPrincipalName
+			Path                 = $Path
+			Enabled              = $Enabled
+			OldNames             = $OldNames
+			Present              = $Present
 		}
 		if ($Description) {
 			$userHash['Description'] = $Description

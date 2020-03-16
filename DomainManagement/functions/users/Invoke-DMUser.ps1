@@ -72,7 +72,7 @@
 							PasswordNeverExpires = $testItem.Configuration.PasswordNeverExpires
 							Path = $targetOU
 							AccountPassword = (New-Password -Length 128 -AsSecureString)
-							Enabled = $true
+							Enabled = $testItem.Configuration.Enabled # Both True and Undefined will result in $true
 						}
 						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
 						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }
@@ -109,7 +109,13 @@
 					{
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
 							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes
-						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+					}
+
+					if ($testItem.Changed -contains 'Enabled') {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.EnableDisable' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
+							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 				}
 			}

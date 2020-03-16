@@ -31,7 +31,7 @@
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
-	# RequiredAssemblies = @('bin\DomainManagement.dll')
+	RequiredAssemblies = @('bin\DomainManagement.dll')
 	
 	# Type files (.ps1xml) to be loaded when importing this module
 	# TypesToProcess = @('xml\DomainManagement.Types.ps1xml')

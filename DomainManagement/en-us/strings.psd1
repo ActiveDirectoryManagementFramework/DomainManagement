@@ -115,6 +115,7 @@
 	'Invoke-DMUser.User.MultipleOldUsers'                           = 'Cannot rename user to {0}: More than one user exists owning one of the previous names. Conflicting users: {1}. Please investigate and manually resolve.' # $testItem.Identity, ($testItem.ADObject.Name -join ', ')
 	'Invoke-DMUser.User.Rename'                                     = 'Renaming active directory user to {0}' # (Resolve-String -Text $testItem.Configuration.SamAccountName)
 	'Invoke-DMUser.User.Update'                                     = 'Updating {0} on active directory user' # ($changes.Keys -join ", ")
+	'Invoke-DMUser.User.Update.EnableDisable'                       = 'Changing user enabled state to: {0}' # $testItem.Configuration.Enabled
 	'Invoke-DMUser.User.Update.OUExistsNot'                         = 'Cannot move active directory group {0} - user does not exist: {1}' # $testItem.Identity, $targetOU
 	
 	'Remove-GroupPolicy.Deleting'                                   = 'Deleting GPO: {0}' # $ADObject.DisplayName
