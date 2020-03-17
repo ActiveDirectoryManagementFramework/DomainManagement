@@ -29,6 +29,6 @@
     if ($Rule1.ObjectType -ne $Rule2.ObjectType) { return $false }
     if ($Rule1.InheritedObjectType -ne $Rule2.InheritedObjectType) { return $false }
     if ($Rule1.AccessControlType -ne $Rule2.AccessControlType) { return $false }
-    if ((Convert-BuiltInToSID -Identity $Rule1.IdentityReference) -ne (Convert-BuiltInToSID -Identity $Rule2.IdentityReference)) { return $false }
+    if ("$(Convert-BuiltInToSID -Identity $Rule1.IdentityReference)" -ne "$(Convert-BuiltInToSID -Identity $Rule2.IdentityReference)") { return $false }
     return $true
 }
