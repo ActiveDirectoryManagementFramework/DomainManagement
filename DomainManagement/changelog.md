@@ -2,7 +2,9 @@
 
 ## ???
 
+- New: DomainData Component - allows dynamically gathering domain specific information.
 - Upd: User - now supports setting the "Enabled" state.
+- Fix: Access Rules - identity reference comparison would rarely fail to match equal identities
 
 ## 1.1.27 (2020-03-02)
 

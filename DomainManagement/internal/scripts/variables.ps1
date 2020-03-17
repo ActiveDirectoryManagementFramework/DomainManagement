@@ -50,6 +50,9 @@ $script:objectCategories = @{ }
 # Configured generic objects
 $script:objects = @{ }
 
+# Configured data gathering scripts
+$script:domainDataScripts = @{ }
+
 
  #----------------------------------------------------------------------------#
  #                                Cached Data                                 #
@@ -61,6 +64,9 @@ $script:resolvedPrincipals = @{ }
 # More principal caching, used by Convert-Principal. Mapping to SID or NT Account
 $script:cache_PrincipalToSID = @{ }
 $script:cache_PrincipalToNT = @{ }
+
+# Cached domain data, used by Invoke-DMDomainData. Can be any script logic result
+$script:cache_DomainData = @{ }
 
 
  #----------------------------------------------------------------------------#

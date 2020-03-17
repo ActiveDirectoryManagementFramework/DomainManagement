@@ -1,33 +1,33 @@
 ﻿@{
 	# Script module or binary module file associated with this manifest
-	RootModule = 'DomainManagement.psm1'
+	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion = '1.1.27'
+	ModuleVersion      = '1.1.27'
 	
 	# ID used to uniquely identify this module
-	GUID = '0a405382-ebc2-445b-8325-541535810193'
+	GUID               = '0a405382-ebc2-445b-8325-541535810193'
 	
 	# Author of this module
-	Author = 'Friedrich Weinmann'
+	Author             = 'Friedrich Weinmann'
 	
 	# Company or vendor of this module
-	CompanyName = 'Microsoft'
+	CompanyName        = 'Microsoft'
 	
 	# Copyright statement for this module
-	Copyright = 'Copyright (c) 2019 Friedrich Weinmann'
+	Copyright          = 'Copyright (c) 2019 Friedrich Weinmann'
 	
 	# Description of the functionality provided by this module
-	Description = 'Module to manage domain configuration'
+	Description        = 'Module to manage domain configuration'
 	
 	# Minimum version of the Windows PowerShell engine required by this module
-	PowerShellVersion = '5.0'
+	PowerShellVersion  = '5.0'
 	
 	# Modules that must be imported into the global environment prior to importing
 	# this module
-	RequiredModules = @(
-		@{ ModuleName='PSFramework'; ModuleVersion='1.1.59' }
-		@{ ModuleName='ADSec'; ModuleVersion='0.2.1' }
+	RequiredModules    = @(
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.1.59' }
+		@{ ModuleName = 'ADSec'; ModuleVersion = '0.2.1' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
@@ -37,10 +37,10 @@
 	# TypesToProcess = @('xml\DomainManagement.Types.ps1xml')
 	
 	# Format files (.ps1xml) to be loaded when importing this module
-	FormatsToProcess = @('xml\DomainManagement.Format.ps1xml')
+	FormatsToProcess   = @('xml\DomainManagement.Format.ps1xml')
 	
 	# Functions to export from this module
-	FunctionsToExport = @(
+	FunctionsToExport  = @(
 		'Clear-DMConfiguration'
 		'Convert-DMSchemaGuid'
 		'Get-DMAccessRule'
@@ -119,37 +119,42 @@
 		'Unregister-DMOrganizationalUnit'
 		'Unregister-DMPasswordPolicy'
 		'Unregister-DMUser'
+
+		'Get-DMDomainData'
+		'Invoke-DMDomainData'
+		'Register-DMDomainData'
+		'Unregister-DMDomainData'
 	)
 	
 	# Cmdlets to export from this module
-	CmdletsToExport = ''
+	CmdletsToExport    = ''
 	
 	# Variables to export from this module
-	VariablesToExport = ''
+	VariablesToExport  = ''
 	
 	# Aliases to export from this module
-	AliasesToExport = ''
+	AliasesToExport    = ''
 	
 	# List of all modules packaged with this module
-	ModuleList = @()
+	ModuleList         = @()
 	
 	# List of all files packaged with this module
-	FileList = @()
+	FileList           = @()
 	
 	# Private data to pass to the module specified in ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-	PrivateData = @{
+	PrivateData        = @{
 		
 		#Support for PowerShellGet galleries.
 		PSData = @{
 			
 			# Tags applied to this module. These help with module discovery in online galleries.
-			Tags = @('activedirectory','domain','admf')
+			Tags         = @('activedirectory', 'domain', 'admf')
 			
 			# A URL to the license for this module.
-			LicenseUri = 'https://github.com/ActiveDirectoryManagementFramework/DomainManagement/blob/master/LICENSE'
+			LicenseUri   = 'https://github.com/ActiveDirectoryManagementFramework/DomainManagement/blob/master/LICENSE'
 			
 			# A URL to the main website for this project.
-			ProjectUri = 'https://admf.one'
+			ProjectUri   = 'https://admf.one'
 			
 			# A URL to an icon representing this module.
 			# IconUri = ''
