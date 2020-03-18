@@ -195,7 +195,7 @@
 			else { $result.Success = $true }
 			return $result
 		}
-		Write-PSFMessage -String 'Test-DMGPRegistrySetting.TestResult' -StringValues $result.Success, $result.Status -Target $PolicyName
+		Write-PSFMessage -String 'Test-DMGPRegistrySetting.TestResult' -StringValues $resolvedName, $result.Success, $result.Status -Target $PolicyName
 		#endregion Executing the Query
 
 		# Result

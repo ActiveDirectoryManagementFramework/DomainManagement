@@ -16,6 +16,8 @@
 	'Install-GroupPolicy.CopyingFiles'                              = 'Copying GPO files for "{0}"' # $Configuration.DisplayName
 	'Install-GroupPolicy.CopyingFiles.Failed'                       = 'Failed to copy the GPO files for "{0}"' # $Configuration.DisplayName
 	'Install-GroupPolicy.DeletingImportFiles'                       = 'Deleting the GPO files for "{0}"' # $Configuration.DisplayName
+	'Install-GroupPolicy.Importing.RegistryValues'                  = 'Applying registry settings to GPO "{0}"' # $Configuration.DisplayName
+	'Install-GroupPolicy.Importing.RegistryValues.Failed'           = 'Failed to apply registry settings to GPO "{0}": {1} --> {2}' # $Configuration.DisplayName, $registryDatum.Key, $registryDatum.ValueName
 	'Install-GroupPolicy.ImportingConfiguration'                    = 'Importing the GPO "{0}" from the defined source files' # $Configuration.DisplayName
 	'Install-GroupPolicy.ImportingConfiguration.Failed'             = 'Failed to impoter the GPO "{0}"' # $Configuration.DisplayName
 	'Install-GroupPolicy.ReadingADObject'                           = 'Reading the AD object of the imported GPO: "{0}"' # $Configuration.DisplayName
@@ -44,6 +46,11 @@
 	'Invoke-DMAcl.ShouldManage'                                     = 'The ADObject {0} has no defined ACL state and should either be configured or removed' # $testItem.Identity
 	'Invoke-DMAcl.UpdatingInheritance'                              = 'Updating inheritance - Inheritance Disabled: {0}' # $testItem.Configuration.NoInheritance
 	'Invoke-DMAcl.UpdatingOwner'                                    = 'Granting ownership to {0}' # ($testItem.Configuration.Owner | Resolve-String)
+	
+	'Invoke-DMDomainData.Invocation.Error'                          = 'An exception was thrown while executing the domain data script "{0}".' # $Name
+	'Invoke-DMDomainData.Invocation.Error.Terminate'                = 'Critical Error: An exception was thrown while executing the domain data script "{0}".' # $Name
+	'Invoke-DMDomainData.Script.NotFound'                           = 'Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
+	'Invoke-DMDomainData.Script.NotFound.Error'                     = 'Critical error: Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
 	
 	'Invoke-DMGPLink.Delete.AllDisabled'                            = 'Removing all ({0}) policy links (all of which are disabled)' # $countActual
 	'Invoke-DMGPLink.Delete.AllEnabled'                             = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
@@ -82,6 +89,7 @@
 	'Invoke-DMGroupMembership.Unresolved'                           = 'Could not identify required group member: {0}' # $testItem.Identity
 	
 	'Invoke-DMGroupPolicy.Delete'                                   = 'Deleting group policy object: {0}.' # $testItem.Identity
+	'Invoke-DMGroupPolicy.Install.OnBadRegistry'                    = 'Re-applying GPO "{0}" after detecting a registry setting that is not as defined.' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnConfigError'                    = 'Re-applying GPO "{0}" after failing to read its configuration' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnManage'                         = 'Re-Applying GPO "{0}" for the first time to bring it under management' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnModify'                         = 'GPO "{0}" was modified outside this system, re-applying GPO' # $testItem.Identity
@@ -145,17 +153,21 @@
 	'Test-DMGPLink.OUNotFound'                                      = 'Failed to find the configured OU: {0} - Please validate your OU configuration and bring your OU estate into the desired state first!' # $resolvedName
 	
 	'Test-DMGPPermission.Filter.Path.DoesNotExist.SilentlyContinue' = 'The searchbase for the filter condition {0} could not be found. This however was defined as optional and is not an error: {1}' # $Condition.Name, $searchBase
-	'Test-DMGPPermission.Filter.Path.DoesNotExist.Stop'             = 'The searchbase {1} for the filter condition {0} could not be found. A consistent picture of the desired permission configuration is impossible, terminating!' # $Condition.Name, $searchBase
+	'Test-DMGPPermission.Filter.Path.DoesNotExist.Stop'             = 'The searchbase {1} for the filter condition {0} could not be found. A consistent picture of the desired permission configuration is impossible, terminating!' # $searchBase
 	'Test-DMGPPermission.Filter.Result'                             = 'Resolved filter condition {0} to GPOs: {1}' # $key, ($filterToGPOMapping[$key].DisplayName -join ', ')
 	'Test-DMGPPermission.Identity.Resolution.Error'                 = 'Failed to resolve the identity of an intended privilege-holder on {0}. Cancelling the processing for this GPO, as correct access configuration is not assured.' # $adObject.DisplayName
 	'Test-DMGPPermission.Validate.MissingFilterConditions'          = 'Critical configuration error: Not all referenced Group Policy Permission filter-conditions were defined. Undefined conditions: {0}' # ($missingConditions -join ", ")
 	'Test-DMGPPermission.WinRM.Failed'                              = 'Failed to connect to {0}' # $computerName
+	
+	'Test-DMGPRegistrySetting.TestResult'                           = 'Finished testing GP Registry settings against {0}. Success: {1} | Status: {2}' # $result.Success, $result.Status
+	'Test-DMGPRegistrySetting.WinRM.Failed'                         = 'Failed to connect to {0}' # $parameters.Server
 	
 	'Test-DMGroupMembership.Assignment.Resolve.Connect'             = 'Failed to resolve {2} {1} - Could not connect to {0}' # (Resolve-String -Text $assignment.Domain), (Resolve-String -Text $assignment.Name), $assignment.ItemType
 	'Test-DMGroupMembership.Assignment.Resolve.NotFound'            = 'Successfully queried domain "{0}", but the member {1} of type {2} could not be found' # (Resolve-String -Text $assignment.Domain), (Resolve-String -Text $assignment.Name), $assignment.ItemType
 	'Test-DMGroupMembership.Group.Access.Failed'                    = 'Failed to access group {0} in target domain, cannot compare its members with the configured state.' # $resolvedGroupName
 	
 	'Test-DMGroupPolicy.ADObjectAccess.Failed'                      = 'Failed to access GPO active directory object for: {0}' # $managedPolicy.DistinguishedName
+	'Test-DMGroupPolicy.DomainData.Failed'                          = 'Failed to retrieve the domain-specific data for the following sources: {0}' # ($domainDataNames -join ",")
 	'Test-DMGroupPolicy.PolicyRevision.Lookup.Failed'               = 'Failed to resolve GPO in AD: {0}' # $managedPolicies.DisplayName
 	'Test-DMGroupPolicy.WinRM.Failed'                               = 'Failed to connect to "{0}" via WinRM/PowerShell Remoting.' # $computerName
 	
@@ -164,6 +176,7 @@
 	
 	'Test-DMPasswordPolicy.SubjectGroup.NotFound'                   = 'Failed to find the group {0}, which should be granted permission to the Finegrained Password Policy {1}' # $groupName, $resolvedName
 	
+	'Validate.DomainData.Pattern'                                   = 'Invalid input: {0}. A domain data name must only consist of numbers, letters and underscore.' # <user input>, <validation item>
 	'Validate.GPPermissionFilter'                                   = 'Invalid GP Permission filter: {0}' # <user input>, <validation item>
 	'Validate.GPPermissionFilter.InvalidIdentifiers'                = 'Invalid filter elements (filter names): {1}. Filters can only consist of letters, numbers and underscore. Filter: {0}' # $_, ($invalidIdentifiers -join ', ')
 	'Validate.GPPermissionFilter.InvalidParameters'                 = 'Invalid filter elements (parameters): {1}. Only the four basic logical parameters are allowed: -and, -or, -not, -xor! Filter: {0}' # $_, ($invalidParameters -join ', ')
