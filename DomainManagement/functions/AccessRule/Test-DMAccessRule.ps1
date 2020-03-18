@@ -242,8 +242,8 @@
 				if (-not $parentObject.ObjectSID) {
 					Stop-PSFFunction -String 'Resolve-Identity.ParentObject.NoSecurityPrincipal' -StringValues $ADObject, $parentObject.Name, $parentObject.ObjectClass -EnableException $true -Cmdlet $PSCmdlet
 				}
-				if ($parentObject.SamAccountName) { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.NetBIOSName, $parentObject.SamAccountName) }
-				else { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.NetBIOSName, $parentObject.Name) }
+				if ($parentObject.SamAccountName) { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.Name, $parentObject.SamAccountName) }
+				else { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.Name, $parentObject.Name) }
 			}
 			#endregion Parent Resolution
 

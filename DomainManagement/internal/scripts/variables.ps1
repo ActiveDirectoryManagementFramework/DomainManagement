@@ -26,6 +26,9 @@ $script:passwordPolicies = @{ }
 # Configured group policy objects
 $script:groupPolicyObjects = @{ }
 
+# Configured group policy registry settings
+$script:groupPolicyRegistrySettings = @{ }
+
 # Configured group policy links
 $script:groupPolicyLinks = @{ }
 

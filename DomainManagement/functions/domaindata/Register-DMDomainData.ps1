@@ -43,6 +43,7 @@
 	process {
 		$script:domainDataScripts[$Name] = [PSCustomObject]@{
 			Name        = $Name
+			Placeholder = '%!{0}%' -f $Name
 			Scriptblock = $Scriptblock
 			ContextName = $ContextName	
 		}

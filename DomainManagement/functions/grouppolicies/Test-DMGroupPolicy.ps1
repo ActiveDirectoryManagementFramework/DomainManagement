@@ -1,5 +1,4 @@
-﻿function Test-DMGroupPolicy
-{
+﻿function Test-DMGroupPolicy {
 	<#
 	.SYNOPSIS
 		Tests whether the current domain has the desired group policy setup.
@@ -38,8 +37,7 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -47,6 +45,16 @@
 		Assert-Configuration -Type GroupPolicyObjects -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
 		$computerName = (Get-ADDomain @parameters).PDCEmulator
+
+		# DomainData retrieval
+		$domainDataNames = ((Get-DMGroupPolicy).DisplayName | Get-DMGPRegistrySetting | Where-Object DomainData).DomainData | Select-Object -Unique
+		try { $null = $domainDataNames | Invoke-DMDomainData @parameters -EnableException }
+		catch {
+			Stop-PSFFunction -String 'Test-DMGroupPolicy.DomainData.Failed' -StringValues ($domainDataNames -join ",") -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $computerName
+			return
+		}
+
+		# PS Remoting
 		$psParameter = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential -Inherit
 		try { $session = New-PSSession @psParameter -ErrorAction Stop }
 		catch {
@@ -54,12 +62,11 @@
 			return
 		}
 	}
-	process
-	{
+	process {
 		if (Test-PSFFunctionInterrupt) { return }
 
 		$resultDefaults = @{
-			Server = $Server
+			Server     = $Server
 			ObjectType = 'GroupPolicy'
 		}
 
@@ -95,8 +102,7 @@
 			switch ($managedHash[$desiredPolicy.DisplayName].State) {
 				'ConfigError' { New-TestResult @resultDefaults -Type 'ConfigError' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName] }
 				'CriticalError' { New-TestResult @resultDefaults -Type 'CriticalError' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName] }
-				'Healthy'
-				{
+				'Healthy' {
 					$policyObject = $managedHash[$desiredPolicy.DisplayName]
 					if ($desiredPolicy.ExportID -ne $policyObject.ExportID) {
 						New-TestResult @resultDefaults -Type 'Update' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
@@ -106,9 +112,13 @@
 						New-TestResult @resultDefaults -Type 'Modified' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
+					$registryTest = Test-DMGPRegistrySetting @parameters -PolicyName $desiredPolicy.DisplayName -PassThru
+					if (-not $registryTest.Success) {
+						New-TestResult @resultDefaults -Type 'BadRegistryData' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject -Changed $registryTest.Changes
+						continue
+					}
 				}
-				'Unmanaged'
-				{
+				'Unmanaged' {
 					New-TestResult @resultDefaults -Type 'Manage' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName]
 				}
 			}
@@ -123,8 +133,7 @@
 		}
 		#endregion Compare actual state to configuration
 	}
-	end
-	{
+	end {
 		if ($session) { Remove-PSSession $session -WhatIf:$false }
 	}
 }

@@ -1,5 +1,4 @@
-﻿function Resolve-String
-{
+﻿function Resolve-String {
 	<#
 		.SYNOPSIS
 			Resolves a string, inserting all registered placeholders as appropriate.
@@ -10,6 +9,12 @@
 		
 		.PARAMETER Text
 			The string on which to perform the replacements.
+	
+		.PARAMETER Server
+			The server / domain to work with.
+		
+		.PARAMETER Credential
+			The credentials to use for this operation.
 
 		.EXAMPLE
 			PS C:\> Resolve-String -Text $_.GroupName
@@ -23,28 +28,40 @@
 		[AllowEmptyString()]
 		[AllowNull()]
 		[string[]]
-		$Text
+		$Text,
+
+		[PSFComputer]
+		$Server,
+		
+		[PSCredential]
+		$Credential
 	)
 	
-	begin
-	{
+	begin {
+		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+
 		$replacementScript = {
 			param (
 				[string]
 				$Match
 			)
 
+			if ($Match -like "%!*%") {
+				try { (Invoke-DMDomainData -Name $Match.Trim('%!') @parameters -EnableException).Data }
+				catch { throw }
+			}
 			if ($script:nameReplacementTable[$Match]) { $script:nameReplacementTable[$Match] }
 			else { $Match }
 		}
 
 		$pattern = $script:nameReplacementTable.Keys -join "|"
+		if ($Server) { $pattern += '|{0}' -f ($script:domainDataScripts.Values.Placeholder -join "|") }
 	}
-	process
-	{
+	process {
 		foreach ($textItem in $Text) {
-			if (-not $textItem) { return $textItem}
-			[regex]::Replace($textItem, $pattern, $replacementScript)
+			if (-not $textItem) { return $textItem }
+			try { [regex]::Replace($textItem, $pattern, $replacementScript) }
+			catch { throw }
 		}
 	}
 }

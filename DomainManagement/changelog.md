@@ -3,8 +3,11 @@
 ## ???
 
 - New: DomainData Component - allows dynamically gathering domain specific information.
+- New: Group Policy Registry Settings Component - allows definining explicit registry settings to deploy using the targete GPO. Tightly integrated into the Group Policy component.
 - Upd: User - now supports setting the "Enabled" state.
+- Upd: Domain Context - Adding %DomainNetBIOSName% placeholder
 - Fix: Access Rules - identity reference comparison would rarely fail to match equal identities
+- Fix: Access Rules - identity resolution of parents would domain-prefix the netbios name, not the domain name.
 
 ## 1.1.27 (2020-03-02)
 

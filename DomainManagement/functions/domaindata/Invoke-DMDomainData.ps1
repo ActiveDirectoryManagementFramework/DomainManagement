@@ -32,6 +32,7 @@
 	#>
 	[CmdletBinding()]
 	Param (
+		[Parameter(ValueFromPipeline = $true)]
 		[PsfValidatePattern('^[\d\w_]+$', ErrorString = 'DomainManagement.Validate.DomainData.Pattern')]
 		[string]
 		$Name,
@@ -92,7 +93,7 @@
 		}
 
 		try {
-			$result.data = $scriptTask.Scriptblock.Invoke($parameters)
+			$result.data = $scriptTask.Scriptblock.Invoke($parameters.Clone())
 			$result.Success = $true
 			$result.Type = 'Success'
 			$result.Timestamp = Get-Date
