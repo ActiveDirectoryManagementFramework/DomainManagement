@@ -9,14 +9,15 @@
 	
 	.PARAMETER PolicyName
 		Name of the group policy object to attach this setting to.
-		Subject to string insertion.
+		Subject to advanced string insertion.
 	
 	.PARAMETER Key
 		The registry key affected.
-		Subject to string insertion.
+		Subject to advanced string insertion.
 	
 	.PARAMETER ValueName
 		The name of the value to modify.
+		Subject to advanced string insertion.
 	
 	.PARAMETER Value
 		The value to insert into the specified registry-key-value.
