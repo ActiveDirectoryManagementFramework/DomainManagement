@@ -60,7 +60,7 @@
 	process {
 		foreach ($textItem in $Text) {
 			if (-not $textItem) { return $textItem }
-			try { [regex]::Replace($textItem, $pattern, $replacementScript) }
+			try { [regex]::Replace($textItem, $pattern, $replacementScript, 'IgnoreCase') }
 			catch { throw }
 		}
 	}

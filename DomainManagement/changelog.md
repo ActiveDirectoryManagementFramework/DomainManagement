@@ -6,8 +6,10 @@
 - New: Group Policy Registry Settings Component - allows definining explicit registry settings to deploy using the targete GPO. Tightly integrated into the Group Policy component.
 - Upd: User - now supports setting the "Enabled" state.
 - Upd: Domain Context - Adding %DomainNetBIOSName% placeholder
+- Upd: Names - All placeholders are no longer case sensitive
 - Fix: Access Rules - identity reference comparison would rarely fail to match equal identities
 - Fix: Access Rules - identity resolution of parents would domain-prefix the netbios name, not the domain name.
+- Fix: Access Rules - an unknown privilege (e.g. due to missing Schema Extension) now reports an actionable error cause.
 
 ## 1.1.27 (2020-03-02)
 

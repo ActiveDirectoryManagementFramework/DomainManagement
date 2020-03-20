@@ -152,8 +152,14 @@
 				Changes    = @()
 			}
 
-			if (-not ($gpo = Get-GPO -Name $RegData.GPO)) {
-				$result.Status = "PolicyNotFound"
+			try {
+				if (-not ($gpo = Get-GPO -Name $RegData.GPO -ErrorAction Stop)) {
+					$result.Status = "PolicyNotFound"
+					return $result
+				}
+			}
+			catch {
+				$result.Status = "Error: $_"
 				return $result
 			}
 
@@ -195,7 +201,9 @@
 			else { $result.Success = $true }
 			return $result
 		}
-		Write-PSFMessage -String 'Test-DMGPRegistrySetting.TestResult' -StringValues $resolvedName, $result.Success, $result.Status -Target $PolicyName
+		$level = 'Verbose'
+		if ($result.Status -like 'Error:*') { $level = 'Warning' }
+		Write-PSFMessage -Level $level -String 'Test-DMGPRegistrySetting.TestResult' -StringValues $resolvedName, $result.Success, $result.Status -Target $PolicyName
 		#endregion Executing the Query
 
 		# Result

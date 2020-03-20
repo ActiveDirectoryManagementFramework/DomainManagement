@@ -82,7 +82,11 @@
 						#region Add Access Rules
 						if ($changeEntry.Type -eq 'Create') {
 							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Create' -StringValues $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType -Target $changeEntry
-							try { $accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType) }
+							try {
+								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+							}
 							catch {
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
