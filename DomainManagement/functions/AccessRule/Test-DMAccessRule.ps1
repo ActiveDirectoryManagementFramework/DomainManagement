@@ -52,8 +52,16 @@
 				$ADRules,
 				$ConfiguredRules,
 				$DefaultRules,
-				$ADObject
+				$ADObject,
+
+				[PSFComputer]
+				$Server,
+				
+				[PSCredential]
+				$Credential
 			)
+
+			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
 			function Write-Result {
 				[CmdletBinding()]
@@ -93,27 +101,27 @@
 				#endregion Skip OUs' "Protect from Accidential Deletion" ACE
 
 				foreach ($defaultRule in $DefaultRules) {
-					if (Test-AccessRuleEquality -Rule1 $adRule -Rule2 $defaultRule) { continue outer }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $adRule -Rule2 $defaultRule) { continue outer }
 				}
 				$adRule
 			}
 
 			:outer foreach ($relevantADRule in $relevantADRules) {
 				foreach ($configuredRule in $ConfiguredRules) {
-					if (Test-AccessRuleEquality -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}
 				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule
 			}
 
 			:outer foreach ($configuredRule in $ConfiguredRules) {
 				foreach ($defaultRules in $DefaultRules) {
-					if (Test-AccessRuleEquality -Rule1 $defaultRules -Rule2 $configuredRule) {
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRules -Rule2 $configuredRule) {
 						Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule
 						continue outer
 					}
 				}
 				foreach ($relevantADRule in $relevantADRules) {
-					if (Test-AccessRuleEquality -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}
 				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule
 			}
@@ -384,8 +392,9 @@
 			# Skip items that were defined in configuration, they were already processed
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }
 
+			$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
 			$compareParam = @{
-				ADRules = ((Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName).Access | Convert-AccessRuleIdentity @parameters)
+				ADRules = $adAclObject.Access | Convert-AccessRuleIdentity @parameters
 				DefaultRules = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
 				ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
 				ADObject = $foundADObject

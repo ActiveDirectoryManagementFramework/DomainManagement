@@ -81,9 +81,13 @@
 					$acl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule(([System.Security.Principal.NTAccount]'Everyone'), 'DeleteTree, Delete', 'Deny', '00000000-0000-0000-0000-000000000000', 'None', '00000000-0000-0000-0000-000000000000')))
 				}
 				#>
+				$access = foreach ($accessRule in $acl.Access) {
+					Add-Member -InputObject $accessRule -MemberType NoteProperty -Name SID -Value $accessRule.IdentityReference.Translate([System.Security.Principal.NTAccount])
+					$accessRule
+				}
 				[PSCustomObject]@{
 					Class = $class.lDAPDisplayName
-					Access = $acl.Access
+					Access = $access
 				}
 			}
 		}

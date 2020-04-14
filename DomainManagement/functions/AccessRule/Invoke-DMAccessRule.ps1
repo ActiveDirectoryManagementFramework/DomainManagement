@@ -69,7 +69,7 @@
 							if (-not $aclObject.RemoveAccessRule($changeEntry.ADObject.OriginalRule)) {
 								Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
-									if (Test-AccessRuleEquality -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
+									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
 										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType -Target $changeEntry -Debug:$false
 										break
 									}

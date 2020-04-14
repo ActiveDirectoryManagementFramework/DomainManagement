@@ -153,7 +153,7 @@
 			}
 
 			try {
-				if (-not ($gpo = Get-GPO -Name $RegData.GPO -ErrorAction Stop)) {
+				if (-not ($gpo = Get-GPO -Server Localhost -Domain (Get-ADDomain -Server localhost).DNSRoot -Name $RegData.GPO -ErrorAction Stop)) {
 					$result.Status = "PolicyNotFound"
 					return $result
 				}
@@ -163,9 +163,10 @@
 				return $result
 			}
 
+			$domain = Get-ADDomain -Server localhost
 			$changes = foreach ($registryDatum in $RegData.RegistryData) {
 				$data = $null
-				$data = $gpo | Get-GPRegistryValue -Server localhost -Key $registryDatum.Key -ValueName $registryDatum.ValueName -ErrorAction Ignore
+				$data = $gpo | Get-GPRegistryValue -Server localhost -Domain $domain.DNSRoot -Key $registryDatum.Key -ValueName $registryDatum.ValueName -ErrorAction Ignore
 				if (-not $data) {
 					[PSCustomObject]@{
 						PSTypeName  = 'DomainManagement.Change.GPRegistry'

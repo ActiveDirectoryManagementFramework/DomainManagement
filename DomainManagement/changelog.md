@@ -7,9 +7,18 @@
 - Upd: User - now supports setting the "Enabled" state.
 - Upd: Domain Context - Adding %DomainNetBIOSName% placeholder
 - Upd: Names - All placeholders are no longer case sensitive
+- Upd: Get-DMObjectDefaultPermission - now returns also the SID of each identity
 - Fix: Access Rules - identity reference comparison would rarely fail to match equal identities
 - Fix: Access Rules - identity resolution of parents would domain-prefix the netbios name, not the domain name.
 - Fix: Access Rules - an unknown privilege (e.g. due to missing Schema Extension) now reports an actionable error cause.
+- Fix: Access Rules - broken detection of default permissions in domains where NETBIOS name -ne Domain Name
+- Fix: GPPermissions - under rare circumstances would fail due to "unexpected value"
+- Fix: Identity Resolution fails when netbios name and domainname don't match.
+- Fix: Invoke-DMGroupMembership fails to remove members from different domains.
+- Fix: Groups: Fails to rename groups when an OldName exists.
+- Fix: Test-DMAccessRule - returns wrong adobject property on testresult of undefined access rules (cosmetic error only)
+- Fix: Group Membership - fails to remove group members when using credentials
+- Fix: Group Membership - silently fails to remove cross-domain memberships
 
 ## 1.1.27 (2020-03-02)
 

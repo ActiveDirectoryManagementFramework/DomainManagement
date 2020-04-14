@@ -180,8 +180,9 @@
 					$acl | Set-AdsAcl @parameters -Confirm:$false -EnableException
 				} -Continue -EnableException $true -PSCmdlet $PSCmdlet -Target $testResult
 				Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPPermission.Gpo.SyncingPermission' -ActionStringValues $testResult.Changed.Count -ScriptBlock {
+					$domainObject = Get-Domain2 @parameters
 					Invoke-Command -Session $session -ScriptBlock {
-						$gpoObject = Get-Gpo -Server localhost -DisplayName $using:testResult.Identity -ErrorAction Stop
+						$gpoObject = Get-Gpo -Server localhost -DisplayName $using:testResult.Identity -Domain $using:domainObject.DNSRoot -ErrorAction Stop
 						$gpoObject.MakeAclConsistent()
 					} -ErrorAction Stop
 				} -Continue -EnableException $true -PSCmdlet $PSCmdlet -Target $testResult

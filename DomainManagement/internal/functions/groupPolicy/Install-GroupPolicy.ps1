@@ -109,7 +109,8 @@
 				try {
 					Invoke-Command -Session $session -ArgumentList $registryDatum -ScriptBlock {
 						param ($RegistryDatum)
-						$null = Get-GPO -Server localhost -Name $RegistryDatum.GPO -ErrorAction Stop | Set-GPRegistryValue -Server localhost -Key $RegistryDatum.Key -ValueName $RegistryDatum.ValueName -Type $RegistryDatum.Type -Value $RegistryDatum.Value -ErrorAction Stop
+						$domain = Get-ADDomain -Server localhost
+						$null = Get-GPO -Server localhost -Domain $domain.DNSRoot -Name $RegistryDatum.GPO -ErrorAction Stop | Set-GPRegistryValue -Server localhost -Domain $domain.DNSRoot -Key $RegistryDatum.Key -ValueName $RegistryDatum.ValueName -Type $RegistryDatum.Type -Value $RegistryDatum.Value -ErrorAction Stop
 					} -ErrorAction Stop
 				}
 				catch {

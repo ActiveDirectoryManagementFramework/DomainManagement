@@ -1,5 +1,4 @@
-﻿function Invoke-DMGroupMembership
-{
+﻿function Invoke-DMGroupMembership {
 	<#
 	.SYNOPSIS
 		Applies the desired group memberships to the target domain.
@@ -50,8 +49,7 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -77,11 +75,11 @@
 			if ($Server) { $path = "LDAP://$Server/$GroupDN" }
 			else { $path = "LDAP://$GroupDN" }
 			if ($Credential) {
-                $group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
-            }
-            else {
-                $group = New-Object DirectoryServices.DirectoryEntry($path)
-            }
+				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+			}
+			else {
+				$group = New-Object DirectoryServices.DirectoryEntry($path)
+			}
 			[void]$group.member.Add("<SID=$SID>")
 			$group.CommitChanges()
 			$group.Close()
@@ -96,6 +94,8 @@
 				[string]
 				$SID,
 				[string]
+				$TargetDN,
+				[string]
 				$Server,
 				[PSCredential]
 				$Credential
@@ -104,19 +104,35 @@
 			if ($Server) { $path = "LDAP://$Server/$GroupDN" }
 			else { $path = "LDAP://$GroupDN" }
 			if ($Credential) {
-                $group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
-            }
-            else {
-                $group = New-Object DirectoryServices.DirectoryEntry($path)
-            }
-			[void]$group.member.Remove("<SID=$SID>")
-            $group.CommitChanges()
-            $group.Close()
+				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+			}
+			else {
+				$group = New-Object DirectoryServices.DirectoryEntry($path)
+			}
+			$group.member.Remove("<SID=$SID>")
+			$group.member.Remove($TargetDN)
+			try {
+				$group.CommitChanges()
+			}
+			catch {
+				$group.Close()
+
+				if ($Credential) {
+					$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+				}
+				else {
+					$group = New-Object DirectoryServices.DirectoryEntry($path)
+				}
+				$group.member.Remove($TargetDN)
+				$group.CommitChanges()
+			}
+			finally {
+				$group.Close()
+			}
 		}
 		#endregion Utility Functions
 	}
-	process
-	{
+	process {
 		foreach ($testItem in $testResult) {
 			switch ($testItem.Type) {
 				'Add' {
@@ -126,7 +142,7 @@
 				}
 				'Remove' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupMembership.GroupMember.Remove' -ActionStringValues $testItem.ADObject.Name -Target $testItem -ScriptBlock {
-						Remove-GroupMember @parameters -SID $testItem.Configuration.ADObject.ObjectSID -GroupDN $testItem.ADObject.DistinguishedName
+						Remove-GroupMember @parameters -SID $testItem.Configuration.ADObject.ObjectSID -TargetDN $testItem.Configuration.ADObject.DistinguishedName -GroupDN $testItem.ADObject.DistinguishedName
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Unresolved' {

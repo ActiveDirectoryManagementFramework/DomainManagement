@@ -118,7 +118,7 @@
 		if ($credentials = Get-DMDomainCredential -Domain $domainName) { $parameters['Credential'] = $credentials }
 
 		$filter = "(objectSID=$Sid)"
-		if (-not $Sid) {  $filter = "(&(objectClass=$ObjectClass)(name=$Name))" }
+		if (-not $Sid) { $filter = "(&(objectClass=$ObjectClass)(name=$Name))" }
 
 		try { $adObject = Get-ADObject @parameters -LDAPFilter $filter -ErrorAction Stop -Properties * }
 		catch {
