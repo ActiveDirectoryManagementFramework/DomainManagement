@@ -82,7 +82,10 @@
 				}
 				#>
 				$access = foreach ($accessRule in $acl.Access) {
-					Add-Member -InputObject $accessRule -MemberType NoteProperty -Name SID -Value $accessRule.IdentityReference.Translate([System.Security.Principal.NTAccount])
+					try { Add-Member -InputObject $accessRule -MemberType NoteProperty -Name SID -Value $accessRule.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) }
+					catch {
+						# Do nothing, don't want the property if no SID is to be had
+					}
 					$accessRule
 				}
 				[PSCustomObject]@{
