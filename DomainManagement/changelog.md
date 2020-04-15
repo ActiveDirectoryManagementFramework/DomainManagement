@@ -16,6 +16,7 @@
 - Fix: GPPermissions - does not remove all cases of FullControl rights that should be removed
 - Fix: GPPermissions - cannot downgrade permissions from FullControl to Custom
 - Fix: GPPermissions - changing permissions causes the GroupPolicy component to detect a change and flags the policy as modified.
+- Fix: GPPermissions - access error no longer _automatically_ fails with a terminating exception
 - Fix: Identity Resolution fails when netbios name and domainname don't match.
 - Fix: Invoke-DMGroupMembership fails to remove members from different domains.
 - Fix: Groups: Fails to rename groups when an OldName exists.
