@@ -150,12 +150,14 @@
 
 				try { $acl = Get-AdsAcl -Path $testResult.AdObject.DistinguishedName @parameters -ErrorAction Stop }
 				catch { Stop-PSFFunction -String 'Invoke-DMGPPermission.AD.Access.Error' -StringValues $testResult, $testResult.ADObject.DistinguishedName -ErrorRecord $_ -Continue -EnableException $EnableException }
-
+				
+				[string[]]$applicableIdentities = $acl.Access.Identity | Remove-PSFNull | Resolve-String | Convert-Principal @parameters
+				
 				# Process Remove actions first, as they might interfere when processed last and replacing permissions.
 				foreach ($change in ($testResult.Changed | Sort-Object Action -Descending)) {
 					#region Remove
 					if ($change.Action -eq 'Remove') {
-						if ($change.Permission -eq 'GpoCustom') {
+						if (($change.Permission -eq 'GpoCustom') -or ($applicableIdentities -notcontains $change.Identity)) {
 							$rulesToRemove = $acl.Access | Where-Object {
 								$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).ToString() -eq $change.Identity
 							}
@@ -170,6 +172,11 @@
 
 					#region Add
 					else {
+						if ($change.Permission -eq 'GpoCustom') {
+							$acl.Access | Where-Object {
+								$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).ToString() -eq $change.Identity
+							} | ForEach-Object { $null = $acl.RemoveAccessRule($_) }
+						}
 						$accessRulesToAdd = ConvertTo-ADAccessRule -ChangeEntry $change
 						foreach ($rule in $accessRulesToAdd) { $null = $acl.AddAccessRule($rule) }
 					}

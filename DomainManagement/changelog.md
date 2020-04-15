@@ -13,6 +13,9 @@
 - Fix: Access Rules - an unknown privilege (e.g. due to missing Schema Extension) now reports an actionable error cause.
 - Fix: Access Rules - broken detection of default permissions in domains where NETBIOS name -ne Domain Name
 - Fix: GPPermissions - under rare circumstances would fail due to "unexpected value"
+- Fix: GPPermissions - does not remove all cases of FullControl rights that should be removed
+- Fix: GPPermissions - cannot downgrade permissions from FullControl to Custom
+- Fix: GPPermissions - changing permissions causes the GroupPolicy component to detect a change and flags the policy as modified.
 - Fix: Identity Resolution fails when netbios name and domainname don't match.
 - Fix: Invoke-DMGroupMembership fails to remove members from different domains.
 - Fix: Groups: Fails to rename groups when an OldName exists.

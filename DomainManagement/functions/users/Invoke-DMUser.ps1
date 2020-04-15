@@ -102,7 +102,6 @@
 					if ($testItem.Changed -contains 'GivenName') { $changes['GivenName'] = (Resolve-String -Text $testItem.Configuration.GivenName) }
 					if ($testItem.Changed -contains 'Surname') { $changes['sn'] = (Resolve-String -Text $testItem.Configuration.Surname) }
 					if ($testItem.Changed -contains 'Description') { $changes['Description'] = (Resolve-String -Text $testItem.Configuration.Description) }
-					if ($testItem.Changed -contains 'PasswordNeverExpires') { $changes['PasswordNeverExpires'] = $testItem.Configuration.PasswordNeverExpires }
 					if ($testItem.Changed -contains 'UserPrincipalName') { $changes['UserPrincipalName'] = (Resolve-String -Text $testItem.Configuration.UserPrincipalName) }
 					
 					if ($changes.Keys.Count -gt 0)
@@ -115,6 +114,11 @@
 					if ($testItem.Changed -contains 'Enabled') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.EnableDisable' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
 							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+					}
+					if ($testItem.Changed -contains 'PasswordNeverExpires') {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.PasswordNeverExpires' -ActionStringValues $testItem.Configuration.PasswordNeverExpires -Target $testItem -ScriptBlock {
+							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -PasswordNeverExpires $testItem.Configuration.PasswordNeverExpires
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 				}

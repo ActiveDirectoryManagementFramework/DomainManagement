@@ -108,7 +108,7 @@
 						New-TestResult @resultDefaults -Type 'Update' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
-					if ($policyObject.Modified -ne $policyObject.ImportTime) {
+					if ($policyObject.Version -ne $policyObject.ADVersion) {
 						New-TestResult @resultDefaults -Type 'Modified' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
