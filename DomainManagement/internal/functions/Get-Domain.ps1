@@ -48,11 +48,6 @@
 	begin
 	{
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-
-		if (-not $script:SIDtoDomain) { $script:SIDtoDomain = @{ } }
-		if (-not $script:DNStoDomain) { $script:DNStoDomain = @{ } }
-		if (-not $script:DNStoDomainName) { $script:DNStoDomainName = @{ } }
-		if (-not $script:NetBiostoDomain) { $script:NetBiostoDomain = @{ } }
 		
 		# Define variable to prevent superscope lookup
 		$internalSid = $null
@@ -84,7 +79,8 @@
 			}
 			catch { }
 		}
-
+		$domainObject = $null
+		
 		if ($script:SIDtoDomain[$identity]) { return $script:SIDtoDomain[$identity] }
 		if ($script:DNStoDomain[$identity]) { return $script:DNStoDomain[$identity] }
 		if ($script:DNStoDomainName[$identity]) { return $script:DNStoDomainName[$identity] }

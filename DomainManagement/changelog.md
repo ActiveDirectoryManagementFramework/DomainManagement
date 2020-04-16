@@ -23,6 +23,7 @@
 - Fix: Test-DMAccessRule - returns wrong adobject property on testresult of undefined access rules (cosmetic error only)
 - Fix: Group Membership - fails to remove group members when using credentials
 - Fix: Group Membership - silently fails to remove cross-domain memberships
+- Fix: Identity Resolution - first scan against a forest will cache a bad domain object if the searched domain is not accessible with destination domain credentials.
 
 ## 1.1.27 (2020-03-02)
 

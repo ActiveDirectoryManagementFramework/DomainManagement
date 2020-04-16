@@ -71,6 +71,12 @@ $script:cache_PrincipalToNT = @{ }
 # Cached domain data, used by Invoke-DMDomainData. Can be any script logic result
 $script:cache_DomainData = @{ }
 
+# Domain mapping cache, used by Get-Domain
+$script:SIDtoDomain = @{ }
+$script:DNStoDomain = @{ }
+$script:DNStoDomainName = @{ }
+$script:NetBiostoDomain = @{ }
+
 
  #----------------------------------------------------------------------------#
  #                                Context Data                                #
