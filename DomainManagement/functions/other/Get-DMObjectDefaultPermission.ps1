@@ -22,6 +22,7 @@
 
 		Returns the default permissions for a user.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]

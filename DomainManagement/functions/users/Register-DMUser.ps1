@@ -16,6 +16,10 @@
 	.PARAMETER SamAccountName
 		SamAccountName of the user to manage.
 		Subject to string insertion.
+
+	.PARAMETER Name
+		Name of the user to manage.
+		Subject to string insertion.
 	
 	.PARAMETER GivenName
 		Given Name of the user to manage.

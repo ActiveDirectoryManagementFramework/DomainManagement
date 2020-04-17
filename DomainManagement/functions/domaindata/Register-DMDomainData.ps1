@@ -45,7 +45,7 @@
 			Name        = $Name
 			Placeholder = '%!{0}%' -f $Name
 			Scriptblock = $Scriptblock
-			ContextName = $ContextName	
+			ContextName = $ContextName
 		}
 	}
 }

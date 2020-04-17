@@ -42,7 +42,6 @@
 		#region Process Configured Users
 		:main foreach ($userDefinition in $script:users.Values) {
 			$resolvedSamAccName = Resolve-String -Text $userDefinition.SamAccountName
-			$resolvedName = Resolve-String -Text $userDefinition.Name
 
 			$resultDefaults = @{
 				Server = $Server

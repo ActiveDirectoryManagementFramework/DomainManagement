@@ -12,6 +12,9 @@
     .PARAMETER Rule2
         The second rule to compare
     
+    .PARAMETER Parameters
+        Hashtable containing server and credential informations.
+    
     .EXAMPLE
         PS C:\> Test-AccessRuleEquality -Rule1 $rule -Rule2 $rule2
 

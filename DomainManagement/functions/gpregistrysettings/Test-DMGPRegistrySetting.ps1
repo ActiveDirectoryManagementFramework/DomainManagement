@@ -51,6 +51,7 @@
 
 		#region Utility Functions
 		function Write-Result {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseOutputTypeCorrectly', '')]
 			[CmdletBinding()]
 			param (
 				[bool]
@@ -72,7 +73,7 @@
 			[PSCustomObject]@{
 				Success = $Success
 				Status  = $Status
-				Changes = $Changes	
+				Changes = $Changes
 			}
 		}
 		#endregion Utility Functions
