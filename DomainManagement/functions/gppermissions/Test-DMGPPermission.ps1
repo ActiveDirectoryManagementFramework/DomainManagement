@@ -248,6 +248,7 @@
 			#endregion Data Preparation
 
 			#region Process GPO Permissions
+			$domainObject = Get-Domain2 @parameters
 			$permissionObjects = Invoke-Command -Session $session -ScriptBlock {
 				Update-TypeData -TypeName Microsoft.GroupPolicy.GPPermission -SerializationDepth 4
 				foreach ($policyObject in $using:allGpos) {
@@ -257,7 +258,7 @@
 						Error       = $null
 					}
 
-					try { $resultObject.Permissions = Get-GPPermission -All -Name $resultObject.Name -Server localhost -ErrorAction Stop }
+					try { $resultObject.Permissions = Get-GPPermission -All -Name $resultObject.Name -Server localhost -Domain $using:domainObject.DNSRoot -ErrorAction Stop }
 					catch { $resultObject.Error = $_ }
 					$resultObject
 				}

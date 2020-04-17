@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DomainManagement</name>
+    </assembly>
+    <members>
+        <member name="T:DomainManagement.TriBool">
+            <summary>
+            Catches three states: True, False or Undefined
+            </summary>
+        </member>
+        <member name="F:DomainManagement.TriBool.True">
+            <summary>
+            Represents truth
+            </summary>
+        </member>
+        <member name="F:DomainManagement.TriBool.False">
+            <summary>
+            Represents non-truth
+            </summary>
+        </member>
+        <member name="F:DomainManagement.TriBool.Undefined">
+            <summary>
+            No choice was made
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -22,7 +22,6 @@
 	
 	.PARAMETER ExportID
 		The tracking ID assigned to the GPO in order to detect its revision.
-		#TODO: Migrate export command and add documentation.
 	
 	.EXAMPLE
 		PS C:\> Get-Content gpos.json | ConvertFrom-Json | Write-Output | Register-DMGroupPolicy

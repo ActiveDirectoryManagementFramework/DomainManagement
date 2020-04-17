@@ -26,6 +26,9 @@ $script:passwordPolicies = @{ }
 # Configured group policy objects
 $script:groupPolicyObjects = @{ }
 
+# Configured group policy registry settings
+$script:groupPolicyRegistrySettings = @{ }
+
 # Configured group policy links
 $script:groupPolicyLinks = @{ }
 
@@ -50,6 +53,9 @@ $script:objectCategories = @{ }
 # Configured generic objects
 $script:objects = @{ }
 
+# Configured data gathering scripts
+$script:domainDataScripts = @{ }
+
 
  #----------------------------------------------------------------------------#
  #                                Cached Data                                 #
@@ -61,6 +67,15 @@ $script:resolvedPrincipals = @{ }
 # More principal caching, used by Convert-Principal. Mapping to SID or NT Account
 $script:cache_PrincipalToSID = @{ }
 $script:cache_PrincipalToNT = @{ }
+
+# Cached domain data, used by Invoke-DMDomainData. Can be any script logic result
+$script:cache_DomainData = @{ }
+
+# Domain mapping cache, used by Get-Domain
+$script:SIDtoDomain = @{ }
+$script:DNStoDomain = @{ }
+$script:DNStoDomainName = @{ }
+$script:NetBiostoDomain = @{ }
 
 
  #----------------------------------------------------------------------------#

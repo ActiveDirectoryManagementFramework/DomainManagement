@@ -1,5 +1,4 @@
-﻿function Get-LinkedPolicy
-{
+﻿function Get-LinkedPolicy {
 	<#
 	.SYNOPSIS
 		Scans all managed OUs and returns linked GPOs.
@@ -20,31 +19,29 @@
 		Returns all group policy objects that are linked to OUs under management.
 	#>
 	[CmdletBinding()]
-	Param (
+	param (
 		[string]
 		$Server,
-
+		
 		[PSCredential]
 		$Credential
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
-
+		
 		# OneLevel needs to be converted to base, as searching for OUs with "OneLevel" would return unmanaged OUs.
 		# This search however is targeted at GPOs linked to managed OUs only.
 		$translateScope = @{
-			'Subtree' = 'Subtree'
+			'Subtree'  = 'Subtree'
 			'OneLevel' = 'Base'
-			'Base' = 'Base'
+			'Base'	   = 'Base'
 		}
-
-		$gpoProperties = 'DisplayName','Description','DistinguishedName','CN','Created','Modified','gPCFileSysPath','ObjectGUID','isCriticalSystemObject'
+		
+		$gpoProperties = 'DisplayName', 'Description', 'DistinguishedName', 'CN', 'Created', 'Modified', 'gPCFileSysPath', 'ObjectGUID', 'isCriticalSystemObject', 'VersionNumber'
 	}
-	process
-	{
+	process {
 		$adObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
 			Get-ADObject @parameters -LDAPFilter '(gPLink=*)' -SearchBase $searchBase.SearchBase -SearchScope $translateScope[$searchBase.SearchScope] -Properties gPLink
 		}
@@ -53,20 +50,22 @@
 		}
 		foreach ($adPolicyObject in ($adObjects.LinkedGroupPolicyObjects | Select-Object -Unique | Get-ADObject @parameters -Properties $gpoProperties)) {
 			[PSCustomObject]@{
-				PSTypeName = 'DomainManagement.GroupPolicy.Linked'
+				PSTypeName  = 'DomainManagement.GroupPolicy.Linked'
 				DisplayName = $adPolicyObject.DisplayName
 				Description = $adPolicyObject.Description
 				DistinguishedName = $adPolicyObject.DistinguishedName
-				LinkedTo = ($adObjects | Where-Object LinkedGroupPolicyObjects -Contains $adPolicyObject.DistinguishedName)
-				CN = $adPolicyObject.CN
-				Created = $adPolicyObject.Created
-				Modified = $adPolicyObject.Modified
-				Path = $adPolicyObject.gPCFileSysPath
-				ObjectGUID = $adPolicyObject.ObjectGUID
-				IsCritical = $adPolicyObject.isCriticalSystemObject
-				ExportID = $null
-				ImportTime = $null
-				State = "Unknown"
+				LinkedTo    = $adObjects | Where-Object LinkedGroupPolicyObjects -Contains $adPolicyObject.DistinguishedName
+				CN		    = $adPolicyObject.CN
+				Created	    = $adPolicyObject.Created
+				Modified    = $adPolicyObject.Modified
+				Path	    = $adPolicyObject.gPCFileSysPath
+				ObjectGUID  = $adPolicyObject.ObjectGUID
+				IsCritical  = $adPolicyObject.isCriticalSystemObject
+				ADVersion   = $adPolicyObject.VersionNumber
+				ExportID    = $null
+				ImportTime  = $null
+				Version	    = -1
+				State	    = "Unknown"
 			}
 		}
 	}

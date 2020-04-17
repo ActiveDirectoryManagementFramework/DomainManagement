@@ -63,6 +63,7 @@
 		$script:domainContext.ForestFqdn = $forestObject.Name
 
 		Register-DMNameMapping -Name '%DomainName%' -Value $domainObject.Name
+		Register-DMNameMapping -Name '%DomainNetBIOSName%' -Value $domainObject.NetbiosName
 		Register-DMNameMapping -Name '%DomainFqdn%' -Value $domainObject.DNSRoot
 		Register-DMNameMapping -Name '%DomainDN%' -Value $domainObject.DistinguishedName
 		Register-DMNameMapping -Name '%DomainSID%' -Value $domainObject.DomainSID.Value

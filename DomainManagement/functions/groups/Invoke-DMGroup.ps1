@@ -5,6 +5,10 @@
 		
 		.DESCRIPTION
 			Updates the group configuration of a domain to conform to the configured state.
+	
+		.PARAMETER InputObject
+			Test results provided by the associated test command.
+			Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 		
 		.PARAMETER Server
 			The server / domain to work with.
@@ -29,7 +33,10 @@
 	#>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
     param (
-        [PSFComputer]
+        [Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
+		[PSFComputer]
         $Server,
 		
         [PSCredential]
@@ -45,12 +52,19 @@
         Assert-ADConnection @parameters -Cmdlet $PSCmdlet
         Invoke-Callback @parameters -Cmdlet $PSCmdlet
         Assert-Configuration -Type Groups -Cmdlet $PSCmdlet
-        $testResult = Test-DMGroup @parameters
         Set-DMDomainContext @parameters
     }
-    process {
-        foreach ($testItem in $testResult) {
-            switch ($testItem.Type) {
+	process {
+		if (-not $InputObject) {
+			$InputObject = Test-DMGroup @parameters
+		}
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.Group.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGroup', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
+			switch ($testItem.Type) {
                 'ShouldDelete' {
                     Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Delete' -Target $testItem -ScriptBlock {
                         Remove-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false

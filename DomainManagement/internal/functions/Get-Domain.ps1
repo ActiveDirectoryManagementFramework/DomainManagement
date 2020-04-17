@@ -48,10 +48,6 @@
 	begin
 	{
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-
-		if (-not $script:SIDtoDomain) { $script:SIDtoDomain = @{ } }
-		if (-not $script:DNStoDomain) { $script:DNStoDomain = @{ } }
-		if (-not $script:NetBiostoDomain) { $script:NetBiostoDomain = @{ } }
 		
 		# Define variable to prevent superscope lookup
 		$internalSid = $null
@@ -64,6 +60,7 @@
 		}
 		if ($internalSid -and $script:SIDtoDomain[$internalSid]) { return $script:SIDtoDomain[$internalSid] }
 		if ($DnsName -and $script:DNStoDomain[$DnsName]) { return $script:DNStoDomain[$DnsName] }
+		if ($DnsName -and $script:DNStoDomainName[$DnsName]) { return $script:DNStoDomainName[$DnsName] }
 		if ($DnsName -and $script:NetBiostoDomain[$DnsName]) { return $script:NetBiostoDomain[$DnsName] }
 
 		$identity = $internalSid
@@ -77,13 +74,16 @@
 				$domainObject = Get-ADDomain -Server $domainName @credsToUse -ErrorAction Stop
 				$script:SIDtoDomain["$($domainObject.DomainSID)"] = $domainObject
 				$script:DNStoDomain["$($domainObject.DNSRoot)"] = $domainObject
+				$script:DNStoDomainName["$($domainObject.Name)"] = $domainObject
 				$script:NetBiostoDomain["$($domainObject.NetBIOSName)"] = $domainObject
 			}
 			catch { }
 		}
-
+		$domainObject = $null
+		
 		if ($script:SIDtoDomain[$identity]) { return $script:SIDtoDomain[$identity] }
 		if ($script:DNStoDomain[$identity]) { return $script:DNStoDomain[$identity] }
+		if ($script:DNStoDomainName[$identity]) { return $script:DNStoDomainName[$identity] }
 		if ($script:NetBiostoDomain[$identity]) { return $script:NetBiostoDomain[$identity] }
 
 		try { $domainObject = Get-ADDomain @parameters -Identity $identity -ErrorAction Stop }
@@ -98,6 +98,7 @@
 		if ($domainObject) {
 			$script:SIDtoDomain["$($domainObject.DomainSID)"] = $domainObject
 			$script:DNStoDomain["$($domainObject.DNSRoot)"] = $domainObject
+			$script:DNStoDomainName["$($domainObject.Name)"] = $domainObject
 			$script:NetBiostoDomain["$($domainObject.NetBIOSName)"] = $domainObject
 			if ($DnsName) { $script:DNStoDomain[$DnsName] = $domainObject }
 			$domainObject
