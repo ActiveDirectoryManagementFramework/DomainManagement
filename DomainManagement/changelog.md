@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.3.62 (2020-04-17)
 
 - New: DomainData Component - allows dynamically gathering domain specific information.
 - New: Group Policy Registry Settings Component - allows definining explicit registry settings to deploy using the targete GPO. Tightly integrated into the Group Policy component.
