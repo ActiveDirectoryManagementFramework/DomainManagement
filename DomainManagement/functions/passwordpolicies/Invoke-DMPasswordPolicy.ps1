@@ -1,5 +1,4 @@
-﻿function Invoke-DMPasswordPolicy
-{
+﻿function Invoke-DMPasswordPolicy {
 	<#
 	.SYNOPSIS
 		Applies the defined, desired state for finegrained password policies (PSOs)
@@ -7,6 +6,10 @@
 	.DESCRIPTION
 		Applies the defined, desired state for finegrained password policies (PSOs)
 		Define the desired state using Register-DMPasswordPolicy.
+	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 	
 	.PARAMETER Server
 		The server / domain to work with.
@@ -32,29 +35,38 @@
 	
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
 		[PSCredential]
 		$Credential,
-
+		
 		[switch]
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type PasswordPolicies -Cmdlet $PSCmdlet
-		$testResult = Test-DMPasswordPolicy @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		foreach ($testItem in $testResult) {
+	process {
+		if (-not $InputObject) {
+			$InputObject = Test-DMPasswordPolicy @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.PSO.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMPasswordPolicy', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				#region Delete
 				'ShouldDelete' {
@@ -63,10 +75,10 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				#endregion Delete
-
+				
 				#region Create
 				'ConfigurationOnly' {
-
+					
 					$parametersNew = $parameters.Clone()
 					$parametersNew += @{
 						Name = (Resolve-String -Text $testItem.Configuration.Name)
@@ -89,12 +101,12 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				#endregion Create
-
+				
 				#region Changed
 				'Changed' {
 					$changes = @{ }
 					$updateAssignment = $false
-
+					
 					switch ($testItem.Changed) {
 						'SubjectGroup' { $updateAssignment = $true; continue }
 						'DisplayName' { $changes['DisplayName'] = Resolve-String -Text $testItem.Configuration.DisplayName; continue }
@@ -102,15 +114,14 @@
 						default { $changes[$_] = $testItem.Configuration.$_; continue }
 					}
 					
-					if ($changes.Keys.Count -gt 0)
-					{
+					if ($changes.Keys.Count -gt 0) {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMPasswordPolicy.PSO.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
 							$parametersUpdate = $parameters.Clone()
 							$parametersUpdate += $changes
 							$null = Set-ADFineGrainedPasswordPolicy -Identity $testItem.ADObject.ObjectGUID @parametersUpdate -ErrorAction Stop
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
-
+					
 					if ($updateAssignment) {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMPasswordPolicy.PSO.Update.GroupAssignment' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SubjectGroup) -Target $testItem -ScriptBlock {
 							if ($testItem.ADObject.AppliesTo) {

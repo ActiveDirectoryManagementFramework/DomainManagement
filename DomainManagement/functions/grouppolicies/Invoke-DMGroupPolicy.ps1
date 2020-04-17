@@ -8,7 +8,11 @@
 		Brings the group policy settings into compliance with the desired state.
 		Define the desired state by using Register-DMGroupPolicy.
 		Note: The original export will need to be carefully crafted to fit this system.
-		TODO: Add definition on how to provide the GPO export,
+		Use the ADMF module's Export-AdmfGpo command to generate the gpo definition from an existing deployment.
+	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 	
 	.PARAMETER Delete
 		By default, this command will NOT delete group policies, in order to avoid accidentally locking yourself out of the system.
@@ -43,6 +47,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[switch]
 		$Delete,
 
@@ -70,13 +77,11 @@
 			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.WinRM.Failed' -StringValues $computerName -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $computerName
 			return
 		}
-		$testResult = Test-DMGroupPolicy @parameters
 		Set-DMDomainContext @parameters
-
-		if (-not $testResult) { return }
 
 		try { $gpoRemotePath = New-GpoWorkingDirectory -Session $session -ErrorAction Stop }
 		catch {
+			Remove-PSSession -Session $session -WhatIf:$false -Confirm:$false -ErrorAction SilentlyContinue
 			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.Remote.WorkingDirectory.Failed' -StringValues $computerName -Target $computerName -ErrorRecord $_ -EnableException $EnableException
 			return
 		}
@@ -85,7 +90,16 @@
 	{
 		if (Test-PSFFunctionInterrupt) { return }
 		
-		foreach ($testItem in $testResult) {
+		if (-not $InputObject) {
+			$InputObject = Test-DMGroupPolicy @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GroupPolicy.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGroupPolicy', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'Delete' {
 					if (-not $Delete) { continue }
@@ -136,6 +150,9 @@
 				param ($GpoRemotePath)
 				Remove-Item -Path $GpoRemotePath -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue -WhatIf:$false
 			}
+		}
+		if ($session) {
+			Remove-PSSession -Session $session -WhatIf:$false -Confirm:$false -ErrorAction SilentlyContinue
 		}
 	}
 }

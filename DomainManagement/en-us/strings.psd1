@@ -1,11 +1,20 @@
 ﻿# This is where the strings go, that are written by
 # Write-PSFMessage, Stop-PSFFunction or the PSFramework validation scriptblocks
 @{
+	
 	'Assert-ADConnection.Failed'								    = 'Failed to connect to {0}' # $Server
 	
 	'Assert-Configuration.NotConfigured'						    = 'No configuration data provided for: {0}' # $Type
 	
 	'Convert-AccessRule.Identity.ResolutionError'				    = 'Failed to convert identity. This generally means a configuration error, especially when referencing the parent as identity.' # 
+	
+	'Convert-Principal.Processing'								    = 'Converting principal: {0}' # $Name
+	'Convert-Principal.Processing.InputNT'						    = 'Input detected as NT: {0}' # $Name
+	'Convert-Principal.Processing.InputSID'						    = 'Input detected as SID: {0}' # $Name
+	'Convert-Principal.Processing.NT.LdapFilter'				    = 'Resolving NT identity via AD using the following filter: {0}' # "(samAccountName=$namePart)"
+	'Convert-Principal.Processing.NTDetails'					    = 'Resolved NT identity: Domain = {0} | Name = {1}' # $domainPart, $namePart
+	
+	'General.Invalid.Input'										    = 'Invalid input: {1}! This command only accepts output objects from {0}' # 'Test-DMAccessRule', $testItem
 	
 	'Get-PermissionGuidMapping.Processing'						    = 'Processing Permission Guids for domain: {0} (This may take a while)' # $identity
 	
@@ -124,8 +133,8 @@
 	'Invoke-DMUser.User.Rename'									    = 'Renaming active directory user to {0}' # (Resolve-String -Text $testItem.Configuration.SamAccountName)
 	'Invoke-DMUser.User.Update'									    = 'Updating {0} on active directory user' # ($changes.Keys -join ", ")
 	'Invoke-DMUser.User.Update.EnableDisable'					    = 'Changing user enabled state to: {0}' # $testItem.Configuration.Enabled
-	'Invoke-DMUser.User.Update.PasswordNeverExpires'			    = 'Changing user password non-expiration to: {0}' # $testItem.Configuration.PasswordNeverExpires
 	'Invoke-DMUser.User.Update.OUExistsNot'						    = 'Cannot move active directory group {0} - user does not exist: {1}' # $testItem.Identity, $targetOU
+	'Invoke-DMUser.User.Update.PasswordNeverExpires'			    = 'Changing user password non-expiration to: {0}' # $testItem.Configuration.PasswordNeverExpires
 	
 	'Remove-GroupPolicy.Deleting'								    = 'Deleting GPO: {0}' # $ADObject.DisplayName
 	'Remove-GroupPolicy.Deleting.Failed'						    = 'Failed to delete GPO: {0}' # $ADObject.DisplayName
@@ -160,7 +169,7 @@
 	'Test-DMGPPermission.Validate.MissingFilterConditions'		    = 'Critical configuration error: Not all referenced Group Policy Permission filter-conditions were defined. Undefined conditions: {0}' # ($missingConditions -join ", ")
 	'Test-DMGPPermission.WinRM.Failed'							    = 'Failed to connect to {0}' # $computerName
 	
-	'Test-DMGPRegistrySetting.TestResult'						    = 'Finished testing GP Registry settings against {0}. Success: {1} | Status: {2}' # $result.Success, $result.Status
+	'Test-DMGPRegistrySetting.TestResult'						    = 'Finished testing GP Registry settings against {0}. Success: {1} | Status: {2}' # $resolvedName, $result.Success, $result.Status
 	'Test-DMGPRegistrySetting.WinRM.Failed'						    = 'Failed to connect to {0}' # $parameters.Server
 	
 	'Test-DMGroupMembership.Assignment.Resolve.Connect'			    = 'Failed to resolve {2} {1} - Could not connect to {0}' # (Resolve-String -Text $assignment.Domain), (Resolve-String -Text $assignment.Name), $assignment.ItemType

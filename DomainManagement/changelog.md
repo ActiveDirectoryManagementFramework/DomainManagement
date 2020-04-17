@@ -9,6 +9,17 @@
 - Upd: Domain Context - Adding %DomainNetBIOSName% placeholder
 - Upd: Names - All placeholders are no longer case sensitive
 - Upd: Get-DMObjectDefaultPermission - now returns also the SID of each identity
+- Upd: Invoke-DMUser - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMPasswordPolicy - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMOrganizationalUnit - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMObject - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMGroup - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMGroupPolicy - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMGroupMembership - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMGPPermission - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMGPLink - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMAcl - Supports individual testresults from pipeline, to process specific results
+- Upd: Invoke-DMAccessRule - Supports individual testresults from pipeline, to process specific results
 - Fix: Access Rules - identity reference comparison would rarely fail to match equal identities
 - Fix: Access Rules - identity resolution of parents would domain-prefix the netbios name, not the domain name.
 - Fix: Access Rules - an unknown privilege (e.g. due to missing Schema Extension) now reports an actionable error cause.

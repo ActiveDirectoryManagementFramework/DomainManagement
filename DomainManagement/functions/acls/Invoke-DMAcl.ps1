@@ -12,6 +12,10 @@
 		Explicitly, this makes this suite the tool to manage inheritance and ownership over an object.
 		To manage AccessRules, look at the *-DMAccessRule commands.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -35,6 +39,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -52,12 +59,19 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type Acls -Cmdlet $PSCmdlet
-		$testResult = Test-DMAcl @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		foreach ($testItem in $testResult) {
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMAcl @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.Acl.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMAcl', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'MissingADObject'
 				{

@@ -8,6 +8,10 @@
 		Use Register-DMGroupMembership to configure just what is considered desired.
 		Use Set-DMDomainCredential to prepare authentication as needed for remote domains, when principals from that domain must be resolved.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER RemoveUnidentified
 		By default, existing permissions for foreign security principals that cannot be resolved will only be deleted, if every single configured membership was resolveable.
 		In cases where that is not possible, these memberships are flagged as "Unidentified"
@@ -36,6 +40,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[switch]
 		$RemoveUnidentified,
 
@@ -133,7 +140,16 @@
 		#endregion Utility Functions
 	}
 	process {
-		foreach ($testItem in $testResult) {
+		if (-not $InputObject) {
+			$InputObject = Test-DMGroupMembership @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GroupMembership.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGroupMembership', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'Add' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupMembership.GroupMember.Add' -ActionStringValues $testItem.ADObject.Name -Target $testItem -ScriptBlock {

@@ -9,6 +9,10 @@
 		Define the desired state with Register-DMAccessRule.
 		Test the desired state with Test-DMAccessRule.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -32,6 +36,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -49,12 +56,19 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type accessRules -Cmdlet $PSCmdlet
-		$testResult = Test-DMAccessRule @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		foreach ($testItem in $testResult) {
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMAccessRule @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.AccessRule.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMAccessRule', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'Update'
 				{

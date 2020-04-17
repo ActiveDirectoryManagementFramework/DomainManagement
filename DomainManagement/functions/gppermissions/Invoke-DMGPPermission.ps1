@@ -13,7 +13,7 @@
 		If you do not do so, ALL deviations from the desired state will be corrected.
 	
 	.PARAMETER InputObject
-		Test results provided by Test-DMGPPermission.
+		Test results provided by the associated test command.
 		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 	
 	.PARAMETER Server
