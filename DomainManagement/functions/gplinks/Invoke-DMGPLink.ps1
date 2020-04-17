@@ -19,6 +19,10 @@
 		- Invoke GPOs (with deletion)
 		- Invoke GPLinks (without -Disable)
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -47,6 +51,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -165,8 +172,7 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupPolicyLinks -Cmdlet $PSCmdlet
-		$testResult = Test-DMGPLink @parameters
-
+		
 		$gpoDisplayToDN = @{ }
 		$gpoDNToDisplay = @{ }
 		foreach ($adPolicyObject in (Get-ADObject @parameters -LDAPFilter '(objectCategory=groupPolicyContainer)' -Properties DisplayName, DistinguishedName)) {
@@ -174,10 +180,18 @@
 			$gpoDNToDisplay[$adPolicyObject.DistinguishedName] = $adPolicyObject.DisplayName
 		}
 	}
-	process
-	{
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMGPLink @parameters
+		}
+		
 		#region Executing Test-Results
-		foreach ($testItem in $testResult) {
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GPLink.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGPLink', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			$countConfigured = ($testItem.Configuration | Measure-Object).Count
 			$countActual = ($testItem.ADObject.LinkedGroupPolicyObjects | Measure-Object).Count
 			$countNotInConfig = ($testItem.ADObject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -notin ($testItem.Configuration.PolicyName | Remove-PSFNull| Resolve-String | ForEach-Object { $gpoDisplayToDN[$_] }) | Measure-Object).Count

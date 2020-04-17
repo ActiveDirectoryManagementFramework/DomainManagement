@@ -1,29 +1,33 @@
 ﻿function Resolve-ContentSearchBase
 {
-	<#
-		.SYNOPSIS
-			Resolves the ruleset for content enforcement into actionable search data.
+<#
+	.SYNOPSIS
+		Resolves the ruleset for content enforcement into actionable search data.
+	
+	.DESCRIPTION
+		Resolves the ruleset for content enforcement into actionable search data.
+		This ensures that both Include and Exclude rules are properly translated into AD search queries.
+		This command is designed to be called by all Test- commands across the entire module.
+	
+	.PARAMETER Server
+		The server / domain to work with.
+	
+	.PARAMETER Credential
+		The credentials to use for this operation.
+	
+	.PARAMETER NoContainer
+		By defaults, containers are returned as well.
+		Using this parameter prevents container processing.
+	
+	.PARAMETER IgnoreMissingSearchbase
+		Disables warnings if a defined searchbase is missing.
+		For use in OU tests.
+	
+	.EXAMPLE
+		PS C:\> Resolve-ContentSearchBase @parameters
 		
-		.DESCRIPTION
-			Resolves the ruleset for content enforcement into actionable search data.
-			This ensures that both Include and Exclude rules are properly translated into AD search queries.
-			This command is designed to be called by all Test- commands across the entire module.
-		
-		.PARAMETER Server
-			The server / domain to work with.
-		
-		.PARAMETER Credential
-			The credentials to use for this operation.
-
-		.PARAMETER NoContainer
-			By defaults, containers are returned as well.
-			Using this parameter prevents container processing.
-		
-		.EXAMPLE
-			PS C:\> Resolve-ContentSearchBase @parameters
-
-			Resolves the configured filters into searchbases for the targeted domain.
-	#>
+		Resolves the configured filters into searchbases for the targeted domain.
+#>
 	
     [CmdletBinding()]
     Param (
@@ -34,7 +38,10 @@
 		$Credential,
 		
 		[switch]
-		$NoContainer
+		$NoContainer,
+		
+		[switch]
+		$IgnoreMissingSearchbase
     )
     begin
     {
@@ -189,6 +196,7 @@
         $allItems = @{}
         foreach ($item in $include) {
 			if (-not (Test-ADObject @parameters -Identity $item.Name)) {
+				if ($IgnoreMissingSearchbase) { continue }
 				Write-PSFMessage -Level $warningLevel -String 'Resolve-ContentSearchBase.Include.NotFound' -StringValues $item.Name -Tag notfound, container -Target $Server
 				continue
 			}
@@ -196,6 +204,7 @@
         }
         foreach ($item in $exclude) {
 			if (-not (Test-ADObject @parameters -Identity $item.Name)) {
+				if ($IgnoreMissingSearchbase) { continue }
 				Write-PSFMessage -Level $warningLevel -String 'Resolve-ContentSearchBase.Exclude.NotFound' -StringValues $item.Name -Tag notfound, container -Target $Server
 				continue
 			}

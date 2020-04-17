@@ -13,7 +13,7 @@
 		If you do not do so, ALL deviations from the desired state will be corrected.
 	
 	.PARAMETER InputObject
-		Test results provided by Test-DMGPPermission.
+		Test results provided by the associated test command.
 		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 	
 	.PARAMETER Server
@@ -150,12 +150,14 @@
 
 				try { $acl = Get-AdsAcl -Path $testResult.AdObject.DistinguishedName @parameters -ErrorAction Stop }
 				catch { Stop-PSFFunction -String 'Invoke-DMGPPermission.AD.Access.Error' -StringValues $testResult, $testResult.ADObject.DistinguishedName -ErrorRecord $_ -Continue -EnableException $EnableException }
-
+				
+				[string[]]$applicableIdentities = $acl.Access.Identity | Remove-PSFNull | Resolve-String | Convert-Principal @parameters
+				
 				# Process Remove actions first, as they might interfere when processed last and replacing permissions.
 				foreach ($change in ($testResult.Changed | Sort-Object Action -Descending)) {
 					#region Remove
 					if ($change.Action -eq 'Remove') {
-						if ($change.Permission -eq 'GpoCustom') {
+						if (($change.Permission -eq 'GpoCustom') -or ($applicableIdentities -notcontains $change.Identity)) {
 							$rulesToRemove = $acl.Access | Where-Object {
 								$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).ToString() -eq $change.Identity
 							}
@@ -170,6 +172,11 @@
 
 					#region Add
 					else {
+						if ($change.Permission -eq 'GpoCustom') {
+							$acl.Access | Where-Object {
+								$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).ToString() -eq $change.Identity
+							} | ForEach-Object { $null = $acl.RemoveAccessRule($_) }
+						}
 						$accessRulesToAdd = ConvertTo-ADAccessRule -ChangeEntry $change
 						foreach ($rule in $accessRulesToAdd) { $null = $acl.AddAccessRule($rule) }
 					}
@@ -178,13 +185,14 @@
 
 				Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPPermission.AD.UpdatingPermission' -ActionStringValues $testResult.Changed.Count -ScriptBlock {
 					$acl | Set-AdsAcl @parameters -Confirm:$false -EnableException
-				} -Continue -EnableException $true -PSCmdlet $PSCmdlet -Target $testResult
+				} -Continue -EnableException $EnableException -PSCmdlet $PSCmdlet -Target $testResult
 				Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPPermission.Gpo.SyncingPermission' -ActionStringValues $testResult.Changed.Count -ScriptBlock {
+					$domainObject = Get-Domain2 @parameters
 					Invoke-Command -Session $session -ScriptBlock {
-						$gpoObject = Get-Gpo -Server localhost -DisplayName $using:testResult.Identity -ErrorAction Stop
+						$gpoObject = Get-Gpo -Server localhost -DisplayName $using:testResult.Identity -Domain $using:domainObject.DNSRoot -ErrorAction Stop
 						$gpoObject.MakeAclConsistent()
 					} -ErrorAction Stop
-				} -Continue -EnableException $true -PSCmdlet $PSCmdlet -Target $testResult
+				} -Continue -EnableException $EnableException -PSCmdlet $PSCmdlet -Target $testResult
 			}
 			#endregion Process Test results
 		}

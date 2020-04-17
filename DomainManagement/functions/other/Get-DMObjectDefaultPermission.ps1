@@ -22,6 +22,7 @@
 
 		Returns the default permissions for a user.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]
@@ -81,9 +82,16 @@
 					$acl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule(([System.Security.Principal.NTAccount]'Everyone'), 'DeleteTree, Delete', 'Deny', '00000000-0000-0000-0000-000000000000', 'None', '00000000-0000-0000-0000-000000000000')))
 				}
 				#>
+				$access = foreach ($accessRule in $acl.Access) {
+					try { Add-Member -InputObject $accessRule -MemberType NoteProperty -Name SID -Value $accessRule.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) }
+					catch {
+						# Do nothing, don't want the property if no SID is to be had
+					}
+					$accessRule
+				}
 				[PSCustomObject]@{
 					Class = $class.lDAPDisplayName
-					Access = $acl.Access
+					Access = $access
 				}
 			}
 		}

@@ -6,6 +6,10 @@
 		
 		.DESCRIPTION
 			Updates the generic ad object configuration of a domain to conform to the configured state.
+	
+		.PARAMETER InputObject
+			Test results provided by the associated test command.
+			Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 		
 		.PARAMETER Server
 			The server / domain to work with.
@@ -30,6 +34,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -47,12 +54,19 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type Objects -Cmdlet $PSCmdlet
-		$testResult = Test-DMObject @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		foreach ($testItem in ($testResult | Sort-Object { $_.Identity.Length })) {
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMObject @parameters
+		}
+		
+		foreach ($testItem in ($InputObject | Sort-Object { $_.Identity.Length })) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.Object.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMObject', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'Create' {
 					$createParam = $parameters.Clone()

@@ -39,6 +39,7 @@
 	}
 	process
 	{
+		$oldNamesFound = @()
 		:main foreach ($groupDefinition in $script:groups.Values) {
 			$resolvedName = Resolve-String -Text $groupDefinition.Name
 
@@ -64,7 +65,7 @@
 			catch
 			{
 				$oldGroups = foreach ($oldName in ($groupDefinition.OldNames | Resolve-String)) {
-					try { Get-ADGroup @parameters -Identity $oldName -Properties Description, PasswordNeverExpires -ErrorAction Stop }
+					try { Get-ADGroup @parameters -Identity $oldName -Properties Description -ErrorAction Stop }
 					catch { }
 				}
 
@@ -81,6 +82,7 @@
 					1
 					{
 						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups
+						$oldNamesFound += $oldGroups.Name
 						continue main
 					}
 					#endregion Case: One old version present
@@ -89,6 +91,7 @@
 					default
 					{
 						New-TestResult @resultDefaults -Type MultipleOldGroups -ADObject $oldGroups
+						$oldNamesFound += $oldGroups.Name
 						continue main
 					}
 					#endregion Case: Too many old versions present
@@ -124,6 +127,7 @@
 		}
 
 		foreach ($existingGroup in $foundGroups) {
+			if ($existingGroup.Name -in $oldNamesFound) { continue }
 			if ($existingGroup.Name -in $resolvedConfiguredNames) { continue }
 			if (1000 -ge ($existingGroup.SID -split "-")[-1]) { continue } # Ignore BuiltIn default groups
 

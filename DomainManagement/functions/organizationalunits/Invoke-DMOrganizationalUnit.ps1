@@ -16,6 +16,10 @@
 		To enable OU deletion, you must specify this parameter.
 		This parameter allows you to call it twice in your workflow: Once to prepare it for other objects, and another time to do the cleanup.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -39,6 +43,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[switch]
 		$Delete,
 
@@ -60,12 +67,19 @@
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type OrganizationalUnits -Cmdlet $PSCmdlet
 		$everyone = ([System.Security.Principal.SecurityIdentifier]'S-1-1-0').Translate([System.Security.Principal.NTAccount])
-		$testResult = Test-DMOrganizationalUnit @parameters | Sort-Object { $_.Identity.Split(",").Count }
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		:main foreach ($testItem in $testResult) {
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object { $_.Identity.Split(",").Count }
+		}
+		
+		:main foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.OrganizationalUnit.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMOrganizationalUnit', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'ShouldDelete' {
 					if (-not $Delete) {

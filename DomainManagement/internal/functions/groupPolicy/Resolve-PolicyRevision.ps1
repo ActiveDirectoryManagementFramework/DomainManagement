@@ -48,6 +48,7 @@
 					Exists = $null
 					ExportID = $null
 					Timestamp = $null
+					Version = -1
 					Error = $null
 				}
 				return
@@ -58,6 +59,7 @@
 					Exists = $false
 					ExportID = $null
 					Timestamp = $null
+					Version   = -1
 					Error = $null
 				}
 				return
@@ -69,6 +71,7 @@
 					Exists = $true
 					ExportID = $null
 					Timestamp = $null
+					Version   = -1
 					Error = $_
 				}
 				return
@@ -78,6 +81,7 @@
 				Exists = $true
 				ExportID = $data.ExportID
 				Timestamp = $data.Timestamp
+				Version  = $data.Version
 				Error = $null
 			}
 		}
@@ -86,6 +90,7 @@
 		#region Process results
 		$Policy.ExportID = $result.ExportID
 		$Policy.ImportTime = $result.Timestamp
+		$Policy.Version = $result.Version
 
 		if (-not $result.Success) {
 			if ($result.Exists) {

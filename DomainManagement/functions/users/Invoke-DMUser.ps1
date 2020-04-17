@@ -1,11 +1,14 @@
-﻿function Invoke-DMUser
-{
+﻿function Invoke-DMUser {
 	<#
 		.SYNOPSIS
 			Updates the user configuration of a domain to conform to the configured state.
 		
 		.DESCRIPTION
 			Updates the user configuration of a domain to conform to the configured state.
+	
+		.PARAMETER InputObject
+			Test results provided by the associated test command.
+			Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 		
 		.PARAMETER Server
 			The server / domain to work with.
@@ -30,29 +33,38 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
 		[PSCredential]
 		$Credential,
-
+		
 		[switch]
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type Users -Cmdlet $PSCmdlet
-		$testResult = Test-DMUser @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		:main foreach ($testItem in $testResult) {
+	process {
+		if (-not $InputObject) {
+			$InputObject = Test-DMUser @parameters
+		}
+		
+		:main foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.User.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMUser', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'ShouldDelete' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Delete' -Target $testItem -ScriptBlock {
@@ -72,7 +84,7 @@
 							PasswordNeverExpires = $testItem.Configuration.PasswordNeverExpires
 							Path = $targetOU
 							AccountPassword = (New-Password -Length 128 -AsSecureString)
-							Enabled = $true
+							Enabled = $testItem.Configuration.Enabled # Both True and Undefined will result in $true
 						}
 						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
 						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }
@@ -81,11 +93,14 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'MultipleOldUsers' {
-					Stop-PSFFunction -String 'Invoke-DMUser.User.MultipleOldUsers' -StringValues $testItem.Identity, ($testItem.ADObject.Name -join ', ') -Target $testItem -EnableException $EnableException -Continue -Tag 'user','critical','panic'
+					Stop-PSFFunction -String 'Invoke-DMUser.User.MultipleOldUsers' -StringValues $testItem.Identity, ($testItem.ADObject.Name -join ', ') -Target $testItem -EnableException $EnableException -Continue -Tag 'user', 'critical', 'panic'
 				}
 				'Rename' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SamAccountName) -Target $testItem -ScriptBlock {
-						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.SamAccountName) -ErrorAction Stop
+						Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -SamAccountName $testItem.Configuration.SamAccountName -ErrorAction Stop
+						if ($testItem.ADObject.Name -ne (Resolve-String -Text $testItem.Configuration.Name)) {
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+						}
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Changed' {
@@ -93,7 +108,7 @@
 						$targetOU = Resolve-String -Text $testItem.Configuration.Path
 						try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
 						catch { Stop-PSFFunction -String 'Invoke-DMUser.User.Update.OUExistsNot' -StringValues $testItem.Identity, $targetOU -Target $testItem -EnableException $EnableException -Continue -ContinueLabel main }
-
+						
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Move' -ActionStringValues $targetOU -Target $testItem -ScriptBlock {
 							$null = Move-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -TargetPath $targetOU -ErrorAction Stop
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
@@ -102,14 +117,23 @@
 					if ($testItem.Changed -contains 'GivenName') { $changes['GivenName'] = (Resolve-String -Text $testItem.Configuration.GivenName) }
 					if ($testItem.Changed -contains 'Surname') { $changes['sn'] = (Resolve-String -Text $testItem.Configuration.Surname) }
 					if ($testItem.Changed -contains 'Description') { $changes['Description'] = (Resolve-String -Text $testItem.Configuration.Description) }
-					if ($testItem.Changed -contains 'PasswordNeverExpires') { $changes['PasswordNeverExpires'] = $testItem.Configuration.PasswordNeverExpires }
 					if ($testItem.Changed -contains 'UserPrincipalName') { $changes['UserPrincipalName'] = (Resolve-String -Text $testItem.Configuration.UserPrincipalName) }
 					
-					if ($changes.Keys.Count -gt 0)
-					{
+					if ($changes.Keys.Count -gt 0) {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
 							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes
-						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+					}
+					
+					if ($testItem.Changed -contains 'Enabled') {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.EnableDisable' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
+							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+					}
+					if ($testItem.Changed -contains 'PasswordNeverExpires') {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.PasswordNeverExpires' -ActionStringValues $testItem.Configuration.PasswordNeverExpires -Target $testItem -ScriptBlock {
+							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -PasswordNeverExpires $testItem.Configuration.PasswordNeverExpires
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 				}
 			}

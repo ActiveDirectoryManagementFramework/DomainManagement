@@ -9,6 +9,10 @@
 		Define the desired state with Register-DMAccessRule.
 		Test the desired state with Test-DMAccessRule.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -32,6 +36,9 @@
 	#>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -49,12 +56,19 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type accessRules -Cmdlet $PSCmdlet
-		$testResult = Test-DMAccessRule @parameters
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
-		foreach ($testItem in $testResult) {
+	process{
+		if (-not $InputObject) {
+			$InputObject = Test-DMAccessRule @parameters
+		}
+		
+		foreach ($testItem in $InputObject) {
+			# Catch invalid input - can only process test results
+			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.AccessRule.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMAccessRule', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+			
 			switch ($testItem.Type) {
 				'Update'
 				{
@@ -69,7 +83,7 @@
 							if (-not $aclObject.RemoveAccessRule($changeEntry.ADObject.OriginalRule)) {
 								Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
-									if (Test-AccessRuleEquality -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
+									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
 										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType -Target $changeEntry -Debug:$false
 										break
 									}
@@ -82,7 +96,11 @@
 						#region Add Access Rules
 						if ($changeEntry.Type -eq 'Create') {
 							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Create' -StringValues $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType -Target $changeEntry
-							try { $accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType) }
+							try {
+								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+							}
 							catch {
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
