@@ -85,7 +85,10 @@
 				}
 				'Rename' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SamAccountName) -Target $testItem -ScriptBlock {
-						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.SamAccountName) -ErrorAction Stop
+						Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -SamAccountName $testItem.Configuration.SamAccountName -ErrorAction Stop
+						if ($testItem.ADObject.Name -ne (Resolve-String -Text $testItem.Configuration.Name)) {
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+						}
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Changed' {

@@ -65,62 +65,70 @@
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$SamAccountName,
-
+		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[string]
+		$Name,
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$GivenName,
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Surname,
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Description,
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[switch]
 		$PasswordNeverExpires,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$UserPrincipalName,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Path,
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
 		[DomainManagement.TriBool]
 		$Enabled = 'Undefined',
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string[]]
 		$OldNames = @(),
-
+		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[bool]
 		$Present = $true
 	)
-
+	
 	process {
-
+		
 		$userHash = @{
-			PSTypeName           = 'DomainManagement.User'
-			SamAccountName       = $SamAccountName
-			GivenName            = $GivenName
-			Surname              = $Surname
-			Description          = $null
+			PSTypeName		     = 'DomainManagement.User'
+			SamAccountName	     = $SamAccountName
+			Name				 = $Name
+			GivenName		     = $GivenName
+			Surname			     = $Surname
+			Description		     = $null
 			PasswordNeverExpires = $PasswordNeverExpires.ToBool()
 			UserPrincipalName    = $UserPrincipalName
-			Path                 = $Path
-			Enabled              = $Enabled
-			OldNames             = $OldNames
-			Present              = $Present
+			Path				 = $Path
+			Enabled			     = $Enabled
+			OldNames			 = $OldNames
+			Present			     = $Present
 		}
 		if ($Description) {
 			$userHash['Description'] = $Description
+		}
+		if (-not $Name) {
+			$userHash['Name'] = $SamAccountName
 		}
 		$script:users[$SamAccountName] = [PSCustomObject]$userHash
 	}

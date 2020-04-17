@@ -5,6 +5,7 @@
 - New: DomainData Component - allows dynamically gathering domain specific information.
 - New: Group Policy Registry Settings Component - allows definining explicit registry settings to deploy using the targete GPO. Tightly integrated into the Group Policy component.
 - Upd: User - now supports setting the "Enabled" state.
+- Upd: User - now supports specifying a name in addition to SamAccountName
 - Upd: Domain Context - Adding %DomainNetBIOSName% placeholder
 - Upd: Names - All placeholders are no longer case sensitive
 - Upd: Get-DMObjectDefaultPermission - now returns also the SID of each identity
@@ -24,6 +25,7 @@
 - Fix: Group Membership - fails to remove group members when using credentials
 - Fix: Group Membership - silently fails to remove cross-domain memberships
 - Fix: Identity Resolution - first scan against a forest will cache a bad domain object if the searched domain is not accessible with destination domain credentials.
+- Fix: Users - inconsistent name matching could lead to unexpected delete generation when Name and SamAccountName mismatch
 
 ## 1.1.27 (2020-03-02)
 
