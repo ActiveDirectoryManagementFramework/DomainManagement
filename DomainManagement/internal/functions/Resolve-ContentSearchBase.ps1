@@ -204,6 +204,7 @@
         }
         foreach ($item in $exclude) {
 			if (-not (Test-ADObject @parameters -Identity $item.Name)) {
+				if ($IgnoreMissingSearchbase) { continue }
 				Write-PSFMessage -Level $warningLevel -String 'Resolve-ContentSearchBase.Exclude.NotFound' -StringValues $item.Name -Tag notfound, container -Target $Server
 				continue
 			}
