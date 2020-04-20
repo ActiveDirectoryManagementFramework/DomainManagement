@@ -61,7 +61,7 @@
 		
 		:main foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.User.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.User.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMUser', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			

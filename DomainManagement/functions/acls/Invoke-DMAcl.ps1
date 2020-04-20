@@ -68,7 +68,7 @@
 		
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.Acl.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.Acl.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMAcl', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			

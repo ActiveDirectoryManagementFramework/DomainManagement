@@ -188,7 +188,7 @@
 		#region Executing Test-Results
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GPLink.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.GPLink.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGPLink', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			
