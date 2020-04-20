@@ -96,7 +96,7 @@
 		
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GroupPolicy.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.GroupPolicy.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGroupPolicy', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			
