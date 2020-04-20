@@ -63,7 +63,7 @@
 		
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.PSO.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.PSO.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMPasswordPolicy', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			

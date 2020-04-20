@@ -63,7 +63,7 @@
 		
 		foreach ($testItem in ($InputObject | Sort-Object { $_.Identity.Length })) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.Object.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.Object.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMObject', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			

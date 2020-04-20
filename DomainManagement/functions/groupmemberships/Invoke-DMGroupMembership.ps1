@@ -62,7 +62,6 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupMemberShips -Cmdlet $PSCmdlet
-		$testResult = Test-DMGroupMembership @parameters
 		Set-DMDomainContext @parameters
 
 		#region Utility Functions
@@ -146,7 +145,7 @@
 		
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
-			if ($testResult.PSObject.TypeNames -notcontains 'DomainManagement.GroupMembership.TestResult') {
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.GroupMembership.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGroupMembership', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			
