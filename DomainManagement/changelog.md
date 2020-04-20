@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.3.63 (2020-04-20)
+
+- Fix: All Invokes broken
+
 ## 1.3.62 (2020-04-17)
 
 - New: DomainData Component - allows dynamically gathering domain specific information.
