@@ -62,7 +62,6 @@
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupMemberShips -Cmdlet $PSCmdlet
-		$testResult = Test-DMGroupMembership @parameters
 		Set-DMDomainContext @parameters
 
 		#region Utility Functions
