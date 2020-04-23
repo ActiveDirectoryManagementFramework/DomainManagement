@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.3.64 (2020-04-22)
+
+- Fix: Test-DMAccessRule - Identity Resolution would fail sometimes
+
 ## 1.3.63 (2020-04-20)
 
 - Fix: All Invokes broken
