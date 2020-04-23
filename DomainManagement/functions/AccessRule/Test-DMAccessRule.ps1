@@ -362,7 +362,7 @@
 			$adObject = Get-ADObject @parameters -Identity $resolvedPath
 			
 			$defaultPermissions = Get-DMObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
-			$delta = Compare-AccessRules -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules ($script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject) -DefaultRules $defaultPermissions -ADObject $adObject
+			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules ($script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject) -DefaultRules $defaultPermissions -ADObject $adObject
 
 			if ($delta) {
 				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject
@@ -399,6 +399,7 @@
 				ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
 				ADObject = $foundADObject
 			}
+			$compareParam += $parameters
 			$delta = Compare-AccessRules @compareParam
 
 			if ($delta) {
