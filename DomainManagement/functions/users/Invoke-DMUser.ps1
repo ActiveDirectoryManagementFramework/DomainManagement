@@ -130,6 +130,11 @@
 							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Enabled $testItem.Configuration.Enabled
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
+					if ($testItem.Changed -contains 'Name') {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+					}
 					if ($testItem.Changed -contains 'PasswordNeverExpires') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.PasswordNeverExpires' -ActionStringValues $testItem.Configuration.PasswordNeverExpires -Target $testItem -ScriptBlock {
 							$null = Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -PasswordNeverExpires $testItem.Configuration.PasswordNeverExpires

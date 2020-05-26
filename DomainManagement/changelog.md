@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## ???
+
+- Fix: Component Group - Renaming groups & delta between Name and SamAccountName will now be properly detected and handled.
+- Fix: Invoke-DMUser ignores name updates
+
 ## 1.3.64 (2020-04-22)
 
 - Fix: Test-DMAccessRule - Identity Resolution would fail sometimes
