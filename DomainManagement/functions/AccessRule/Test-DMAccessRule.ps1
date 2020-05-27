@@ -63,6 +63,9 @@
 
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
+			# Resolve the mode under which it will be evaluated. Either 'Additive' or 'Constrained'
+			$processingMode = Resolve-DMAccessRuleMode @parameters -ADObject $adObject
+
 			function Write-Result {
 				[CmdletBinding()]
 				param (
@@ -107,6 +110,9 @@
 			}
 
 			:outer foreach ($relevantADRule in $relevantADRules) {
+				# Don't generate delete changes
+				if ($processingMode -eq 'Additive') { break }
+
 				foreach ($configuredRule in $ConfiguredRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}

@@ -44,6 +44,9 @@ $script:acls = @{ }
 # Configured Access Rules - Based on OU / Path
 $script:accessRules = @{ }
 
+# Configured Access Rule processing Modes
+$script:accessRuleMode = @{ }
+
 # Configured Access Rules - Based on Object Category
 $script:accessCategoryRules = @{ }
 

@@ -48,7 +48,7 @@
 		$propertyNames = $filteredObjectCategories.Property | Select-Object -Unique
 		$adObjectReloaded = Get-Adobject @parameters -Identity $ADObject.DistinguishedName -Properties $propertyNames
 		foreach ($filteredObjectCategory in $filteredObjectCategories) {
-			if ($filteredObjectCategory.Testscript.Invoke($adobjectreloaded)) {
+			if ($filteredObjectCategory.Testscript.Invoke($adObjectReloaded)) {
 				$filteredObjectCategory
 			}
 		}
