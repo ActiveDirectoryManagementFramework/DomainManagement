@@ -25,6 +25,7 @@
 	.PARAMETER Mode
 		Determines, how the AccessRules are applied on the target object:
 		- Constrained: All non-defined AccessRules will be removed.
+		- Defined: Only non-defined AccessRules with identities for which a configuration exists on the object will be deleted.
 		- Additive: Non-defined AccessRules on the targeted object will be ignored.
 		By default, with no AccessRuleMode defined, all objects are considered to be in Constrained mode.
 	
@@ -50,7 +51,7 @@
 		$ObjectCategory,
 
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-		[ValidateSet('Constrained', 'Additive')]
+		[ValidateSet('Constrained', 'Defined', 'Additive')]
 		[string]
 		$Mode
 	)
