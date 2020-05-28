@@ -82,7 +82,7 @@
 		foreach ($item in $DifferenceIdentity) {
 			$sid = ConvertTo-SID -IdentityReference $item -Parameters $Parameters
 			$result = [PSCustomObject]@{
-				Type = "Reference"
+				Type = "Difference"
 				Original = $identity
 				SID = $sid
 				SIDString = "$sid"
