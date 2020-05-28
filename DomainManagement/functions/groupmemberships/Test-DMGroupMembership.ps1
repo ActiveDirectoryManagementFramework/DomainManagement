@@ -58,6 +58,8 @@
 			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipNames].Values) {
 				try { $adResult = Get-Principal @parameters -Domain (Resolve-String -Text $assignment.Domain) -Name (Resolve-String -Text $assignment.Name) -ObjectClass $assignment.ItemType }
 				catch {
+					# If it's a member that is allowed to NOT exist, simply skip the entry
+					if ($assignment.Mode -in 'MemberIfExists','MayBeMemberIfExists') { continue }
 					Write-PSFMessage -Level Warning -String 'Test-DMGroupMembership.Assignment.Resolve.Connect' -StringValues (Resolve-String -Text $assignment.Domain), (Resolve-String -Text $assignment.Name), $assignment.ItemType -ErrorRecord $_ -Target $assignment
 					$failedResolveAssignment = $true
 					[PSCustomObject]@{
@@ -67,6 +69,8 @@
 					continue
 				}
 				if (-not $adResult) {
+					# If it's a member that is allowed to NOT exist, simply skip the entry
+					if ($assignment.Mode -in 'MemberIfExists','MayBeMemberIfExists') { continue }
 					Write-PSFMessage -Level Warning -String 'Test-DMGroupMembership.Assignment.Resolve.NotFound' -StringValues (Resolve-String -Text $assignment.Domain), (Resolve-String -Text $assignment.Name), $assignment.ItemType -Target $assignment
 					$failedResolveAssignment = $true
 					[PSCustomObject]@{
@@ -102,6 +106,10 @@
 					New-TestResult @resultDefaults -Type Unresolved -Identity "$(Resolve-String -Text $assignment.Assignment.Group)þ$($assignment.Assignment.ItemType)þ$(Resolve-String -Text $assignment.Assignment.Name)" -Configuration $assignment -ADObject $adObject
 					continue
 				}
+
+				# Skip if membership is optional
+				if ($assignment.Assignment.Mode -in 'MayBeMember','MayBeMemberIfExists') { continue }
+
 				if ($adMembers | Where-Object ObjectSID -eq $assignment.ADObject.objectSID) {
 					continue
 				}
