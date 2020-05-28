@@ -4,6 +4,7 @@
 
 - New: AccessRuleMode Component - allows controlling, how individual AccessRules are being processed.
 - Upd: AccessRule - added support for AccessRule processing modes defined by the AccessRuleMode Component.
+- Upd: GroupMember - added support for different processing modes, allowing optional group membership or optional assignee existence.
 - Fix: Component Group - Renaming groups & delta between Name and SamAccountName will now be properly detected and handled.
 - Fix: Invoke-DMUser ignores name updates
 
