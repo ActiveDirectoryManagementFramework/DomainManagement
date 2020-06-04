@@ -1,19 +1,22 @@
 ﻿# List of forbidden commands
 $global:BannedCommands = @(
-	'Write-Host',
-	'Write-Verbose',
-	'Write-Warning',
-	'Write-Error',
-	'Write-Output',
-	'Write-Information',
-	'Write-Debug',
+	'Write-Host'
+	'Write-Verbose'
+	'Write-Warning'
+	'Write-Error'
+	'Write-Output'
+	'Write-Information'
+	'Write-Debug'
 	
 	# Use CIM instead where possible
-	'Get-WmiObject',
-	'Invoke-WmiMethod',
-	'Register-WmiEvent',
-	'Remove-WmiObject',
+	'Get-WmiObject'
+	'Invoke-WmiMethod'
+	'Register-WmiEvent'
+	'Remove-WmiObject'
 	'Set-WmiInstance'
+
+	# Use Get-WinEvent instead
+	'Get-EventLog'
 )
 
 <#
@@ -28,7 +31,7 @@ $global:MayContainCommand = @{
 	"Write-Verbose" = @()
 	"Write-Warning" = @()
 	"Write-Error"  = @()
-	"Write-Output" = @('Get-DMAccessRule.ps1', 'Test-DMObject.ps1', 'Test-DMGPPermission.ps1','Test-DMGPRegistrySetting.ps1','Install-GroupPolicy.ps1')
+	"Write-Output" = @()
 	"Write-Information" = @()
 	"Write-Debug" = @()
 }

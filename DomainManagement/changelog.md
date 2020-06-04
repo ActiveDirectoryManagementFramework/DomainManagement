@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.3.69 (2020-06-04)
 
 - New: AccessRuleMode Component - allows controlling, how individual AccessRules are being processed.
 - Upd: AccessRule - added support for AccessRule processing modes defined by the AccessRuleMode Component.
