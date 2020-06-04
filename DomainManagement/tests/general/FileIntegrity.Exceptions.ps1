@@ -31,7 +31,7 @@ $global:MayContainCommand = @{
 	"Write-Verbose" = @()
 	"Write-Warning" = @()
 	"Write-Error"  = @()
-	"Write-Output" = @('Get-DMAccessRule.ps1', 'Test-DMGPPermission.ps1', 'Test-DMGPRegistrySetting.ps1', 'Install-GroupPolicy', 'Test-DMObject')
+	"Write-Output" = @('Get-DMAccessRule.ps1', 'Test-DMGPPermission.ps1', 'Test-DMGPRegistrySetting.ps1', 'Install-GroupPolicy.ps1', 'Test-DMObject.ps1')
 	"Write-Information" = @()
 	"Write-Debug" = @()
 }
