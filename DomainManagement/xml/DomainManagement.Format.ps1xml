@@ -59,6 +59,48 @@
             </TableControl>
         </View>
 
+		<!-- DomainManagement.AccessRuleMode -->
+        <View>
+            <Name>DomainManagement.AccessRuleMode</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.AccessRuleMode</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Path / ObjectCategory</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Mode</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>PathMode</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+
+if ($_.Path) { $_.Path }
+else { $_.ObjectCategory }
+
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- DomainManagement.Configuration.GPPermissionFilter -->
         <View>
             <Name>DomainManagement.Configuration.GPPermissionFilter</Name>

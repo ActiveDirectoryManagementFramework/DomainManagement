@@ -41,7 +41,7 @@
 	{
 		$oldNamesFound = @()
 		:main foreach ($groupDefinition in $script:groups.Values) {
-			$resolvedName = Resolve-String -Text $groupDefinition.Name
+			$resolvedName = Resolve-String -Text $groupDefinition.SamAccountName
 
 			$resultDefaults = @{
 				Server = $Server
@@ -106,6 +106,7 @@
 			Compare-Property -Property Description -Configuration $groupDefinition -ADObject $adObject -Changes $changes -Resolve
 			Compare-Property -Property Category -Configuration $groupDefinition -ADObject $adObject -Changes $changes -ADProperty GroupCategory
 			Compare-Property -Property Scope -Configuration $groupDefinition -ADObject $adObject -Changes $changes -ADProperty GroupScope
+			Compare-Property -Property Name -Configuration $groupDefinition -ADObject $adObject -Changes $changes -Resolve
 			$ouPath = ($adObject.DistinguishedName -split ",",2)[1]
 			if ($ouPath -ne (Resolve-String -Text $groupDefinition.Path)) {
 				$null = $changes.Add('Path')
