@@ -66,25 +66,10 @@
 			}
 			# Ensure Owner Name is present - may not always resolve
 			$ownerSID = $aclObject.GetOwner([System.Security.Principal.SecurityIdentifier])
-			if ($aclObject.Owner -and -not $ownerSID.AccountDomainSid) { Add-Member -InputObject $aclObject -MemberType NoteProperty -Name Owner2 -Value $aclObject.Owner }
-			else {
-				try { $domain = (Get-Domain @parameters -Sid $ownerSID.AccountDomainSid).DNSRoot }
-				catch {
-					Write-PSFMessage -String 'Test-DMAcl.OwnerDomainNotResolved' -StringValues $resolvedPath -Tag 'panic','failed' -Target $aclDefinition -ErrorRecord $_
-					New-TestResult @resultDefaults -Type 'OwnerNotResolved'
-					Continue
-				}
-				try { $ntaccount = Get-Principal @parameters -Sid $ownerSID -Domain $domain -OutputType NTAccount }
-				catch {
-					Write-PSFMessage -String 'Test-DMAcl.OwnerPrincipalNotResolved' -StringValues $resolvedPath -Tag 'panic','failed' -Target $aclDefinition -ErrorRecord $_
-					New-TestResult @resultDefaults -Type 'OwnerNotResolved'
-					Continue
-				}
-				Add-Member -InputObject $aclObject -MemberType NoteProperty -Name Owner2 -Value $ntaccount
-			}
+			$configuredSID = $aclDefinition.Owner | Resolve-String | Convert-Principal @parameters -OutputType SID
 
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property Owner -Configuration $aclDefinition -ADObject $aclObject -Changes $changes -Resolve -ADProperty Owner2
+			if ("$ownerSID" -ne "$configuredSID") { $null = $changes.Add('Owner') }
 			Compare-Property -Property NoInheritance -Configuration $aclDefinition -ADObject $aclObject -Changes $changes -ADProperty AreAccessRulesProtected
 
 			if ($changes.Count) {

@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.3.70 (2020-06-12)
+
+- Upd: Test-DMAcl - supports SIDs for Ownership.
+
 ## 1.3.69 (2020-06-04)
 
 - New: AccessRuleMode Component - allows controlling, how individual AccessRules are being processed.
