@@ -66,7 +66,7 @@
 			}
 			# Ensure Owner Name is present - may not always resolve
 			$ownerSID = $aclObject.GetOwner([System.Security.Principal.SecurityIdentifier])
-			$configuredSID = $aclDefinition.Owner | Convert-Principal @parameters -OutputType SID
+			$configuredSID = $aclDefinition.Owner | Resolve-String | Convert-Principal @parameters -OutputType SID
 
 			[System.Collections.ArrayList]$changes = @()
 			if ("$ownerSID" -ne "$configuredSID") { $null = $changes.Add('Owner') }
