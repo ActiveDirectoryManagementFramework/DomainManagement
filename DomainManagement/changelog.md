@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.3.70 (2020-06-12)
 
 - Upd: Test-DMAcl - supports SIDs for Ownership.
 
