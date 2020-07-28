@@ -95,6 +95,7 @@
 		'Register-DMOrganizationalUnit'
 		'Register-DMPasswordPolicy'
 		'Register-DMUser'
+		'Reset-DMDomainCredential'
 		'Resolve-DMAccessRuleMode'
 		'Resolve-DMObjectCategory'
 		'Set-DMContentMode'

@@ -45,8 +45,13 @@
 	}
 	process
 	{
-		:main foreach ($groupMembershipNames in $script:groupMemberShips.Keys) {
-			$resolvedGroupName = Resolve-String -Text $groupMembershipNames
+		:main foreach ($groupMembershipName in $script:groupMemberShips.Keys) {
+			$resolvedGroupName = Resolve-String -Text $groupMembershipName
+			$processingMode = 'Constrained'
+			if ($script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode)
+			{
+				$processingMode = $script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode
+			}
 
 			$resultDefaults = @{
 				Server = $Server
@@ -55,7 +60,8 @@
 
 			#region Resolve Assignments
 			$failedResolveAssignment = $false
-			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipNames].Values) {
+			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipName].Values) {
+				if ($assignment.PSObject.TypeNames -contains 'DomainManagement.GroupMembership.Configuration') { continue }
 				try { $adResult = Get-Principal @parameters -Domain (Resolve-String -Text $assignment.Domain) -Name (Resolve-String -Text $assignment.Name) -ObjectClass $assignment.ItemType }
 				catch {
 					# If it's a member that is allowed to NOT exist, simply skip the entry
@@ -115,7 +121,9 @@
 				}
 				New-TestResult @resultDefaults -Type Add -Identity "$(Resolve-String -Text $assignment.Assignment.Group)þ$($assignment.Assignment.ItemType)þ$(Resolve-String -Text $assignment.Assignment.Name)" -Configuration $assignment -ADObject $adObject
 			}
-
+			
+			if ($processingMode -eq 'Additive') { continue }
+			
 			foreach ($adMember in $adMembers) {
 				if ($adMember.ObjectSID -in $assignments.ADObject.ObjectSID) {
 					continue

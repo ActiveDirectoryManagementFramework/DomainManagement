@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: Component Group Membership - now can define Group Processing Mode, introducing Constrained and Additive Modes to a group's memberships.
+- Fix: Register-DMGroupMembership - explicitly registering empty as $false no longer clears configured settings.
+
 ## 1.3.70 (2020-06-12)
 
 - Upd: Test-DMAcl - supports SIDs for Ownership.
@@ -18,6 +23,7 @@
 
 ## 1.3.63 (2020-04-20)
 
+- New: Reset-DMDomainCredential - resets cached credentials for connecting to ad domains.
 - Fix: All Invokes broken
 
 ## 1.3.62 (2020-04-17)

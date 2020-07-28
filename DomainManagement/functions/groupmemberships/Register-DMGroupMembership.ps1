@@ -27,11 +27,18 @@
 		Flagging a group for being empty will clear all members from it.
 	
 	.PARAMETER Mode
-		How group memberships will be processed:
+		How the defined group membership will be processed:
 		- Default:             Member must exist and be member of the group.
 		- MayBeMember:         Principal must exist but may be a member. No add action will be generated if not a member, but also no remove action if it already is a member.
 		- MemberIfExists:      If Principal exists, make it a member.
 		- MayBeMemberIfExists: Both existence and membership are optional for this principal.
+	
+	.PARAMETER GroupProcessingMode
+		Governs how ALL group memberships on the targeted group will be processed.
+		Supported modes:
+		- Constrained: Existing Group Memberships not defined will be removed
+		- Additive: Group Memberships defined will be applied, but non-configured memberships will be ignored.
+		If no setting is defined, it will default to 'Constrained'
 	
 	.PARAMETER ContextName
 		The name of the context defining the setting.
@@ -68,9 +75,15 @@
 		[bool]
 		$Empty,
 		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[ValidateSet('Default', 'MayBeMember', 'MemberIfExists', 'MayBeMemberIfExists')]
 		[string]
 		$Mode = 'Default',
+		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[ValidateSet('Constrained', 'Additive')]
+		[string]
+		$GroupProcessingMode,
 		
 		[string]
 		$ContextName = '<Undefined>'
@@ -94,9 +107,17 @@
 				ContextName = $ContextName
 			}
 		}
-		else
+		elseif ($Empty)
 		{
 			$script:groupMemberShips[$Group] = @{ }
+		}
+		
+		if ($GroupProcessingMode)
+		{
+			$script:groupMemberShips[$Group]['__Configuration'] = [PSCustomObject]@{
+				PSTypeName = 'DomainManagement.GroupMembership.Configuration'
+				ProcessingMode = $GroupProcessingMode
+			}
 		}
 	}
 }
