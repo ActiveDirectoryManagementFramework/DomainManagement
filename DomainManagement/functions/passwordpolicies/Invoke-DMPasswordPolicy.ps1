@@ -118,14 +118,14 @@
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMPasswordPolicy.PSO.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
 							$parametersUpdate = $parameters.Clone()
 							$parametersUpdate += $changes
-							$null = Set-ADFineGrainedPasswordPolicy -Identity $testItem.ADObject.ObjectGUID @parametersUpdate -ErrorAction Stop
+							$null = Set-ADFineGrainedPasswordPolicy -Identity $testItem.ADObject.ObjectGUID @parametersUpdate -ErrorAction Stop -Confirm:$false
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 					
 					if ($updateAssignment) {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMPasswordPolicy.PSO.Update.GroupAssignment' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SubjectGroup) -Target $testItem -ScriptBlock {
 							if ($testItem.ADObject.AppliesTo) {
-								Remove-ADFineGrainedPasswordPolicySubject @parameters -Identity $testItem.ADObject.ObjectGUID -Subjects $testItem.ADObject.AppliesTo -ErrorAction Stop
+								Remove-ADFineGrainedPasswordPolicySubject @parameters -Identity $testItem.ADObject.ObjectGUID -Subjects $testItem.ADObject.AppliesTo -ErrorAction Stop -Confirm:$false
 							}
 							$null = Add-ADFineGrainedPasswordPolicySubject @parameters -Identity $testItem.ADObject.ObjectGUID -Subjects (Resolve-String -Text $testItem.Configuration.SubjectGroup) -ErrorAction Stop
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
