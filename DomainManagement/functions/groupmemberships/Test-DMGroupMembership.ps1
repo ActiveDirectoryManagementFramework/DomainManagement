@@ -62,7 +62,17 @@
 			$failedResolveAssignment = $false
 			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipName].Values) {
 				if ($assignment.PSObject.TypeNames -contains 'DomainManagement.GroupMembership.Configuration') { continue }
-				try { $adResult = Get-Principal @parameters -Domain (Resolve-String -Text $assignment.Domain) -Name (Resolve-String -Text $assignment.Name) -ObjectClass $assignment.ItemType }
+				
+				$param = @{
+					Domain = Resolve-String -Text $assignment.Domain
+				} + $parameters
+				if ((Resolve-String -Text $assignment.Name) -as [System.Security.Principal.SecurityIdentifier]) { $param['Sid'] = Resolve-String -Text $assignment.Name }
+				else
+				{
+					$param['Name'] = Resolve-String -Text $assignment.Name
+					$param['ObjectClass'] = $assignment.ItemType
+				}
+				try { $adResult = Get-Principal @param }
 				catch {
 					# If it's a member that is allowed to NOT exist, simply skip the entry
 					if ($assignment.Mode -in 'MemberIfExists','MayBeMemberIfExists') { continue }

@@ -11,6 +11,8 @@
 	
 	.PARAMETER Name
 		The name of the user or group to grant membership in the target group.
+		This parameter also accepts SIDs instead of names.
+		Note: %DomainSID% is the placeholder for the domain SID, %RootDomainSID% the one for the forest root domain.
 	
 	.PARAMETER Domain
 		Domain the entity is from, that is being granted group membership.
