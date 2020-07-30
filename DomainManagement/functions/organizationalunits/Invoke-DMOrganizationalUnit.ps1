@@ -71,7 +71,7 @@
 	}
 	process{
 		if (-not $InputObject) {
-			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object { $_.Identity.Split(",").Count }
+			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object { $_.Identity.Split(",").Count } -Descending
 		}
 		
 		:main foreach ($testItem in $InputObject) {
