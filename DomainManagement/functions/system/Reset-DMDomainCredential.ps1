@@ -27,6 +27,7 @@
 	
 		Clear all cached credentials
 #>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true, ParameterSetName = 'Credential')]

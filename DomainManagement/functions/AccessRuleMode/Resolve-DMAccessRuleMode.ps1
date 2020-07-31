@@ -21,6 +21,7 @@
 
 		Resolves the AccessRule processing mode that applies to the specified ADObject.
 	#>
+	[OutputType([string])]
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]
