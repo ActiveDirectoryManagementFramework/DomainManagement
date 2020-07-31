@@ -45,6 +45,7 @@
 		Brings the group policy settings from the domain fabrikam.com into compliance with the desired state.
 		Will also delete all deprecated policies linked to the managed infrastructure.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param (
 		[Parameter(ValueFromPipeline = $true)]

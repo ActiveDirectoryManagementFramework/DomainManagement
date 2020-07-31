@@ -87,10 +87,16 @@
 				$group = New-Object DirectoryServices.DirectoryEntry($path)
 			}
 			[void]$group.member.Add("<SID=$SID>")
-			$group.CommitChanges()
-			$group.Close()
+			try { $group.CommitChanges() }
+			catch
+			{
+				if (-not $Credential) { throw }
+				$group.Password = $Credential.GetNetworkCredential().Password
+				$group.CommitChanges()
+			}
+			finally { $group.Close() }
 		}
-
+		
 		function Remove-GroupMember {
 			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]

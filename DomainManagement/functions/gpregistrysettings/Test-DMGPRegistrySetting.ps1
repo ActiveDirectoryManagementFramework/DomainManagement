@@ -29,6 +29,7 @@
 
 		Tests, whether the specified GPO has all the desired registry keys configured.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]
