@@ -22,6 +22,7 @@
 
 		Tests whether the domain of corp.contoso.com has the desired GP Permission configuration.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer]

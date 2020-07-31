@@ -22,6 +22,7 @@
 
 		Checks the management state information of the specified policy object.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[CmdletBinding()]
 	Param (
 		[psobject]

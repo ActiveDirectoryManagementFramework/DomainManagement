@@ -19,6 +19,7 @@
 
 		Returns all registered GPLinks
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding()]
 	param (
 		[string]

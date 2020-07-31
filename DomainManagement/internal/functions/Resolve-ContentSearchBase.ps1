@@ -28,7 +28,7 @@
 		
 		Resolves the configured filters into searchbases for the targeted domain.
 #>
-	
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
     [CmdletBinding()]
     Param (
         [string]

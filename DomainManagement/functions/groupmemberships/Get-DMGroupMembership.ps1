@@ -18,7 +18,7 @@
 
 		List all configured group memberships.
 	#>
-	
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding()]
 	param (
 		[string]
