@@ -73,7 +73,7 @@
 	{
 		#region Sort Script
 		$sortScript = {
-			if ($_.Type -eq 'ShouldDelete') { $_.Identity.Split(",").Count }
+			if ($_.Type -eq 'ShouldDelete') { $_.ADObject.DistinguishedName.Split(",").Count }
 			else { 1000 - $_.Identity.Split(",").Count }
 		}
 		#endregion Sort Script
