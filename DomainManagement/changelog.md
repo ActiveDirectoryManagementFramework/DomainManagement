@@ -27,7 +27,6 @@
 
 ## 1.3.63 (2020-04-20)
 
-- New: Reset-DMDomainCredential - resets cached credentials for connecting to ad domains.
 - Fix: All Invokes broken
 
 ## 1.3.62 (2020-04-17)
