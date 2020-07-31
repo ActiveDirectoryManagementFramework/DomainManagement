@@ -69,9 +69,16 @@
 		$everyone = ([System.Security.Principal.SecurityIdentifier]'S-1-1-0').Translate([System.Security.Principal.NTAccount])
 		Set-DMDomainContext @parameters
 	}
-	process{
+	process
+	{
+		#region Sort Script
+		$sortScript = {
+			if ($_.Type -eq 'ShouldDelete') { $_.Identity.Split(",").Count }
+			else { 1000 - $_.Identity.Split(",").Count }
+		}
+		#endregion Sort Script
 		if (-not $InputObject) {
-			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object { $_.Identity.Split(",").Count } -Descending
+			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object $sortScript -Descending
 		}
 		
 		:main foreach ($testItem in $InputObject) {
