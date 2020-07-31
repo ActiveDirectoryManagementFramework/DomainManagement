@@ -45,8 +45,13 @@
 	}
 	process
 	{
-		:main foreach ($groupMembershipNames in $script:groupMemberShips.Keys) {
-			$resolvedGroupName = Resolve-String -Text $groupMembershipNames
+		:main foreach ($groupMembershipName in $script:groupMemberShips.Keys) {
+			$resolvedGroupName = Resolve-String -Text $groupMembershipName
+			$processingMode = 'Constrained'
+			if ($script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode)
+			{
+				$processingMode = $script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode
+			}
 
 			$resultDefaults = @{
 				Server = $Server
@@ -55,8 +60,19 @@
 
 			#region Resolve Assignments
 			$failedResolveAssignment = $false
-			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipNames].Values) {
-				try { $adResult = Get-Principal @parameters -Domain (Resolve-String -Text $assignment.Domain) -Name (Resolve-String -Text $assignment.Name) -ObjectClass $assignment.ItemType }
+			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipName].Values) {
+				if ($assignment.PSObject.TypeNames -contains 'DomainManagement.GroupMembership.Configuration') { continue }
+				
+				$param = @{
+					Domain = Resolve-String -Text $assignment.Domain
+				} + $parameters
+				if ((Resolve-String -Text $assignment.Name) -as [System.Security.Principal.SecurityIdentifier]) { $param['Sid'] = Resolve-String -Text $assignment.Name }
+				else
+				{
+					$param['Name'] = Resolve-String -Text $assignment.Name
+					$param['ObjectClass'] = $assignment.ItemType
+				}
+				try { $adResult = Get-Principal @param }
 				catch {
 					# If it's a member that is allowed to NOT exist, simply skip the entry
 					if ($assignment.Mode -in 'MemberIfExists','MayBeMemberIfExists') { continue }
@@ -115,7 +131,9 @@
 				}
 				New-TestResult @resultDefaults -Type Add -Identity "$(Resolve-String -Text $assignment.Assignment.Group)þ$($assignment.Assignment.ItemType)þ$(Resolve-String -Text $assignment.Assignment.Name)" -Configuration $assignment -ADObject $adObject
 			}
-
+			
+			if ($processingMode -eq 'Additive') { continue }
+			
 			foreach ($adMember in $adMembers) {
 				if ($adMember.ObjectSID -in $assignments.ADObject.ObjectSID) {
 					continue

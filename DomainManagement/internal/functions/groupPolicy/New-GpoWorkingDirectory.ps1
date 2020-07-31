@@ -16,6 +16,7 @@
 
 		Ensures the working folder exists and stores the session-local path in the $workingFolder variable.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 	[OutputType([string])]
 	[CmdletBinding()]
