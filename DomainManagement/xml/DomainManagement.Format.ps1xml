@@ -6,6 +6,7 @@
             <Types>
                 <TypeName>DomainManagement.AccessRule.TestResult</TypeName>
                 <TypeName>DomainManagement.Acl.TestResult</TypeName>
+				<TypeName>DomainManagement.DomainLevel.TestResult</TypeName>
                 <TypeName>DomainManagement.GPLink.TestResult</TypeName>
 				<TypeName>DomainManagement.GPPermission.TestResult</TypeName>
                 <TypeName>DomainManagement.Group.TestResult</TypeName>
