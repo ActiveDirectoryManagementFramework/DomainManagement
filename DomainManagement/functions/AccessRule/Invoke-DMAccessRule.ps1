@@ -76,6 +76,7 @@
 
 					try { $aclObject = Get-AdsAcl @parameters -Path $testItem.Identity -EnableException }
 					catch { Stop-PSFFunction -String 'Invoke-DMAccessRule.Access.Failed' -StringValues $testItem.Identity -EnableException $EnableException -Target $testItem -Continue -ErrorRecord $_ }
+					$failedCount = 0
 					foreach ($changeEntry in $testItem.Changed) {
 						#region Remove Access Rules
 						if ($changeEntry.Type -eq 'Delete') {
@@ -85,6 +86,7 @@
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
 									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
 										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType -Target $changeEntry -Debug:$false
+										$failedCount = $failedCount + 1
 										break
 									}
 								}
@@ -101,7 +103,9 @@
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
 							}
-							catch {
+							catch
+							{
+								$failedCount = $failedCount + 1
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
 							$null = $aclObject.AddAccessRule($accessRule)
@@ -110,7 +114,7 @@
 						}
 						#endregion Add Access Rules
 					}
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAccessRule.Processing.Execute' -ActionStringValues $testItem.Changed.Count -Target $testItem -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAccessRule.Processing.Execute' -ActionStringValues ($testItem.Changed.Count - $failedCount), $testItem.Changed.Count -Target $testItem -ScriptBlock {
 						Set-AdsAcl @parameters -Path $testItem.Identity -AclObject $aclObject -EnableException -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}

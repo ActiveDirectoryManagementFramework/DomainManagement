@@ -81,7 +81,8 @@
                             Description   = (Resolve-String -Text $testItem.Configuration.Description)
                             Path          = $targetOU
                             GroupCategory = $testItem.Configuration.Category
-                            GroupScope    = $testItem.Configuration.Scope
+							GroupScope    = $testItem.Configuration.Scope
+							Confirm       = $false
                         }
                         New-ADGroup @newParameters
                     } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue

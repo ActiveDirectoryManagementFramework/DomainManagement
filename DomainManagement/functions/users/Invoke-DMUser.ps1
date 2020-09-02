@@ -85,6 +85,7 @@
 							Path = $targetOU
 							AccountPassword = (New-Password -Length 128 -AsSecureString)
 							Enabled = $testItem.Configuration.Enabled # Both True and Undefined will result in $true
+							Confirm = $false
 						}
 						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
 						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }

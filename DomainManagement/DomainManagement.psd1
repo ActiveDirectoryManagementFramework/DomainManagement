@@ -26,7 +26,7 @@
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules    = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.1.59' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.4.146' }
 		@{ ModuleName = 'ADSec'; ModuleVersion = '0.2.1' }
 	)
 	
@@ -50,6 +50,7 @@
 		'Get-DMContentMode'
 		'Get-DMDomainCredential'
 		'Get-DMDomainData'
+		'Get-DMDomainLevel'
 		'Get-DMGPLink'
 		'Get-DMGPPermission'
 		'Get-DMGPPermissionFilter'
@@ -67,6 +68,7 @@
 		'Invoke-DMAccessRule'
 		'Invoke-DMAcl'
 		'Invoke-DMDomainData'
+		'Invoke-DMDomainLevel'
 		'Invoke-DMGPLink'
 		'Invoke-DMGPPermission'
 		'Invoke-DMGroup'
@@ -82,6 +84,7 @@
 		'Register-DMBuiltInSID'
 		'Register-DMCallback'
 		'Register-DMDomainData'
+		'Register-DMDomainLevel'
 		'Register-DMGPLink'
 		'Register-DMGPPermission'
 		'Register-DMGPPermissionFilter'
@@ -104,6 +107,7 @@
 		'Set-DMRedForestContext'
 		'Test-DMAccessRule'
 		'Test-DMAcl'
+		'Test-DMDomainLevel'
 		'Test-DMGPLink'
 		'Test-DMGPPermission'
 		'Test-DMGPRegistrySetting'
@@ -119,6 +123,7 @@
 		'Unregister-DMAcl'
 		'Unregister-DMCallback'
 		'Unregister-DMDomainData'
+		'Unregister-DMDomainLevel'
 		'Unregister-DMGPLink'
 		'Unregister-DMGPPermission'
 		'Unregister-DMGPPermissionFilter'

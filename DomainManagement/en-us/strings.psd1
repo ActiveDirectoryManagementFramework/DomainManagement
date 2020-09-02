@@ -46,7 +46,7 @@
 	'Invoke-DMAccessRule.AccessRule.Remove'						    = 'Removing access rule for {0}, granting {1} ({2})' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType
 	'Invoke-DMAccessRule.AccessRule.Remove.Failed'				    = 'Failed to removing access rule for {0}, granting {1} ({2}) for unknown reasons (sorry)' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType
 	'Invoke-DMAccessRule.ADObject.Missing'						    = 'Cannot process access rules, due to missing AD object: {0}. Please ensure the domain object is created before trying to apply rules to it!' # $testItem.Identity
-	'Invoke-DMAccessRule.Processing.Execute'					    = 'Applying {0} access rule changes' # $testItem.Changed.Count
+	'Invoke-DMAccessRule.Processing.Execute'					    = 'Applying {0} out of {1} intended access rule changes' # $testItem.Changed.Count
 	'Invoke-DMAccessRule.Processing.Rules'						    = 'Processing {1} access rule changes on {0}' # $testItem.Identity, $testItem.Changed.Count
 	
 	'Invoke-DMAcl.MissingADObject'								    = 'The target object could not be found: {0}' # $testItem.Identity

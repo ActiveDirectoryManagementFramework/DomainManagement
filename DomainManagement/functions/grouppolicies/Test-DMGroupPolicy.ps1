@@ -112,7 +112,7 @@
 						New-TestResult @resultDefaults -Type 'Modified' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
-					$registryTest = Test-DMGPRegistrySetting @parameters -PolicyName $desiredPolicy.DisplayName -PassThru
+					$registryTest = Test-DMGPRegistrySetting -Server $session -PolicyName $desiredPolicy.DisplayName -PassThru
 					if (-not $registryTest.Success) {
 						New-TestResult @resultDefaults -Type 'BadRegistryData' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject -Changed $registryTest.Changes
 						continue
@@ -134,6 +134,6 @@
 		#endregion Compare actual state to configuration
 	}
 	end {
-		if ($session) { Remove-PSSession $session -WhatIf:$false }
+		if ($session) { Remove-PSSession $session -WhatIf:$false -Confirm:$false }
 	}
 }
