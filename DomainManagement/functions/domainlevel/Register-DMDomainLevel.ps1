@@ -23,7 +23,7 @@
 	[CmdletBinding()]
 	param (
 		[ValidateSet('2008R2', '2012', '2012R2', '2016')]
-		[int]
+		[string]
 		$Level,
 		
 		[string]
@@ -32,10 +32,10 @@
 	
 	process
 	{
-		$script:domainLevel = [PSCustomObject]@{
+		$script:domainLevel = @([PSCustomObject]@{
 			PSTypeName  = 'DomainManagement.Configuration.DomainLevel'
 			Level	    = $Level
 			ContextName = $ContextName
-		}
+		})
 	}
 }

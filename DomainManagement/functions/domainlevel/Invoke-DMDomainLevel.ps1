@@ -58,7 +58,7 @@
 				'Raise'
 				{
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMDomainLevel.Raise.Level' -ActionStringValues $testItem.Configuration.Level -Target $testItem.ADObject -ScriptBlock {
-						Set-ADDomainMode @parameters -DomainMode $testItem.Configuration.DesiredLevel
+						Set-ADDomainMode @parameters -DomainMode $testItem.Configuration.DesiredLevel -Identity $testItem.ADObject -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 			}

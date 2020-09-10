@@ -61,7 +61,7 @@
 	'Invoke-DMDomainData.Script.NotFound'						    = 'Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
 	'Invoke-DMDomainData.Script.NotFound.Error'					    = 'Critical error: Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
 	
-	'Invoke-DMDomainLevel.Raise.Level'							    = 'Raising domainlevel to {0}' # $testItem.Configuration.Level
+	'Invoke-DMDomainLevel.Raise.Level'							    = 'Raising domain level to {0}' # $testItem.Configuration.Level
 	
 	'Invoke-DMGPLink.Delete.AllDisabled'						    = 'Removing all ({0}) policy links (all of which are disabled)' # $countActual
 	'Invoke-DMGPLink.Delete.AllEnabled'							    = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
