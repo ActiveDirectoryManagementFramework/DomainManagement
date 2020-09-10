@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.4.84 (2020-09-10)
 
 - New: Component: DomainLevel - manage the functional level of your domain
 - Upd: Test-DMGroupPolicy - added session re-use for GP Registry testing

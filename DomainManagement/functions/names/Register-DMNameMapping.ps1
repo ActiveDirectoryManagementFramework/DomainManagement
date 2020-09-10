@@ -37,5 +37,6 @@
 	process
 	{
 		$script:nameReplacementTable[$Name] = $Value
+		Register-StringMapping -Name $Name -Value $Value
 	}
 }

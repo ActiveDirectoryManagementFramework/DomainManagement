@@ -28,6 +28,7 @@
 	{
 		foreach ($nameItem in $Name) {
 			$script:nameReplacementTable.Remove($nameItem)
+			Unregister-StringMapping -Name $nameItem
 		}
 	}
 }

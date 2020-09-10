@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.3.76'
+	ModuleVersion      = '1.4.84'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -26,8 +26,10 @@
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules    = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.4.146' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.4.149' }
 		@{ ModuleName = 'ADSec'; ModuleVersion = '0.2.1' }
+		@{ ModuleName = 'ResolveString'; ModuleVersion = '1.0.0' }
+		@{ ModuleName = 'ADMF.Core'; ModuleVersion = '1.0.0' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
