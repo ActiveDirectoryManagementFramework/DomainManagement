@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.3.76'
+	ModuleVersion      = '1.4.84'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -26,8 +26,10 @@
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules    = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.1.59' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.4.149' }
 		@{ ModuleName = 'ADSec'; ModuleVersion = '0.2.1' }
+		@{ ModuleName = 'ResolveString'; ModuleVersion = '1.0.0' }
+		@{ ModuleName = 'ADMF.Core'; ModuleVersion = '1.0.0' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
@@ -50,6 +52,7 @@
 		'Get-DMContentMode'
 		'Get-DMDomainCredential'
 		'Get-DMDomainData'
+		'Get-DMDomainLevel'
 		'Get-DMGPLink'
 		'Get-DMGPPermission'
 		'Get-DMGPPermissionFilter'
@@ -67,6 +70,7 @@
 		'Invoke-DMAccessRule'
 		'Invoke-DMAcl'
 		'Invoke-DMDomainData'
+		'Invoke-DMDomainLevel'
 		'Invoke-DMGPLink'
 		'Invoke-DMGPPermission'
 		'Invoke-DMGroup'
@@ -82,6 +86,7 @@
 		'Register-DMBuiltInSID'
 		'Register-DMCallback'
 		'Register-DMDomainData'
+		'Register-DMDomainLevel'
 		'Register-DMGPLink'
 		'Register-DMGPPermission'
 		'Register-DMGPPermissionFilter'
@@ -104,6 +109,7 @@
 		'Set-DMRedForestContext'
 		'Test-DMAccessRule'
 		'Test-DMAcl'
+		'Test-DMDomainLevel'
 		'Test-DMGPLink'
 		'Test-DMGPPermission'
 		'Test-DMGPRegistrySetting'
@@ -119,6 +125,7 @@
 		'Unregister-DMAcl'
 		'Unregister-DMCallback'
 		'Unregister-DMDomainData'
+		'Unregister-DMDomainLevel'
 		'Unregister-DMGPLink'
 		'Unregister-DMGPPermission'
 		'Unregister-DMGPPermissionFilter'

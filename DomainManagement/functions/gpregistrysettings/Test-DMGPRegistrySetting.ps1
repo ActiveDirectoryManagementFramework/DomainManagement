@@ -215,7 +215,7 @@
 	end {
 		if (Test-PSFFunctionInterrupt) { return }
 		if (-not $reUseSession) {
-			$session | Remove-PSSession
+			$session | Remove-PSSession -Confirm:$false -WhatIf:$false
 		}
 	}
 }

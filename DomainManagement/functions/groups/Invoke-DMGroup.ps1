@@ -81,7 +81,8 @@
                             Description   = (Resolve-String -Text $testItem.Configuration.Description)
                             Path          = $targetOU
                             GroupCategory = $testItem.Configuration.Category
-                            GroupScope    = $testItem.Configuration.Scope
+							GroupScope    = $testItem.Configuration.Scope
+							Confirm       = $false
                         }
                         New-ADGroup @newParameters
                     } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
@@ -128,7 +129,7 @@
                         } -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed -contains 'Name') {
-                        Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Update.Name' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
+                        Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
                             $testItem.ADObject | Rename-ADObject @parameters -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
                         } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                     }

@@ -1,7 +1,6 @@
 ﻿# This is where the strings go, that are written by
 # Write-PSFMessage, Stop-PSFFunction or the PSFramework validation scriptblocks
 @{
-	
 	'Assert-ADConnection.Failed'								    = 'Failed to connect to {0}' # $Server
 	
 	'Assert-Configuration.NotConfigured'						    = 'No configuration data provided for: {0}' # $Type
@@ -46,7 +45,7 @@
 	'Invoke-DMAccessRule.AccessRule.Remove'						    = 'Removing access rule for {0}, granting {1} ({2})' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType
 	'Invoke-DMAccessRule.AccessRule.Remove.Failed'				    = 'Failed to removing access rule for {0}, granting {1} ({2}) for unknown reasons (sorry)' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType
 	'Invoke-DMAccessRule.ADObject.Missing'						    = 'Cannot process access rules, due to missing AD object: {0}. Please ensure the domain object is created before trying to apply rules to it!' # $testItem.Identity
-	'Invoke-DMAccessRule.Processing.Execute'					    = 'Applying {0} access rule changes' # $testItem.Changed.Count
+	'Invoke-DMAccessRule.Processing.Execute'					    = 'Applying {0} out of {1} intended access rule changes' # ($testItem.Changed.Count - $failedCount), $testItem.Changed.Count
 	'Invoke-DMAccessRule.Processing.Rules'						    = 'Processing {1} access rule changes on {0}' # $testItem.Identity, $testItem.Changed.Count
 	
 	'Invoke-DMAcl.MissingADObject'								    = 'The target object could not be found: {0}' # $testItem.Identity
@@ -60,6 +59,8 @@
 	'Invoke-DMDomainData.Invocation.Error.Terminate'			    = 'Critical Error: An exception was thrown while executing the domain data script "{0}".' # $Name
 	'Invoke-DMDomainData.Script.NotFound'						    = 'Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
 	'Invoke-DMDomainData.Script.NotFound.Error'					    = 'Critical error: Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
+	
+	'Invoke-DMDomainLevel.Raise.Level'							    = 'Raising domain level to {0}' # $testItem.Configuration.Level
 	
 	'Invoke-DMGPLink.Delete.AllDisabled'						    = 'Removing all ({0}) policy links (all of which are disabled)' # $countActual
 	'Invoke-DMGPLink.Delete.AllEnabled'							    = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
@@ -88,6 +89,7 @@
 	'Invoke-DMGroup.Group.MultipleOldGroups'					    = 'Cannot rename group to {0}: More than one group exists owning one of the previous names. Conflicting groups: {1}. Please investigate and manually resolve.' # $testItem.Identity, ($testItem.ADObject.Name -join ', ')
 	'Invoke-DMGroup.Group.Rename'								    = 'Renaming active directory group to {0}' # (Resolve-String -Text $testItem.Configuration.Name)
 	'Invoke-DMGroup.Group.Update'								    = 'Updating {0} on active directory group' # ($changes.Keys -join ", ")
+	'Invoke-DMGroup.Group.Update.Name'							    = 'Renaming to {0}' # (Resolve-String -Text $testItem.Configuration.Name)
 	'Invoke-DMGroup.Group.Update.OUExistsNot'					    = 'Cannot move active directory group {0} - OU does not exist: {1}' # $testItem.Identity, $targetOU
 	'Invoke-DMGroup.Group.Update.Scope'							    = 'Updating the group scope of {0} from {1} to {2}' # $testItem, $testItem.ADObject.GroupScope, $targetScope
 	
@@ -133,6 +135,7 @@
 	'Invoke-DMUser.User.Rename'									    = 'Renaming active directory user to {0}' # (Resolve-String -Text $testItem.Configuration.SamAccountName)
 	'Invoke-DMUser.User.Update'									    = 'Updating {0} on active directory user' # ($changes.Keys -join ", ")
 	'Invoke-DMUser.User.Update.EnableDisable'					    = 'Changing user enabled state to: {0}' # $testItem.Configuration.Enabled
+	'Invoke-DMUser.User.Update.Name'							    = 'Renaming user to {0}' # (Resolve-String -Text $testItem.Configuration.Name)
 	'Invoke-DMUser.User.Update.OUExistsNot'						    = 'Cannot move active directory group {0} - user does not exist: {1}' # $testItem.Identity, $targetOU
 	'Invoke-DMUser.User.Update.PasswordNeverExpires'			    = 'Changing user password non-expiration to: {0}' # $testItem.Configuration.PasswordNeverExpires
 	
@@ -142,6 +145,8 @@
 	'Resolve-ContentSearchBase.Exclude.NotFound'				    = 'Failed to find excluded ou/container: {0}' # $item.Name
 	'Resolve-ContentSearchBase.Include.NotFound'				    = 'Failed to find included ou/container: {0}' # $item.Name
 	'Resolve-ContentSearchBase.Searchbase.Found'				    = 'Resolved searchbase in {2}: {0} | {1}' # $searchBase.SearchScope, $searchBase.SearchBase, $script:domainContext.Fqdn
+	
+	'Resolve-DMAccessRuleMode.PathResolution.Failed'			    = 'Unable to resolve path: {0}' # $mode.Path
 	
 	'Resolve-Identity.ParentObject.NoSecurityPrincipal'			    = 'Error processing parent of {0} : {1} of type {2} is no legal security principal and cannot be assigned permissions!' # $ADObject, $parentObject.Name, $parentObject.ObjectClass
 	
@@ -157,8 +162,6 @@
 	
 	'Test-DMAcl.ADObjectNotFound'								    = 'The target object could not be found: {0}' # $resolvedPath
 	'Test-DMAcl.NoAccess'										    = 'Failed to access Acl on {0}' # $resolvedPath
-	'Test-DMAcl.OwnerDomainNotResolved'							    = 'Failed to resolve the domain of the owner of {0}' # $resolvedPath
-	'Test-DMAcl.OwnerPrincipalNotResolved'						    = 'Failed to resolve the identity of the owner of {0}' # $resolvedPath
 	
 	'Test-DMGPLink.OUNotFound'									    = 'Failed to find the configured OU: {0} - Please validate your OU configuration and bring your OU estate into the desired state first!' # $resolvedName
 	

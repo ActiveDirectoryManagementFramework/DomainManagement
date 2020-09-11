@@ -1,4 +1,4 @@
-﻿$modules = @("Pester", "PSFramework", "PSModuleDevelopment", "PSScriptAnalyzer", 'ADSec')
+﻿$modules = @("Pester", "PSFramework", "PSModuleDevelopment", "PSScriptAnalyzer", 'ADSec', 'ResolveString', 'ADMF.Core')
 
 foreach ($module in $modules) {
     Write-Host "Installing $module" -ForegroundColor Cyan

@@ -59,8 +59,14 @@ $script:objects = @{ }
 # Configured data gathering scripts
 $script:domainDataScripts = @{ }
 
+# Configured domain functional level
+$script:domainLevel = $null
 
- #----------------------------------------------------------------------------#
+# Configured Exchange Domain Setting Versions
+$script:exchangeVersion = $null
+
+
+#----------------------------------------------------------------------------#
  #                                Cached Data                                 #
  #----------------------------------------------------------------------------#
 
