@@ -21,6 +21,9 @@ foreach ($file in (Get-ChildItem "$($script:ModuleRoot)\internal\tepp\*.tepp.ps1
 # Load License
 . Import-ModuleFile -Path "$($script:ModuleRoot)\internal\scripts\license.ps1"
 
+# Other initialization logic
+. Import-ModuleFile -Path "$($script:ModuleRoot)\internal\scripts\initialize.ps1"
+
 # Load Variables
 . Import-ModuleFile -Path "$($script:ModuleRoot)\internal\scripts\variables.ps1"
 . Import-ModuleFile -Path "$($script:ModuleRoot)\internal\scripts\variables2.ps1"

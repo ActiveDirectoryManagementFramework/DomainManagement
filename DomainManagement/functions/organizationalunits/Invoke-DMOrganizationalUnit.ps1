@@ -118,6 +118,7 @@
 							Name = (Resolve-String -Text $testItem.Configuration.Name)
 							Description = (Resolve-String -Text $testItem.Configuration.Description)
 							Path = $targetOU
+							Confirm = $false
 						}
 						New-ADOrganizationalUnit @newParameters -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue

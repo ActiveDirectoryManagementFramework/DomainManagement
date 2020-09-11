@@ -85,6 +85,7 @@
 							Path = $targetOU
 							AccountPassword = (New-Password -Length 128 -AsSecureString)
 							Enabled = $testItem.Configuration.Enabled # Both True and Undefined will result in $true
+							Confirm = $false
 						}
 						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
 						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }
@@ -131,7 +132,7 @@
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed -contains 'Name') {
-						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
 							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}

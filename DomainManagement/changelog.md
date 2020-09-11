@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## 1.4.84 (2020-09-10)
+
+- New: Component: DomainLevel - manage the functional level of your domain
+- Upd: Test-DMGroupPolicy - added session re-use for GP Registry testing
+- Fix: Invoke-DMAccessRule - updated action message to respect individual rule changes that failed
+- Fix: Invoke-DMGroup - removed double shouldprocess when creating new group
+- Fix: Invoke-DMOrganizationalUnit - removed double shouldprocess when creating new ou
+- Fix: Invoke-DMUser - removed double shouldprocess when creating new user
+- Fix: Test-DMGroupPolicy - removed confirm action on session removal
+- Fix: Test-DMGPRegistrySetting - removed confirm action on session removal
+
 ## 1.3.76 (2020-07-31)
 
 - New: Reset-DMDomainCredential - Resets cached credentials for contacting domains.
