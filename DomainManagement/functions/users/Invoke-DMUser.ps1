@@ -132,7 +132,7 @@
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed -contains 'Name') {
-						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues $testItem.Configuration.Enabled -Target $testItem -ScriptBlock {
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
 							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
