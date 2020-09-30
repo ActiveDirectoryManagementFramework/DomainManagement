@@ -6,7 +6,7 @@
 		
 		.DESCRIPTION
 			Register a new name mapping.
-			Mapped names are used for stringr replacement when invoking domain configurations.
+			Mapped names are used for string replacement when invoking domain configurations.
 		
 		.PARAMETER Name
 			The name of the placeholder to register.

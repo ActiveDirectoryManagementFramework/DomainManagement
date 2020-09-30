@@ -106,6 +106,14 @@ $script:contentSearchBases = [PSCustomObject]@{
     Server = ''
 }
 
+# WinRM Mode
+$script:WinRMMode = [PSCustomObject]@{
+    PSTypeName = 'DomainManagement.WinRM.Mode'
+    Mode   = 'Default' # Allowed Values: Default / JEA / NoWinRM
+    JEAConfigurationName = ''
+    JEAEndPointServer = ''
+}
+
 # Domain Context
 $script:domainContext = [PSCustomObject]@{
     Name = ''
