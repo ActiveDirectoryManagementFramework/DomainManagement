@@ -199,4 +199,16 @@
 	'Validate.Name.Pattern'										    = 'Invalid input: {0}. The name tag must start with a "%", end in a "%" and contain only letters, underscore and numbers inbetween.' # <user input>, <validation item>
 	'Validate.PermissionFilterName'								    = 'Invalid input: {0}. GP Permission Filter names may only consist of letters, numbers and underscore characters.' # <user input>, <validation item>
 	'Validate.TypeName.AccessRule.Failed'						    = 'The input object {0} could not be verified as a "DomainManagement.AccessRule" object.' # <user input>, <validation item>
+	'Install-DMJEAEndPoint.NewSession'                              = 'Create new PSSession if working remotely.'
+	'Install-DMJEAEndPoint.NewSession.LocalHost'                    = 'Running on local host. Will not create WinRM session.'
+	'Install-DMJEAEndPoint.CopyModule'                              = 'Copy JEA module to target.'
+	'Install-DMJEAEndPoint.RunScript'                               = 'Run installation script'
+	'Install-DMJEAEndPoint.RunScript.SessionBroken'                 = 'WinRM Session broken. This is expected in remote installation'
+	'Install-DMJEAEndPoint.TestInstallation'                        = 'Confirm installation is successful'
+	'Install-DMJEAEndPoint.Success'                                 = 'Installation succeeded. Use below output to create JSON file or with Set-DMWinRMMode'
+	
+	'Get-DMObjectDefaultPermission.RunningLocally'                  = 'Running against local host. Will not use WinRM.'
+	'Get-DMObjectDefaultPermission.Mode'                            = 'Effective WinRM Mode: {0}'
+	'Get-DMObjectDefaultPermission.JEAConfigurationName'            = 'JEA Configuration Name: {0}'
+	'Get-DMObjectDefaultPermission.JEAEndpointServer'               = 'JEA Endpoint server: {0}'
 }

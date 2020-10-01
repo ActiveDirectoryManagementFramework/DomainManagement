@@ -10,29 +10,38 @@ function Install-DMJEAEndPoint {
         The EndPoint can be a dedicated computer or a domain controller. 
 	
 	.PARAMETER ComputerName
-		Name of remote endpoint computer name.
-	
-	.PARAMETER ConfigurationName
-        JEA Endpoint configuration name
-        
+        Name of remote endpoint computer name. Default is localhost.
+        Although it is supported to provide a WinRM session, during installation the session is broken
+        and a new one is created, therefore you need to be using an account with admin privilages on 
+        remote computer or supply proper credential.
+
+    .PARAMETER Credential
+        Credential to use. Must have local administrator permissions.
+
     .PARAMETER JEAIdentity
         Group/user/gMSA account used in configuration.
 		
 	.EXAMPLE
-		PS C:\> Install-DMJEAEndpoint -ComputerName JEAServer.contoso.com
+        PS C:\> Install-DMJEAEndpoint -JEAIdentity Domain\username
+        
+        Installs JEA endpoint on localhost.
 
-		Returns the default permissions for a user.
+    .EXAMPLE
+        PS C:\> Install-DMJEAEndPoint -ComputerName jeaendpoint.contoso.com -JEAIdentity Domain\username -Credential $creds
+        
+        Installs JEA endpoint on remote computer using supplied credentials.        
+
 	#>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
     [CmdletBinding()]
     Param (
-        [PSFComputer] $ComputerName = $env:COMPUTERNAME,
+        [PSFComputer] $ComputerName = (Get-WmiObject win32_computersystem).DNSHostName+"."+(Get-WmiObject win32_computersystem).Domain, #FQDN
+        
+        [PSCredential] $Credential,  
         
         [Parameter(Mandatory = $true)]
-        [string] $JEAIdentity,
+        [string] $JEAIdentity
 
-        [PSCredential]
-        $Credential
     )
 
     begin {
@@ -45,6 +54,7 @@ function Install-DMJEAEndPoint {
             # Are we working on local host?
             if ($ComputerName.IsLocalhost) {
                 $result = $ComputerName
+                Write-PSFMessage -Level Verbose -String 'Install-DMJEAEndPoint.NewSession.LocalHost'
             }
             else {
                 if ($ComputerName.Type -ne 'PSSession') {
@@ -57,31 +67,32 @@ function Install-DMJEAEndPoint {
             }
             $result
         }
-        function CopyZipFile {
+        function Copy-JEAModule {
             [CmdletBinding()]
-            Param ([PSFComputer] $ComputerName, $SourceZipFilePath)
+            Param ([PSFComputer] $ComputerName, $SourceFolderPath)
             
             if ($ComputerName.IsLocalhost) {
                 #Running on localhost 
-                $result = $SourceZipFilePath
+                $modulesRootPath = "$env:ProgramFiles\WindowsPowerShell\Modules\"
+                Copy-Item -Path $SourceFolderPath -Destination $modulesRootPath -Recurse -Force -ErrorAction Stop
             }
-            else {              
-                $result = Invoke-Command -Session $ComputerName.InputObject -ScriptBlock { "$env:windir\Temp\JEA_DMJEAModule.zip" }
-                Copy-Item -ToSession $ComputerName.InputObject -Path $SourceZipFilePath -Destination $result -ErrorAction Stop
+            else { # Running on remote computer             
+                $modulesRootPath = Invoke-Command -Session $ComputerName.InputObject -ScriptBlock { "$env:ProgramFiles\WindowsPowerShell\Modules\" }
+                Copy-Item -ToSession $ComputerName.InputObject -Path $SourceFolderPath -Destination $modulesRootPath -Recurse -Force  -ErrorAction Stop
             } 
-            $result
+
         }
         function Register-JEAEndpoint {
             [CmdletBinding()]
-            Param ([PSFComputer] $ComputerName, $JEAIdentity, $ZipFileLocation)
+            Param ([PSFComputer] $ComputerName, $JEAIdentity)
     
             $installResult = [PSCustomObject]@{
                 Success = $true
                 Error   = $null
             }
-            $installResult = Invoke-PSFCommand -ComputerName $ComputerName -ArgumentList $ZipFileLocation, $JEAIdentity  -scriptblock {                
+            $installResult = Invoke-PSFCommand -ComputerName $ComputerName -ArgumentList $JEAIdentity  -scriptblock {                
                 Param(
-                    $ZipFilePath, $JEAIdentity
+                    $JEAIdentity
                 )
                 $result = [PSCustomObject]@{
                     Success = $true
@@ -89,10 +100,8 @@ function Install-DMJEAEndPoint {
                 }
                 try {
                             
-                    $jeaModuleDestination = "$env:ProgramFiles\WindowsPowerShell\Modules\"
-                    $jeaModuleSessionConfigurationPath = "$jeaModuleDestination\JEA_DMJEAModule\1.0.0\sessionconfiguration.pssc"
-                            
-                    Expand-Archive -Path $ZipFilePath  -DestinationPath $jeaModuleDestination -Force -ErrorAction 'Stop'
+                    $jeaModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules\"
+                    $jeaModuleSessionConfigurationPath = "$jeaModulePath\JEA_DMJEAModule\1.0.0\sessionconfiguration.pssc"
                             
                     $SessionConfiguration = Get-Content -Path $jeaModuleSessionConfigurationPath -ErrorAction 'Stop'
                     $SessionConfiguration -replace '%JEAIdentity%', $JEAIdentity | Set-Content $jeaModuleSessionConfigurationPath -Force -ErrorAction 'Stop'
@@ -111,8 +120,11 @@ function Install-DMJEAEndPoint {
             Start-Sleep -Seconds 3 # Wait for the session to report as broken
 
             if($installResult.Success -or $ComputerName.InputObject.State -eq "Broken"){
-                Write-PSFMessage -Level Verbose -Message "The bomb has been planted!"
-                Remove-PSSession -Session $ComputerName.InputObject -ErrorAction Ignore            
+                
+                if (-Not $ComputerName.IsLocalhost -and $ComputerName.Type -eq 'PSSession') { #Close any open sessions
+                    Write-PSFMessage -Level Verbose -String 'Install-DMJEAEndPoint.RunScript.SessionBroken'
+                    Remove-PSSession -Session $ComputerName.InputObject -ErrorAction Ignore -WhatIf:$false -Confirm:$false 
+                }         
             }
             else {throw $installResult.Error}
         }
@@ -129,9 +141,7 @@ function Install-DMJEAEndPoint {
                     if (Get-PSSessionConfiguration -Name 'JEA_DMJEAModule' -ErrorAction Stop) {
                         # Nothing to do, just leave it result.success as $true
                     }
-                    
-                    Remove-Item -Path "$env:ProgramFiles\WindowsPowerShell\Modules\JEA_DMJEAModule" -Recurse -Force -ErrorAction SilentlyContinue
-                    Remove-Item "$env:windir\Temp\JEA_DMJEAModule.zip" -Force -ErrorAction SilentlyContinue
+                
                 }
                 catch {
                     $result.Success = $false
@@ -145,11 +155,13 @@ function Install-DMJEAEndPoint {
             $installResult            
         }
         #endregion: Utility functions
-        $SourceZipFilePath = "$script:moduleroot\internal\JEAEndpoint\JEA_DMJEAModule.zip" 
+        $sourceFolderPath = "$script:moduleroot\internal\JEAEndpoint\JEA_DMJEAModule" 
     }
         
     process {
         $parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential
+
+        if ($ComputerName.IsLocalhost) {$parameters.ComputerName = $ComputerName}
 
         Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.NewSession' -ActionStringValues $ComputerName.InputObject -Target $ComputerName.InputObject -ScriptBlock {
             
@@ -158,14 +170,14 @@ function Install-DMJEAEndPoint {
         } -EnableException $EnableException -PSCmdlet $PSCmdlet -whatif:$false -Confirm:$false
         if (Test-PSFFunctionInterrupt) { return } 
 
-        Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.CopyZippedModule' -Target $ComputerName.ComputerName -ScriptBlock {   
-            $zipFileLocation = CopyZipFile -ComputerName $parameters.ComputerName -SourceZipFilePath $SourceZipFilePath 
+        Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.CopyModule' -Target $ComputerName.ComputerName -ScriptBlock {   
+            Copy-JEAModule -ComputerName $parameters.ComputerName -SourceFolderPath $sourceFolderPath 
    
         } -EnableException $EnableException -PSCmdlet $PSCmdlet
         if (Test-PSFFunctionInterrupt) { return } 
 
         Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.RunScript' -Target $ComputerName.ComputerName  -ScriptBlock {        
-            Register-JEAEndpoint -ComputerName $parameters.ComputerName -JEAIdentity $JEAIdentity -ZipFileLocation $zipFileLocation
+            Register-JEAEndpoint -ComputerName $parameters.ComputerName -JEAIdentity $JEAIdentity
         } -EnableException $EnableException -PSCmdlet $PSCmdlet 
         if (Test-PSFFunctionInterrupt) { return } 
 
@@ -178,7 +190,7 @@ function Install-DMJEAEndPoint {
         } -EnableException $EnableException -PSCmdlet $PSCmdlet -whatif:$false -Confirm:$false -RetryCount 3 -RetryWait 3s 
         if (Test-PSFFunctionInterrupt) { return } 
 
-        Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.ConfirmInstallation' -ActionStringValues $ComputerName.InputObject -Target $ComputerName.InputObject -ScriptBlock {
+        Invoke-PSFProtectedCommand -ActionString 'Install-DMJEAEndPoint.TestInstallation' -ActionStringValues $ComputerName.InputObject -Target $ComputerName.InputObject -ScriptBlock {
             
             $installResult = Test-Installation -ComputerName $parameters.ComputerName
         
@@ -187,7 +199,7 @@ function Install-DMJEAEndPoint {
         
         
         if ($installResult.success) {
-            # Output 
+            Write-PSFMessage -Level Verbose -String 'Install-DMJEAEndPoint.Success'
             [PSCustomObject]@{
                 PSTypeName             = 'DomainManagement.WinRM.Mode'
                 "Mode"                 = 'JEA'
@@ -202,6 +214,8 @@ function Install-DMJEAEndPoint {
     }   
     
     End {
-        if (-Not $ComputerName.IsLocalhost) { Remove-PSSession -Session $parameters.ComputerName.InputObject -ErrorAction Ignore -WhatIf:$false -Confirm:$false }
+        if (-Not $ComputerName.IsLocalhost -and $parameters.ComputerName.Type -eq 'PSSession') { #Close any open sessions
+            Remove-PSSession -Session $parameters.ComputerName.InputObject -ErrorAction Ignore -WhatIf:$false -Confirm:$false 
+        }
     }
 }

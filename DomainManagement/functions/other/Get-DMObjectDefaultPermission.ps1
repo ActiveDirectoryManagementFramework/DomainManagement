@@ -30,7 +30,7 @@
 		$ObjectClass,
 
 		[PSFComputer]
-		$Server = '<Default>',
+		$Server = 'localhost',
 
 		[PSCredential]
 		$Credential
@@ -103,40 +103,42 @@
 			return $script:schemaObjectDefaultPermission["$Server"].$ObjectClass
 		}
 
-		#region Process Gathering logic
-		if ($Server -ne '<Default>') {
+		#region Prepare parameters
+
 			$parameters['ComputerName'] = $parameters.Server
 			$parameters.Remove("Server")
-		}
+		
+		#endregion Prepare parameters
+
 		#Check if running locally and change to NoWinRM mode.
 		$_winRMMode = $script:WinRMMode.Mode 
 		if($Server.IsLocalhost) {
 			$_winRMMode = 'NoWinRM'
-			Write-PSFMessage -String 'Get-DMObjectDefaultPermission.RunningLocally' -StringValues $Server
+			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.RunningLocally'
 		}
 
 		try { 
 			#TODO get these messages to work at least in verbose.
-			Write-PSFMessage  -String 'Get-DMObjectDefaultPermission.Mode' -StringValues $_winRMMode
+			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.Mode' -StringValues $_winRMMode
 			switch ($_winRMMode) {
 				'Default' { 
 					$data = Invoke-PSFCommand @parameters -ScriptBlock $gatherScript -ErrorAction Stop
 				}
 				'JEA' {
 					$parameters['ConfigurationName'] = $script:WinRMMode.JEAConfigurationName
-					Write-PSFMessage -String 'Get-DMObjectDefaultPermission.JEAConfigurationName' -StringValues  $script:WinRMMode.JEAConfigurationName
+					Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.JEAConfigurationName' -StringValues  $script:WinRMMode.JEAConfigurationName
 					if($script:WinRMMode.JEAEndpointServer){
 						$_jeaEndpointServer = $script:WinRMMode.JEAEndpointServer | Resolve-String
 						$parameters['ComputerName'] = $_jeaEndpointServer
 					}
-					Write-PSFMessage  -String 'Get-DMObjectDefaultPermission.JEAEndpointServer' -StringValues  $_jeaEndpointServer
+					Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.JEAEndpointServer' -StringValues  $_jeaEndpointServer
 					$data = Invoke-Command @parameters -ScriptBlock { Get-Dmobjectsdefaultpermissions} -ErrorAction Stop
 				}
-				'NoWinRM'{ #TODO Test functionality
+				'NoWinRM'{ 
 					$data = $gatherScript.Invoke()
 
 				}
-				default {throw "WinRMMode is bad"} #TODO do this properly
+				default {throw "WinRMMode is invalid - $_winRMMode"} 
 			}
 		}
 		catch { throw }
