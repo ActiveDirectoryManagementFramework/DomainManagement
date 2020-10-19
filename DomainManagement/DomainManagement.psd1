@@ -141,6 +141,8 @@
 		'Unregister-DMOrganizationalUnit'
 		'Unregister-DMPasswordPolicy'
 		'Unregister-DMUser'
+		'Install-DMJEAEndpoint'
+		'Set-DMWinRMMode'
 	)
 	
 	# Cmdlets to export from this module

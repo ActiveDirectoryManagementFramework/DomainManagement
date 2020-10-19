@@ -3,20 +3,20 @@
 	<#
 	.SYNOPSIS
 		Gathers the default object permissions in AD.
-	
+
 	.DESCRIPTION
 		Gathers the default object permissions in AD.
 		Uses PowerShell remoting against the SchemaMaster to determine the default permissions, as local identity resolution is not reliable.
-	
+
 	.PARAMETER ObjectClass
 		The object class to look up.
-	
+
 	.PARAMETER Server
 		The server / domain to work with.
-	
+
 	.PARAMETER Credential
 		The credentials to use for this operation.
-	
+
 	.EXAMPLE
 		PS C:\> Get-DMObjectDefaultPermission -ObjectClass user
 
@@ -30,12 +30,12 @@
 		$ObjectClass,
 
 		[PSFComputer]
-		$Server = '<Default>',
+		$Server = 'localhost',
 
 		[PSCredential]
 		$Credential
 	)
-	
+
 	begin
 	{
 		if (-not $script:schemaObjectDefaultPermission) {
@@ -76,7 +76,7 @@
 				$acl = [System.DirectoryServices.ActiveDirectorySecurity]::new()
 				$acl.SetSecurityDescriptorSddlForm($class.defaultSecurityDescriptor)
 				foreach ($rule in $commonAce) { $acl.AddAccessRule($rule) }
-				
+
 				<#
 				if ($class.lDAPDisplayName -eq 'organizationalUnit') {
 					$acl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule(([System.Security.Principal.NTAccount]'Everyone'), 'DeleteTree, Delete', 'Deny', '00000000-0000-0000-0000-000000000000', 'None', '00000000-0000-0000-0000-000000000000')))
@@ -103,13 +103,44 @@
 			return $script:schemaObjectDefaultPermission["$Server"].$ObjectClass
 		}
 
-		#region Process Gathering logic
-		if ($Server -ne '<Default>') {
+		#region Prepare parameters
+
 			$parameters['ComputerName'] = $parameters.Server
 			$parameters.Remove("Server")
+
+		#endregion Prepare parameters
+
+		#Check if running locally and change to NoWinRM mode.
+		$_winRMMode = $script:WinRMMode.Mode
+		if($Server.IsLocalhost) {
+			$_winRMMode = 'NoWinRM'
+			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.RunningLocally'
 		}
-		
-		try { $data = Invoke-PSFCommand @parameters -ScriptBlock $gatherScript -ErrorAction Stop }
+
+		try {
+			#TODO get these messages to work at least in verbose.
+			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.Mode' -StringValues $_winRMMode
+			switch ($_winRMMode) {
+				'Default' {
+					$data = Invoke-PSFCommand @parameters -ScriptBlock $gatherScript -ErrorAction Stop
+				}
+				'JEA' {
+					$parameters['ConfigurationName'] = $script:WinRMMode.JEAConfigurationName
+					Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.JEAConfigurationName' -StringValues  $script:WinRMMode.JEAConfigurationName
+					if($script:WinRMMode.JEAEndpointServer){
+						$_jeaEndpointServer = $script:WinRMMode.JEAEndpointServer | Resolve-String
+						$parameters['ComputerName'] = $_jeaEndpointServer
+					}
+					Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.JEAEndpointServer' -StringValues  $_jeaEndpointServer
+					$data = Invoke-Command @parameters -ScriptBlock { Get-Dmobjectsdefaultpermissions} -ErrorAction Stop
+				}
+				'NoWinRM'{
+					$data = $gatherScript.Invoke()
+
+				}
+				default {throw "WinRMMode is invalid - $_winRMMode"}
+			}
+		}
 		catch { throw }
 		$script:schemaObjectDefaultPermission["$Server"] = @{ }
 		foreach ($datum in $data) {
