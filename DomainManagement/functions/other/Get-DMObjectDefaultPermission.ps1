@@ -3,20 +3,20 @@
 	<#
 	.SYNOPSIS
 		Gathers the default object permissions in AD.
-	
+
 	.DESCRIPTION
 		Gathers the default object permissions in AD.
 		Uses PowerShell remoting against the SchemaMaster to determine the default permissions, as local identity resolution is not reliable.
-	
+
 	.PARAMETER ObjectClass
 		The object class to look up.
-	
+
 	.PARAMETER Server
 		The server / domain to work with.
-	
+
 	.PARAMETER Credential
 		The credentials to use for this operation.
-	
+
 	.EXAMPLE
 		PS C:\> Get-DMObjectDefaultPermission -ObjectClass user
 
@@ -35,7 +35,7 @@
 		[PSCredential]
 		$Credential
 	)
-	
+
 	begin
 	{
 		if (-not $script:schemaObjectDefaultPermission) {
@@ -76,7 +76,7 @@
 				$acl = [System.DirectoryServices.ActiveDirectorySecurity]::new()
 				$acl.SetSecurityDescriptorSddlForm($class.defaultSecurityDescriptor)
 				foreach ($rule in $commonAce) { $acl.AddAccessRule($rule) }
-				
+
 				<#
 				if ($class.lDAPDisplayName -eq 'organizationalUnit') {
 					$acl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule(([System.Security.Principal.NTAccount]'Everyone'), 'DeleteTree, Delete', 'Deny', '00000000-0000-0000-0000-000000000000', 'None', '00000000-0000-0000-0000-000000000000')))
@@ -107,21 +107,21 @@
 
 			$parameters['ComputerName'] = $parameters.Server
 			$parameters.Remove("Server")
-		
+
 		#endregion Prepare parameters
 
 		#Check if running locally and change to NoWinRM mode.
-		$_winRMMode = $script:WinRMMode.Mode 
+		$_winRMMode = $script:WinRMMode.Mode
 		if($Server.IsLocalhost) {
 			$_winRMMode = 'NoWinRM'
 			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.RunningLocally'
 		}
 
-		try { 
+		try {
 			#TODO get these messages to work at least in verbose.
 			Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.Mode' -StringValues $_winRMMode
 			switch ($_winRMMode) {
-				'Default' { 
+				'Default' {
 					$data = Invoke-PSFCommand @parameters -ScriptBlock $gatherScript -ErrorAction Stop
 				}
 				'JEA' {
@@ -134,11 +134,11 @@
 					Write-PSFMessage -Level Verbose -String 'Get-DMObjectDefaultPermission.JEAEndpointServer' -StringValues  $_jeaEndpointServer
 					$data = Invoke-Command @parameters -ScriptBlock { Get-Dmobjectsdefaultpermissions} -ErrorAction Stop
 				}
-				'NoWinRM'{ 
+				'NoWinRM'{
 					$data = $gatherScript.Invoke()
 
 				}
-				default {throw "WinRMMode is invalid - $_winRMMode"} 
+				default {throw "WinRMMode is invalid - $_winRMMode"}
 			}
 		}
 		catch { throw }

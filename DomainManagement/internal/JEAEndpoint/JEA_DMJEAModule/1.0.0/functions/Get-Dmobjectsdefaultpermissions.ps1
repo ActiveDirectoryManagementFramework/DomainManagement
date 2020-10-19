@@ -1,6 +1,6 @@
 ﻿function Get-Dmobjectsdefaultpermissions
 {
-$rootDSE = Get-ADRootDSE -Server $env:COMPUTERNAME 
+$rootDSE = Get-ADRootDSE -Server $env:COMPUTERNAME
 $classes = Get-ADObject -Server $env:COMPUTERNAME  -SearchBase $rootDSE.schemaNamingContext -LDAPFilter '(objectCategory=classSchema)' -Properties defaultSecurityDescriptor, lDAPDisplayName
 foreach ($class in $classes) {
 	$acl = [System.DirectoryServices.ActiveDirectorySecurity]::new()
