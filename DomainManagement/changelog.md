@@ -4,6 +4,7 @@
 
 - Upd: Removed most dependencies due to bug in PS5.1. Dependencies in ADMF itself are now expected to provide the necessary tools / modules.
 - Upd: Incremented PSFramework minimum version.
+- Fix: Test-GPPermission - path-based filters would not correctly map permissions
 
 ## 1.4.84 (2020-09-10)
 

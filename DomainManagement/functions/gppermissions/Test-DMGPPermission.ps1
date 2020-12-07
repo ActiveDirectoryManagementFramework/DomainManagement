@@ -213,7 +213,7 @@
 							return
 						}
 
-						$objects = Get-ADObject @parameters -SearchBase $searchBase -SearchScope $condition.Scope -LDAPFilter '(|(objectCategory=OrganizationalUnit)(objectCategory=domainDNS))'
+						$objects = Get-ADObject @parameters -SearchBase $searchBase -SearchScope $condition.Scope -LDAPFilter '(|(objectCategory=OrganizationalUnit)(objectCategory=domainDNS))' -Properties gPLink
 						$allLinkedGpoDNs = $objects | ConvertTo-GPLink | Select-Object -ExpandProperty DistinguishedName -Unique
 						if ($condition.Reverse) { $filterToGPOMapping[$condition.Name] = $allGpos | Where-Object DistinguishedName -notin $allLinkedGpoDNs }
 						else { $filterToGPOMapping[$condition.Name] = $allGpos | Where-Object DistinguishedName -in $allLinkedGpoDNs }
