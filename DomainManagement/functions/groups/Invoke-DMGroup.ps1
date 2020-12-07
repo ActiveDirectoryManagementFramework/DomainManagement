@@ -70,7 +70,7 @@
                         Remove-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false
                     } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                 }
-                'ConfigurationOnly' {
+                'Create' {
                     $targetOU = Resolve-String -Text $testItem.Configuration.Path
                     try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
                     catch { Stop-PSFFunction -String 'Invoke-DMGroup.Group.Create.OUExistsNot' -StringValues $targetOU, $testItem.Identity -Target $testItem -EnableException $EnableException -Continue }

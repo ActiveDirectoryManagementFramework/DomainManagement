@@ -103,7 +103,7 @@
 						if ($accidentProtectionRule = ($testItem.ADObject.nTSecurityDescriptor.Access | Where-Object { ($_.IdentityReference -eq $everyone) -and ($_.AccessControlType -eq 'Deny') }))
 						{
 							$null = $testItem.ADObject.nTSecurityDescriptor.RemoveAccessRule($accidentProtectionRule)
-							Set-ADObject @parameters -Identity $testItem.ADObject.DistinguishedName -Replace @{ nTSecurityDescriptor = $testItem.ADObject.nTSecurityDescriptor } -ErrorAction Stop
+							Set-ADObject @parameters -Identity $testItem.ADObject.DistinguishedName -Replace @{ nTSecurityDescriptor = $testItem.ADObject.nTSecurityDescriptor } -ErrorAction Stop -Confirm:$false
 						}
 						Remove-ADOrganizationalUnit @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
@@ -128,7 +128,7 @@
 				}
 				'Rename' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
-						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Changed' {
@@ -138,7 +138,7 @@
 					if ($changes.Keys.Count -gt 0)
 					{
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
-							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes
+							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes -Confirm:$false
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 				}

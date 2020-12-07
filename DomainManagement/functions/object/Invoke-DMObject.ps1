@@ -84,7 +84,7 @@
 						$createParam['OtherAttributes'] = $hash
 					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMObject.Object.Create' -ActionStringValues $testItem.Configuration.ObjectClass, $testItem.Identity -Target $testItem -ScriptBlock {
-						New-ADObject @createParam -ErrorAction Stop
+						New-ADObject @createParam -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 				'Changed' {
@@ -99,7 +99,7 @@
 					}
 					$setParam['Replace'] = $replaceHash
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMObject.Object.Change' -ActionStringValues ($testItem.Changed -join ", ") -Target $testItem -ScriptBlock {
-						Set-ADObject @setParam -ErrorAction Stop
+						Set-ADObject @setParam -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 			}
