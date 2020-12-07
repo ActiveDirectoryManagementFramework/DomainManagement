@@ -92,9 +92,9 @@
                 }
                 'Rename' {
                     Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
-						Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -SamAccountName (Resolve-String -Text $testItem.Configuration.SamAccountName) -ErrorAction Stop
+						Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -SamAccountName (Resolve-String -Text $testItem.Configuration.SamAccountName) -ErrorAction Stop -Confirm:$false
 						if ((Resolve-String -Text $testItem.Configuration.Name) -cne $testItem.ADObject.Name) {
-							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop -Confirm:$false
 						}
                     } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                 }
@@ -105,7 +105,7 @@
                         catch { Stop-PSFFunction -String 'Invoke-DMGroup.Group.Update.OUExistsNot' -StringValues $testItem.Identity, $targetOU -Target $testItem -EnableException $EnableException -Continue }
 
                         Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Move' -ActionStringValues $targetOU -Target $testItem -ScriptBlock {
-                            $null = Move-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -TargetPath $targetOU -ErrorAction Stop
+                            $null = Move-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -TargetPath $targetOU -ErrorAction Stop -Confirm:$false
                         } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                     }
                     $changes = @{ }
@@ -114,7 +114,7 @@
 					
                     if ($changes.Keys.Count -gt 0) {
                         Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
-                            $null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes
+                            $null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes -Confirm:$false
                         } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                     }
                     if ($testItem.Changed -contains 'Scope') {
@@ -124,13 +124,13 @@
 						}
 
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Update.Scope' -ActionStringValues $testItem, $testItem.ADObject.GroupScope, $targetScope -Target $testItem -ScriptBlock {
-							$null = Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -GroupScope Universal -ErrorAction Stop
-							$null = Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -GroupScope $targetScope -ErrorAction Stop
+							$null = Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -GroupScope Universal -ErrorAction Stop -Confirm:$false
+							$null = Set-ADGroup @parameters -Identity $testItem.ADObject.ObjectGUID -GroupScope $targetScope -ErrorAction Stop -Confirm:$false
                         } -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed -contains 'Name') {
                         Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroup.Group.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
-                            $testItem.ADObject | Rename-ADObject @parameters -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+                            $testItem.ADObject | Rename-ADObject @parameters -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop -Confirm:$false
                         } -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
                     }
                 }
