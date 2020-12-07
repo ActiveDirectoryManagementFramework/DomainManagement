@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.4.85 (2020-10-11)
 
 - Upd: Removed most dependencies due to bug in PS5.1. Dependencies in ADMF itself are now expected to provide the necessary tools / modules.
 - Upd: Incremented PSFramework minimum version.
