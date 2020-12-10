@@ -31,8 +31,11 @@
 	
 	process
 	{
-		($script:groupPolicyLinks.Values.Values | Where-Object {
+		($script:groupPolicyLinks.Values.Values) | Where-Object {
 			($_.PolicyName -like $PolicyName) -and ($_.OrganizationalUnit -like $OrganizationalUnit)
-		})
+		}
+		($script:groupPolicyLinksDynamic.Values.Values) | Where-Object {
+			($_.PolicyName -like $PolicyName) -and ($_.OrganizationalUnit -like $OrganizationalUnit)
+		}
 	}
 }

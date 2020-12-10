@@ -102,6 +102,37 @@ else { $_.ObjectCategory }
             </TableControl>
         </View>
 
+        <!-- DomainManagement.GPLink.Update -->
+        <View>
+            <Name>DomainManagement.GPLink.Update</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.GPLink.Update</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Action</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Policy</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Status</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- DomainManagement.Configuration.GPPermissionFilter -->
         <View>
             <Name>DomainManagement.Configuration.GPPermissionFilter</Name>
