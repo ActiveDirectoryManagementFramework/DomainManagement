@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.4.99 (2020-12-11)
+
+- Fix: Get-DMGPLink - returns null objects as part of return
+- Fix: Unregister-DMGPLink - would not unregister filter-based links
+
 ## 1.4.97 (2020-12-11)
 
 - Upd: Register-DMGroup - added parameter `-Optional` to make a group optional
