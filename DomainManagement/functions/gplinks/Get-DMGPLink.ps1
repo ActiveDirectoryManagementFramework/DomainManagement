@@ -33,9 +33,9 @@
 	{
 		($script:groupPolicyLinks.Values.Values) | Where-Object {
 			($_.PolicyName -like $PolicyName) -and ($_.OrganizationalUnit -like $OrganizationalUnit)
-		}
+		} | Remove-PSFNull
 		($script:groupPolicyLinksDynamic.Values.Values) | Where-Object {
 			($_.PolicyName -like $PolicyName) -and ($_.OrganizationalUnit -like $OrganizationalUnit)
-		}
+		} | Remove-PSFNull
 	}
 }
