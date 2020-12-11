@@ -12,6 +12,9 @@
 	
 	.PARAMETER OrganizationalUnit
 		The name of the organizational unit the policy should be unregistered from.
+
+	.PARAMETER OUFilter
+		The filter of the filterbased policy link to remove
 	
 	.EXAMPLE
 		PS C:\> Get-DMGPLink | Unregister-DMGPLink
