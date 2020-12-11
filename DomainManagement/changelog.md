@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.4.97 (2020-12-11)
 
 - Upd: Register-DMGroup - added parameter `-Optional` to make a group optional
 - Upd: Renamed test result type `ConfigurationOnly` to `Create`
