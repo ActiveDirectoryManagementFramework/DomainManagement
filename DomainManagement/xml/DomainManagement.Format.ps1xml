@@ -102,6 +102,46 @@ else { $_.ObjectCategory }
             </TableControl>
         </View>
 
+        <!-- DomainManagement.Acl -->
+        <View>
+            <Name>DomainManagement.Acl</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Acl</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Path/Category</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+if ($_.Path) { $_.Path }
+else { $_.Category }
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Owner</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>NoInheritance</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Optional</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- DomainManagement.GPLink.Update -->
         <View>
             <Name>DomainManagement.GPLink.Update</Name>

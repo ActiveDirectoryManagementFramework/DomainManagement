@@ -58,7 +58,7 @@
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
-		Assert-Configuration -Type Acls -Cmdlet $PSCmdlet
+		Assert-Configuration -Type Acls, AclByCategory, AclDefaultOwner -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
 	}
 	process{

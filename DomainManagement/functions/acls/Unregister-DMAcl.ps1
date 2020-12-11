@@ -9,6 +9,9 @@
 	
 	.PARAMETER Path
 		The path (distinguishedName) of the acl to remove.
+
+	.PARAMETER Category
+		The object category the acl settings apply to
 	
 	.EXAMPLE
 		PS C:\> Get-DMAcl | Unregister-DMAcl
@@ -20,13 +23,21 @@
 	param (
 		[Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
 		[string[]]
-		$Path
+		$Path,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[string[]]
+		$Category
 	)
 	
 	process
 	{
 		foreach ($pathItem in $Path) {
-			$script:acls.Remove($pathItem)
+			if ($pathItem -eq '<default>') { $script:aclDefaultOwner = $null }
+			else { $script:acls.Remove($pathItem) }
+		}
+		foreach ($categoryItem in $Category) {
+			$script:aclByCategory.Remove($categoryItem)
 		}
 	}
 }

@@ -33,8 +33,48 @@
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
-		Assert-Configuration -Type Acls -Cmdlet $PSCmdlet
+		Assert-Configuration -Type Acls, AclByCategory, AclDefaultOwner -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
+
+		#region Functions
+		function Get-ChangeByCategory {
+			[CmdletBinding()]
+			param (
+				$ADObject,
+
+				$Category,
+
+				$ResultDefaults,
+
+				$Parameters
+			)
+
+			$aclObject = Get-AdsAcl @Parameters -Path $ADObject -EnableException
+
+			# Ensure Owner Name is present - may not always resolve
+			$ownerSID = $aclObject.GetOwner([System.Security.Principal.SecurityIdentifier])
+			$configuredSID = $Category.Owner | Resolve-String | Convert-Principal @parameters -OutputType SID
+
+			[System.Collections.ArrayList]$changes = @()
+			if ("$ownerSID" -ne "$configuredSID") { $null = $changes.Add('Owner') }
+			Compare-Property -Property NoInheritance -Configuration $Category -ADObject $aclObject -Changes $changes -ADProperty AreAccessRulesProtected
+
+			if ($changes.Count) {
+				New-TestResult @resultDefaults -Identity $ADObject -Configuration $Category -Type Changed -Changed $changes.ToArray() -ADObject $aclObject
+			}
+		}
+
+		function Get-ChangeByGlobalDefault {
+			[CmdletBinding()]
+			param (
+				$ADObject,
+
+				$ResultDefaults,
+
+				$Parameters
+			)
+		}
+		#endregion Functions
 	}
 	process
 	{
@@ -78,7 +118,7 @@
 		}
 		#endregion processing configuration
 
-		#region check if all ADObejcts are managed
+		#region check if all ADObjects are managed
 		<#
 		Object Types ignored:
 		- Service Connection Point
@@ -99,9 +139,17 @@
 
 		foreach ($foundADObject in $foundADObjects) {
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredPaths) { continue }
-			
-			New-TestResult @resultDefaults -Type ShouldManage -ADObject $foundADObject -Identity $foundADObject.DistinguishedName
+			if ($script:aclByCategory.Count -gt 0) {
+				$category = Resolve-DMObjectCategory -ADObject $foundADObject @parameters
+				if ($matchingCategory = $category | Where-Object Name -in $script:aclByCategory.Keys | Select-Object -First 1) {
+					Get-ChangeByCategory -ADObject $foundADObject -Category $script:aclByCategory[$matchingCategory.Name] -ResultDefaults $resultDefaults -Parameters $parameters
+					continue
+				}
+			}
+
+			if ($script:aclDefaultOwner) { Get-ChangeByCategory -ADObject $foundADObject -Category $script:aclDefaultOwner[0] -ResultDefaults $resultDefaults -Parameters $parameters }
+			else { New-TestResult @resultDefaults -Type ShouldManage -ADObject $foundADObject -Identity $foundADObject.DistinguishedName }
 		}
-		#endregion check if all ADObejcts are managed
+		#endregion check if all ADObjects are managed
 	}
 }

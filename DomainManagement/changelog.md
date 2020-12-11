@@ -8,6 +8,8 @@
 - Upd: GPLink - added capability for dynamic path assignments
 - Upd: GPLink - added processing modes to enable adding without removing unknown, as well as explicit delete orders
 - Upd: GPLink - new priority system called tier. This enables grouping GPOs by category in separate priority sets
+- Upd: ACL - added capability to define default ownership of objects under management
+- Upd: ACL - added capability to define ownership and inheritance by object category for objects under management
 - Fix: Test-GPPermission - path-based filters would not correctly map permissions
 - Fix: Component Object - Does not allow modifying properties on the domain object itself
 - Fix: Various - Removed duplicate confirm prompts from several invoke commands
