@@ -24,7 +24,7 @@
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]
-		[string]
+		[string[]]
 		$Type,
 
 		[Parameter(Mandatory = $true)]
@@ -34,14 +34,16 @@
 	
 	process
 	{
-		if ((Get-Variable -Name $Type -Scope Script -ValueOnly).Count -gt 0) { return }
+		foreach ($typeName in $type) {
+			if ((Get-Variable -Name $typeName -Scope Script -ValueOnly).Count -gt 0) { return }
+		}
 		
-		Write-PSFMessage -Level Warning -String 'Assert-Configuration.NotConfigured' -StringValues $Type -FunctionName $Cmdlet.CommandRuntime
+		Write-PSFMessage -Level Warning -String 'Assert-Configuration.NotConfigured' -StringValues ($Type -join ", ") -FunctionName $Cmdlet.CommandRuntime
 
-		$exception = New-Object System.Data.DataException("No configuration data provided for: $Type")
+		$exception = New-Object System.Data.DataException("No configuration data provided for: $($Type -join ", ")")
 		$errorID = 'NotConfigured'
 		$category = [System.Management.Automation.ErrorCategory]::NotSpecified
-		$recordObject = New-Object System.Management.Automation.ErrorRecord($exception, $errorID, $category, $Type)
+		$recordObject = New-Object System.Management.Automation.ErrorRecord($exception, $errorID, $category, ($Type -join ", "))
 		$cmdlet.ThrowTerminatingError($recordObject)
 	}
 }

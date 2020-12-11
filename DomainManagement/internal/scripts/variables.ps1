@@ -31,6 +31,7 @@ $script:groupPolicyRegistrySettings = @{ }
 
 # Configured group policy links
 $script:groupPolicyLinks = @{ }
+$script:groupPolicyLinksDynamic = @{ }
 
 # Configured group policy permission filters
 $script:groupPolicyPermissionFilters = @{ }
@@ -40,6 +41,8 @@ $script:groupPolicyPermissions = @{ }
 
 # Configured ACLs
 $script:acls = @{ }
+$script:aclByCategory = @{ }
+$script:aclDefaultOwner = $null
 
 # Configured Access Rules - Based on OU / Path
 $script:accessRules = @{ }

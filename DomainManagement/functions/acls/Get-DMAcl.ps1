@@ -24,6 +24,8 @@
 	
 	process
 	{
-		($script:acls.Values | Where-Object Path -like $Path)
+		($script:acls.Values) | Where-Object Path -like $Path
+		($script:aclsByCategory.Values) | Where-Object Category -like $Path
+		$script:aclDefaultOwner | Where-Object Path -like $Path
 	}
 }

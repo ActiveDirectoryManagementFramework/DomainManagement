@@ -73,7 +73,9 @@
 					#region Case: No old version present
 					0
 					{
-						New-TestResult @resultDefaults -Type ConfigurationOnly
+						if (-not $groupDefinition.Optional) {
+							New-TestResult @resultDefaults -Type Create
+						}
 						continue main
 					}
 					#endregion Case: No old version present

@@ -38,7 +38,7 @@
 		[string]
 		$Path,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Name,
 
@@ -56,9 +56,11 @@
 	
 	process
 	{
+		$identity = "CN=$Name,$Path"
+		if (-not $Name) { $identity = $Path }
 		$script:objects["CN=$Name,$Path"] = [PSCustomObject]@{
 			PSTypeName = 'DomainManagement.Object'
-			Identity = "CN=$Name,$Path"
+			Identity = $identity
 			Path = $Path
 			Name = $Name
 			ObjectClass = $ObjectClass

@@ -90,7 +90,7 @@
 				Set-ADObject @parameters -Identity $ADObject -Clear gPLink -ErrorAction Stop
 				return
 			}
-			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = ($ADObject.gPLink -replace ";\d\]",";1]") } -ErrorAction Stop
+			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = ($ADObject.gPLink -replace ";\d\]",";1]") } -ErrorAction Stop -Confirm:$false
 		}
 
 		function New-Link {
@@ -112,7 +112,7 @@
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
-			$gpLinkString = ($Configuration | Sort-Object -Property Precedence -Descending | ForEach-Object {
+			$gpLinkString = ($Configuration.Include | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
 				$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
 				if (-not $gpoDN) {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.New.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
@@ -121,7 +121,7 @@
 				"[LDAP://$gpoDN;0]"
 			}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.New.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
-			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop
+			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
 		}
 
 		function Update-Link {
@@ -148,13 +148,13 @@
 
 			$gpLinkString = ''
 			if ($Disable) {
-				$desiredDNs = $Configuration.PolicyName | Resolve-String | ForEach-Object { $GpoNameMapping[$_] }
+				$desiredDNs = $Configuration.ExtendedInclude.PolicyName | Resolve-String | ForEach-Object { $GpoNameMapping[$_] }
 				$gpLinkString += ($ADobject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn $desiredDNs | Sort-Object -Property Precedence -Descending | ForEach-Object {
 					"[LDAP://$($_.DistinguishedName);1]"
 				}) -join ""
 			}
 			
-			$gpLinkString += ($Configuration | Sort-Object -Property Precedence -Descending | ForEach-Object {
+			$gpLinkString += ($Configuration.ExtendedInclude | Sort-Object -Property  @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
 				$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
 				if (-not $gpoDN) {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.Update.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
@@ -163,7 +163,7 @@
 				"[LDAP://$gpoDN;0]"
 			}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.Update.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
-			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop
+			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
 		}
 		#endregion Utility Functions
 
@@ -171,7 +171,7 @@
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
-		Assert-Configuration -Type GroupPolicyLinks -Cmdlet $PSCmdlet
+		Assert-Configuration -Type GroupPolicyLinks, GroupPolicyLinksDynamic -Cmdlet $PSCmdlet
 		
 		$gpoDisplayToDN = @{ }
 		$gpoDNToDisplay = @{ }
@@ -202,16 +202,6 @@
 						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'DeleteDisabledOnly' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Delete.AllDisabled' -ActionStringValues $countActual -Target $testItem -ScriptBlock {
-						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -ErrorAction Stop
-					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
-				}
-				'DeleteSomeDisabled' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Delete.SomeDisabled' -ActionStringValues $countActual -Target $testItem -ScriptBlock {
-						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -ErrorAction Stop
-					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
-				}
 				'New' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.New' -ActionStringValues $countConfigured -Target $testItem -ScriptBlock {
 						New-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
@@ -219,16 +209,6 @@
 				}
 				'Update' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.AllEnabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
-						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
-					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
-				}
-				'UpdateDisabledOnly' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.AllDisabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
-						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
-					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
-				}
-				'UpdateSomeDisabled' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.SomeDisabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
 						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}

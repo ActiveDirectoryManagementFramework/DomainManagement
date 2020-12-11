@@ -1,5 +1,4 @@
-﻿function Register-DMGroup
-{
+﻿function Register-DMGroup {
 	<#
 	.SYNOPSIS
 		Registers an active directory group.
@@ -41,6 +40,9 @@
 		Whether the group should exist.
 		Defaults to $true
 		Set to $false for explicitly deleting groups, rather than creating them.
+
+	.PARAMETER Optional
+		Group is tolerated if it exists, but will not be created if not.
 
 	.PARAMETER ContextName
 		The name of the context defining the setting.
@@ -89,23 +91,26 @@
 		[bool]
 		$Present = $true,
 
+		[bool]
+		$Optional,
+
 		[string]
 		$ContextName = '<Undefined>'
 	)
 	
-	process
-	{
+	process {
 		$script:groups[$Name] = [PSCustomObject]@{
-			PSTypeName = 'DomainManagement.Group'
-			Name = $Name
+			PSTypeName     = 'DomainManagement.Group'
+			Name           = $Name
 			SamAccountName = $(if ($SamAccountName) { $SamAccountName } else { $Name })
-			Path = $Path
-			Description = $Description
-			Scope = $Scope
-			Category = $Category
-			OldNames = $OldNames
-			Present = $Present
-			ContextName = $ContextName
+			Path           = $Path
+			Description    = $Description
+			Scope          = $Scope
+			Category       = $Category
+			OldNames       = $OldNames
+			Present        = $Present
+			Optional       = $Optional
+			ContextName    = $ContextName
 		}
 	}
 }
