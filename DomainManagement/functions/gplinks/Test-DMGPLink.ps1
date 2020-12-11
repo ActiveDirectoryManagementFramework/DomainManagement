@@ -48,7 +48,7 @@
 				$resolvedOU = Resolve-String -Text $organizationalUnit
 				$ous[$resolvedOU] = [PSCustomObject]@{
 					OrganizationalUnit = $resolvedOU
-					ProcessingMode     = 'Additive'	
+					ProcessingMode     = 'Additive'
 					Include            = @()
 					Exclude            = @()
 					ExtendedInclude    = @()
@@ -70,7 +70,7 @@
 					if (-not $ous[$adObject.DistinguishedName]) {
 						$ous[$adObject.DistinguishedName] = [PSCustomObject]@{
 							OrganizationalUnit = $adObject.DistinguishedName
-							ProcessingMode     = 'Additive'	
+							ProcessingMode     = 'Additive'
 							Include            = @()
 							Exclude            = @()
 							ExtendedInclude    = @()
@@ -90,6 +90,7 @@
 		}
 		
 		function New-Update {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
 			[CmdletBinding()]
 			param (
 				$PolicyName,

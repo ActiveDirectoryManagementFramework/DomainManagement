@@ -62,17 +62,13 @@
 	
 	'Invoke-DMDomainLevel.Raise.Level'                              = 'Raising domain level to {0}' # $testItem.Configuration.Level
 	
-	'Invoke-DMGPLink.Delete.AllDisabled'                            = 'Removing all ({0}) policy links (all of which are disabled)' # $countActual
 	'Invoke-DMGPLink.Delete.AllEnabled'                             = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
-	'Invoke-DMGPLink.Delete.SomeDisabled'                           = 'Removing all ({0}) policy links' # $countActual
 	'Invoke-DMGPLink.New'                                           = 'Linking {0} group policies (all new links)' # $countConfigured
 	'Invoke-DMGPLink.New.GpoNotFound'                               = 'Unable to find Group POlicy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.New.NewGPLinkString'                           = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString
-	'Invoke-DMGPLink.Update.AllDisabled'                            = 'Updating GPLink - {0} links configured, {1} links present, {2} links present that are not in configuration (All present and undesired links are disabled)' # $countConfigured, $countActual, $countNotInConfig
 	'Invoke-DMGPLink.Update.AllEnabled'                             = 'Updating GPLink - {0} links configured, {1} links present, {2} links present that are not in configuration (All present and undesired links are enabled)' # $countConfigured, $countActual, $countNotInConfig
 	'Invoke-DMGPLink.Update.GpoNotFound'                            = 'Unable to find Group POlicy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.Update.NewGPLinkString'                        = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString
-	'Invoke-DMGPLink.Update.SomeDisabled'                           = 'Updating GPLink - {0} links configured, {1} links present, {2} links present that are not in configuration' # $countConfigured, $countActual, $countNotInConfig
 	
 	'Invoke-DMGPPermission.AD.Access.Error'                         = 'Error accessing Active Directory for {0} ({1})' # $testResult, $testResult.ADObject.DistinguishedName
 	'Invoke-DMGPPermission.AD.UpdatingPermission'                   = 'Updating {0} permission changes on the AD object' # $testResult.Changed.Count

@@ -6,7 +6,7 @@
 	.DESCRIPTION
 		Resolves AD Objects from wildcard-patterned Distinguished Names.
 	
-	.PARAMETER OUFilter
+	.PARAMETER Filter
 		The wildcard-patterned DN
 	
 	.PARAMETER Server

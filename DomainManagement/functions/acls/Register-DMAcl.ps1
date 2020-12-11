@@ -11,6 +11,9 @@
 	.PARAMETER Path
 		Path (distinguishedName) of the ADObject the acl is assigned to.
 		Subject to string insertion.
+
+	.PARAMETER ObjectCategory
+		Assign ACL settings based on the ObjectCategory of an object.
 	
 	.PARAMETER Owner
 		Owner of the ADObject.
@@ -38,7 +41,7 @@
 
 		Reads a json configuration file containing a list of objects with appropriate properties to import them as acl configuration.
 	#>
-	
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
 	[CmdletBinding(DefaultParameterSetName = 'path')]
 	param (
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'path')]

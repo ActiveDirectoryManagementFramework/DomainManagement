@@ -63,17 +63,6 @@
 				New-TestResult @resultDefaults -Identity $ADObject -Configuration $Category -Type Changed -Changed $changes.ToArray() -ADObject $aclObject
 			}
 		}
-
-		function Get-ChangeByGlobalDefault {
-			[CmdletBinding()]
-			param (
-				$ADObject,
-
-				$ResultDefaults,
-
-				$Parameters
-			)
-		}
 		#endregion Functions
 	}
 	process
