@@ -12,27 +12,45 @@
 	
 	.PARAMETER OrganizationalUnit
 		The name of the organizational unit the policy should be unregistered from.
+
+	.PARAMETER OUFilter
+		The filter of the filterbased policy link to remove
 	
 	.EXAMPLE
 		PS C:\> Get-DMGPLink | Unregister-DMGPLink
 
 		Clears all configured Group policy links.
 	#>
-	[CmdletBinding()]
+	[CmdletBinding(DefaultParameterSetName = 'Path')]
 	param (
 		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$PolicyName,
 
-		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Path')]
 		[Alias('OU')]
 		[string]
-		$OrganizationalUnit
+		$OrganizationalUnit,
+
+		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Filter')]
+		[string]
+		$OUFilter
 	)
 	
 	process
 	{
-		$script:groupPolicyLinks[$OrganizationalUnit].Remove($PolicyName)
-		if ($script:groupPolicyLinks[$OrganizationalUnit].Keys.Count -lt 1) { $script:groupPolicyLinks.Remove($OrganizationalUnit) }
+		switch ($PSCmdlet.ParameterSetName) {
+			'Path'
+			{
+				$script:groupPolicyLinks[$OrganizationalUnit].Remove($PolicyName)
+				if ($script:groupPolicyLinks[$OrganizationalUnit].Keys.Count -lt 1) { $script:groupPolicyLinks.Remove($OrganizationalUnit) }
+			}
+			'Filter'
+			{
+				$script:groupPolicyLinksDynamic[$OUFilter].Remove($PolicyName)
+				if ($script:groupPolicyLinksDynamic[$OUFilter].Keys.Count -lt 1) { $script:groupPolicyLinksDynamic.Remove($OUFilter) }
+			}
+		}
+		
 	}
 }
