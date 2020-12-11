@@ -177,7 +177,10 @@
 								$_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).ToString() -eq $change.Identity
 							} | ForEach-Object { $null = $acl.RemoveAccessRule($_) }
 						}
-						$accessRulesToAdd = ConvertTo-ADAccessRule -ChangeEntry $change
+						try { $accessRulesToAdd = ConvertTo-ADAccessRule -ChangeEntry $change }
+						catch {
+							Stop-PSFFunction -String 'Invoke-DMGPPermission.AccessRule.Error' -StringValues $change.Identity, $change.DisplayName -ErrorRecord $_ -Continue -EnableException $EnableException -Cmdlet $PSCmdlet
+						}
 						foreach ($rule in $accessRulesToAdd) { $null = $acl.AddAccessRule($rule) }
 					}
 					#endregion Add

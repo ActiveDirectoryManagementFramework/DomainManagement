@@ -49,7 +49,7 @@
 	}
 	process {
 		Write-PSFMessage -Level Debug -String 'Install-GroupPolicy.CopyingFiles' -StringValues $Configuration.DisplayName -Target $Configuration
-		try { Copy-Item -Path $Configuration.Path -Destination $WorkingDirectory -Recurse -ToSession $Session -ErrorAction Stop -Force }
+		try { Copy-Item -Path $Configuration.Path -Destination $WorkingDirectory -Recurse -ToSession $Session -ErrorAction Stop -Force -Confirm:$false }
 		catch { Stop-PSFFunction @stopDefault -String 'Install-GroupPolicy.CopyingFiles.Failed' -StringValues $Configuration.DisplayName -ErrorRecord $_ }
 		
 		#region Installing Group Policy Object

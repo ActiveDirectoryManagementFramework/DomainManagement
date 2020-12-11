@@ -32,7 +32,7 @@
             "0" = 'Enabled'
             "1" = 'Disabled'
             "2" = 'Enforced'
-        }
+		}
     }
     process {
         foreach ($adItem in $ADObject) {
@@ -56,7 +56,14 @@
                         'Disabled' { '~|{0}' -f $this.DisplayName }
                         'Enforced' { '*|{0}' -f $this.DisplayName }
                     }
-                } -Force
+				} -Force
+				Add-Member -InputObject $linkObject -MemberType ScriptMethod -Name ToLink -Value {
+					# [LDAP://cn={F4A6ADB1-BEDE-497D-901F-F24B19394951},cn=policies,cn=system,DC=contoso,DC=com;0][LDAP://cn={2036B9B6-D5C1-4756-B7AB-8291A9B26521},cn=policies,cn=system,DC=contoso,DC=com;0]
+					$status = '0'
+					if ($this.Status -eq 'Disabled') { $status = '1' }
+					if ($this.Status -eq 'Enforced') { $status = '2' }
+					'[LDAP://{0};{1}]' -f $this.DistinguishedName, $status
+				}
                 $linkObject
                 $index--
             }
