@@ -55,7 +55,7 @@
 				try { $adObject = Get-ADUser @parameters -Identity $resolvedSamAccName -Properties Description, PasswordNeverExpires -ErrorAction Stop }
 				catch { continue } # Only errors when user not present = All is well
 				
-				New-TestResult @resultDefaults -Type ShouldDelete -ADObject $adObject
+				New-TestResult @resultDefaults -Type Delete -ADObject $adObject
 				continue
 			}
 			#endregion User that needs to be removed
@@ -73,7 +73,9 @@
 					#region Case: No old version present
 					0
 					{
-						New-TestResult @resultDefaults -Type ConfigurationOnly
+						if (-not $userDefinition.Optional) {
+							New-TestResult @resultDefaults -Type Create
+						}
 						continue main
 					}
 					#endregion Case: No old version present
@@ -141,7 +143,7 @@
 			if (1000 -ge ($existingUser.SID -split "-")[-1]) { continue } # Ignore BuiltIn default users
 			if ($exclusionPattern -and $existingUser.Name -match $exclusionPattern) { continue } # Skip whitelisted usernames
 
-			New-TestResult @resultDefaults -Type ShouldDelete -ADObject $existingUser -Identity $existingUser.Name
+			New-TestResult @resultDefaults -Type Delete -ADObject $existingUser -Identity $existingUser.Name
 		}
 		#endregion Process Managed Containers
 	}

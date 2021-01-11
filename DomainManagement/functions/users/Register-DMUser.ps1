@@ -49,6 +49,10 @@
 	.PARAMETER Enabled
 		Whether the user object should be enabled or disabled.
 		Defaults to: Undefined
+
+	.PARAMETER Optional
+		By default, all defined user accounts must exist.
+		By setting a user account optional, it will be tolerated if it exists, but not created if it does not.
 	
 	.PARAMETER OldNames
 		Previous names the user object had.
@@ -102,6 +106,10 @@
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
 		[DomainManagement.TriBool]
 		$Enabled = 'Undefined',
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[bool]
+		$Optional,
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string[]]
@@ -115,18 +123,19 @@
 	process {
 		
 		$userHash = @{
-			PSTypeName		     = 'DomainManagement.User'
-			SamAccountName	     = $SamAccountName
-			Name				 = $Name
-			GivenName		     = $GivenName
-			Surname			     = $Surname
-			Description		     = $null
+			PSTypeName           = 'DomainManagement.User'
+			SamAccountName       = $SamAccountName
+			Name                 = $Name
+			GivenName            = $GivenName
+			Surname              = $Surname
+			Description          = $null
 			PasswordNeverExpires = $PasswordNeverExpires.ToBool()
 			UserPrincipalName    = $UserPrincipalName
-			Path				 = $Path
-			Enabled			     = $Enabled
-			OldNames			 = $OldNames
-			Present			     = $Present
+			Path                 = $Path
+			Enabled              = $Enabled
+			Optional             = $Optional
+			OldNames             = $OldNames
+			Present              = $Present
 		}
 		if ($Description) {
 			$userHash['Description'] = $Description

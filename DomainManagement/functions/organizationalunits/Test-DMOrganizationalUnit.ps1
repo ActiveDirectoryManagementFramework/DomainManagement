@@ -51,7 +51,7 @@
 
 			if (-not $ouDefinition.Present) {
 				if ($adObject = Get-ADOrganizationalUnit @parameters -LDAPFilter "(distinguishedName=$resolvedDN)" -Properties Description, nTSecurityDescriptor) {
-					New-TestResult @resultDefaults -Type ShouldDelete -ADObject $adObject
+					New-TestResult @resultDefaults -Type Delete -ADObject $adObject
 				}
 				continue main
 			}
@@ -68,7 +68,9 @@
 					#region Case: No old version present
 					0
 					{
-						New-TestResult @resultDefaults -Type ConfigurationOnly
+						if (-not $ouDefinition.Optional) {
+							New-TestResult @resultDefaults -Type Create
+						}
 						continue main
 					}
 					#endregion Case: No old version present
@@ -118,7 +120,7 @@
 		foreach ($existingOU in $foundOUs) {
 			if ($existingOU.DistinguishedName -in $resolvedConfiguredNames) { continue } # Ignore configured OUs - they were previously configured for moving them, if they should not be in these containers
 			
-			New-TestResult @resultDefaults -Type ShouldDelete -ADObject $existingOU -Identity $existingOU.Name
+			New-TestResult @resultDefaults -Type Delete -ADObject $existingOU -Identity $existingOU.Name
 		}
 		#endregion Process Managed Containers
 	}

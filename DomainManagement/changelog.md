@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: GroupMembership - allowed computer objects
+- Upd: Organizational Units - added option for "optional", tolerating an existing OU but not creating it
+- Upd: Organizational Units - renamed change type "ConfigurationOnly" to "Create"
+- Upd: Organizational Units - renamed change type "ShouldDelete" to "Delete"
+- Upd: Users - added option for "optional", tolerating an existing OU but not creating it
+- Upd: Users - renamed change type "ConfigurationOnly" to "Create"
+- Upd: Users - renamed change type "ShouldDelete" to "Delete"
+- Fix: Test-DMGroupMembership - incorrectly reports foreign security principals that were resolved as "unidentified" if another fsp was incorrectly a group member.
+
 ## 1.4.99 (2020-12-11)
 
 - Fix: Get-DMGPLink - returns null objects as part of return
