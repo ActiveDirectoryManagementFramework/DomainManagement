@@ -15,6 +15,7 @@
                 <TypeName>DomainManagement.Object.TestResult</TypeName>
                 <TypeName>DomainManagement.OrganizationalUnit.TestResult</TypeName>
                 <TypeName>DomainManagement.PSO.TestResult</TypeName>
+				<TypeName>DomainManagement.ServiceAccount.TestResult</TypeName>
                 <TypeName>DomainManagement.User.TestResult</TypeName>
             </Types>
         </SelectionSet>
@@ -135,6 +136,45 @@ else { $_.Category }
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>Optional</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+		
+		<!-- DomainManagement.Change.ServiceAccount -->
+        <View>
+            <Name>DomainManagement.Change.ServiceAccount</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Change.ServiceAccount</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Property</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Previous</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>NewValue</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

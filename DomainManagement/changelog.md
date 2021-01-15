@@ -1,7 +1,11 @@
 ﻿# Changelog
 
-## ???
+## 1.5.101 (2021-01-15)
 
+- New: Component: Service Accounts - manage Group Managed Service Accounts
+- New: Command Find-DMObjectCategoryItem - Searches objects that are part of a specified object category.
+- Upd: Register-DMObjectCategory - Added SearchBase and SearchScope parameters.
+- Upd: Resolve-DMObjectCategory - Added support for Searchbase and Searchscope of object categories.
 - Upd: GroupMembership - allowed computer objects
 - Upd: Organizational Units - added option for "optional", tolerating an existing OU but not creating it
 - Upd: Organizational Units - renamed change type "ConfigurationOnly" to "Create"
