@@ -102,6 +102,7 @@
 			}
 			#endregion Resolve Assignments
 
+			#region Check Current AD State
 			try {
 				$adObject = Get-ADGroup @parameters -Identity $resolvedGroupName -Properties Members -ErrorAction Stop
 				$adMembers = $adObject.Members | ForEach-Object {
@@ -115,7 +116,9 @@
 				}
 			}
 			catch { Stop-PSFFunction -String 'Test-DMGroupMembership.Group.Access.Failed' -StringValues $resolvedGroupName -ErrorRecord $_ -EnableException $EnableException -Continue }
+			#endregion Check Current AD State
 
+			#region Compare Assignments to existing state
 			foreach ($assignment in $assignments) {
 				if (-not $assignment.ADObject) {
 					# Principal that should be member could not be found
@@ -131,11 +134,13 @@
 				}
 				New-TestResult @resultDefaults -Type Add -Identity "$(Resolve-String -Text $assignment.Assignment.Group)þ$($assignment.Assignment.ItemType)þ$(Resolve-String -Text $assignment.Assignment.Name)" -Configuration $assignment -ADObject $adObject
 			}
+			#endregion Compare Assignments to existing state
 			
 			if ($processingMode -eq 'Additive') { continue }
 			
+			#region Compare existing state to assignments
 			foreach ($adMember in $adMembers) {
-				if ($adMember.ObjectSID -in $assignments.ADObject.ObjectSID) {
+				if ("$($adMember.ObjectSID)" -in ($assignments.ADObject.ObjectSID | ForEach-Object { "$_" })) {
 					continue
 				}
 				$configObject = [PSCustomObject]@{
@@ -151,6 +156,7 @@
 					New-TestResult @resultDefaults -Type Remove -Identity "$($adObject.Name)þ$($adMember.ObjectClass)þ$($adMember.SamAccountName)" -Configuration $configObject -ADObject $adObject
 				}
 			}
+			#endregion Compare existing state to assignments
 		}
 	}
 }

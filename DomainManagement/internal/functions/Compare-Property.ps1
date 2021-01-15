@@ -1,6 +1,6 @@
 ﻿function Compare-Property
 {
-	<#
+<#
 	.SYNOPSIS
 		Helper function simplifying the changes processing.
 	
@@ -27,11 +27,18 @@
 		The property on the ad object to use for the comparison.
 		If this parameter is not specified, it uses the value from -Property.
 	
+	.PARAMETER Parameters
+		AD Parameters to pass through for Resolve-String.
+	
+	.PARAMETER AsString
+		Compare properties as string.
+		Will convert all $null values to "".
+	
 	.EXAMPLE
 		PS C:\> Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve
-
+		
 		Compares the description on the configuration object (after resolving it) with the one on the ADObject and adds to $changes if they are inequal.
-	#>
+#>
 	
 	[CmdletBinding()]
 	Param (
@@ -56,7 +63,13 @@
 		$Resolve,
 
 		[string]
-		$ADProperty
+		$ADProperty,
+		
+		[hashtable]
+		$Parameters = @{ },
+		
+		[switch]
+		$AsString
 	)
 	
 	begin
@@ -66,10 +79,15 @@
 	process
 	{
 		$propValue = $Configuration.$Property
-		if ($Resolve) { $propValue = $propValue | Resolve-String }
+		if ($Resolve) { $propValue = $propValue | Resolve-String @parameters }
 
 		if (($propValue -is [System.Collections.ICollection]) -and ($ADObject.$ADProperty -is [System.Collections.ICollection])) {
 			if (Compare-Object $propValue $ADObject.$ADProperty) {
+				$null = $Changes.Add($Property)
+			}
+		}
+		elseif ($AsString) {
+			if ("$propValue" -ne "$($ADObject.$ADProperty)") {
 				$null = $Changes.Add($Property)
 			}
 		}
