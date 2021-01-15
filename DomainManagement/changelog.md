@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.5.112 (2021-01-15)
+
+- Upd: Invoke-DMServiceAccount - added option to create a KDS Root Key if needed
+
 ## 1.5.111 (2021-01-15)
 
 - New: Component: Service Accounts - manage Group Managed Service Accounts

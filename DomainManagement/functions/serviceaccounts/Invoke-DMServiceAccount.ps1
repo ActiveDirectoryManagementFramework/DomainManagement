@@ -173,6 +173,11 @@
 			$InputObject = Test-DMServiceAccount @parameters
 		}
 		
+		if (-not (Test-KdsRootKey)) {
+			Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.NoKdsRootKey'
+			return
+		}
+		
 		:main foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
 			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.ServiceAccount.TestResult') {
