@@ -1,5 +1,4 @@
-﻿function Register-DMOrganizationalUnit
-{
+﻿function Register-DMOrganizationalUnit {
 	<#
 	.SYNOPSIS
 		Registers an organizational unit, defining it as a desired state.
@@ -18,6 +17,10 @@
 	.PARAMETER Path
 		The path to where the OU should be.
 		Subject to string insertion.
+
+	.PARAMETER Optional
+		By default, organizational units must exist if defined.
+		Setting this to true makes them optional instead - they will not be created but are tolerated if they exist.
 	
 	.PARAMETER OldNames
 		Previous names the OU had.
@@ -47,6 +50,10 @@
 		[string]
 		$Path,
 
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[bool]
+		$Optional,
+
 		[string[]]
 		$OldNames = @(),
 
@@ -54,17 +61,17 @@
 		$Present = $true
 	)
 	
-	process
-	{
+	process {
 		$distinguishedName = 'OU={0},{1}' -f $Name, $Path
 		$script:organizationalUnits[$distinguishedName] = [PSCustomObject]@{
-			PSTypeName = 'DomainManagement.OrganizationalUnit'
+			PSTypeName        = 'DomainManagement.OrganizationalUnit'
 			DistinguishedName = $distinguishedName
-			Name = $Name
-			Description = $Description
-			Path = $Path
-			OldNames = $OldNames
-			Present = $Present
+			Name              = $Name
+			Description       = $Description
+			Path              = $Path
+			Optional          = $Optional
+			OldNames          = $OldNames
+			Present           = $Present
 		}
 	}
 }

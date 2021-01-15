@@ -1,6 +1,6 @@
 ﻿function Register-DMObjectCategory
 {
-	<#
+<#
 	.SYNOPSIS
 		Registers a new object category.
 	
@@ -9,7 +9,7 @@
 		Object categories are a way to apply settings to a type of object based on a ruleset / filterset.
 		For example, by registering an object category "Domain Controllers" (with appropriate filters / conditions),
 		it becomes possible to define access rules that apply to all domain controllers, but not all computers.
-
+		
 		Note: Not all setting types support categories yet.
 	
 	.PARAMETER Name
@@ -35,47 +35,79 @@
 	.PARAMETER LdapFilter
 		An LDAP filter used to find all objects in AD that match this category.
 	
+	.PARAMETER SearchBase
+		The path under which to look for objects of this category.
+		Defaults to domain wide.
+		Supports string resolution.
+	
+	.PARAMETER SearchScope
+		How deep to search for objects of this category under the chosen searchbase.
+		Supported Values:
+		- Subtree: All items under the searchbase. (default)
+		- OneLevel: All items directly under the searchbase.
+		- Base: Only the searchbase itself is inspected.
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
+	
 	.EXAMPLE
 		PS C:\> Register-DMObjectCategory -Name DomainController -ObjectClass computer -Property PrimaryGroupID -TestScript { $args[0].PrimaryGroupID -eq 516 } -LDAPFilter '(&(objectCategory=computer)(primaryGroupID=516))'
-
+		
 		Registers an object category applying to all domain controller's computer object in AD.
-	#>
+#>
 	[CmdletBinding(DefaultParameterSetName = 'Filter')]
-	Param (
+	param (
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Name,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$ObjectClass,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string[]]
 		$Property,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[scriptblock]
 		$TestScript,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Filter')]
 		[string]
 		$Filter,
-
+		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'LdapFilter')]
 		[string]
-		$LdapFilter
+		$LdapFilter,
+		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[string]
+		$SearchBase = '%DomainDN%',
+		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[ValidateSet('Subtree', 'OneLevel', 'Base')]
+		[string]
+		$SearchScope = 'Subtree',
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process
 	{
 		$script:objectCategories[$Name] = [PSCustomObject]@{
-			Name = $Name
+			Name	    = $Name
 			ObjectClass = $ObjectClass
-			Property = $Property
-			TestScript = $TestScript
-			Filter = $Filter
-			LdapFilter = $LdapFilter
+			Property    = $Property
+			TestScript  = $TestScript
+			Filter	    = $Filter
+			LdapFilter  = $LdapFilter
+			SearchBase  = $SearchBase
+			SearchScope = $SearchScope
+			ContextName = $ContextName
 		}
 	}
 }

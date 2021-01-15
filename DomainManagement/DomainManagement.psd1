@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.4.99'
+	ModuleVersion      = '1.5.111'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -47,6 +47,7 @@
 	FunctionsToExport  = @(
 		'Clear-DMConfiguration'
 		'Convert-DMSchemaGuid'
+		'Find-DMObjectCategoryItem'
 		'Get-DMAccessRule'
 		'Get-DMAccessRuleMode'
 		'Get-DMAcl'
@@ -68,6 +69,7 @@
 		'Get-DMObjectDefaultPermission'
 		'Get-DMOrganizationalUnit'
 		'Get-DMPasswordPolicy'
+		'Get-DMServiceAccount'
 		'Get-DMUser'
 		'Invoke-DMAccessRule'
 		'Invoke-DMAcl'
@@ -81,6 +83,7 @@
 		'Invoke-DMObject'
 		'Invoke-DMOrganizationalUnit'
 		'Invoke-DMPasswordPolicy'
+		'Invoke-DMServiceAccount'
 		'Invoke-DMUser'
 		'Register-DMAccessRule'
 		'Register-DMAccessRuleMode'
@@ -101,6 +104,7 @@
 		'Register-DMObjectCategory'
 		'Register-DMOrganizationalUnit'
 		'Register-DMPasswordPolicy'
+		'Register-DMServiceAccount'
 		'Register-DMUser'
 		'Reset-DMDomainCredential'
 		'Resolve-DMAccessRuleMode'
@@ -121,6 +125,7 @@
 		'Test-DMObject'
 		'Test-DMOrganizationalUnit'
 		'Test-DMPasswordPolicy'
+		'Test-DMServiceAccount'
 		'Test-DMUser'
 		'Unregister-DMAccessRule'
 		'Unregister-DMAccessRuleMode'
@@ -140,6 +145,7 @@
 		'Unregister-DMObjectCategory'
 		'Unregister-DMOrganizationalUnit'
 		'Unregister-DMPasswordPolicy'
+		'Unregister-DMServiceAccount'
 		'Unregister-DMUser'
 	)
 	

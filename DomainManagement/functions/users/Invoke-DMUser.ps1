@@ -66,12 +66,12 @@
 			}
 			
 			switch ($testItem.Type) {
-				'ShouldDelete' {
+				'Delete' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Delete' -Target $testItem -ScriptBlock {
 						Remove-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'ConfigurationOnly' {
+				'Create' {
 					$targetOU = Resolve-String -Text $testItem.Configuration.Path
 					try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
 					catch { Stop-PSFFunction -String 'Invoke-DMUser.User.Create.OUExistsNot' -StringValues $targetOU, $testItem.Identity -Target $testItem -EnableException $EnableException -Continue -ContinueLabel main }

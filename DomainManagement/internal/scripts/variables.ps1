@@ -68,6 +68,9 @@ $script:domainLevel = $null
 # Configured Exchange Domain Setting Versions
 $script:exchangeVersion = $null
 
+# Configured Group Managed Service Accounts
+$script:serviceAccounts = @{ }
+
 
 #----------------------------------------------------------------------------#
  #                                Cached Data                                 #

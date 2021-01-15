@@ -88,7 +88,7 @@
 			}
 			
 			switch ($testItem.Type) {
-				'ShouldDelete' {
+				'Delete' {
 					if (-not $Delete) {
 						Write-PSFMessage -String 'Invoke-DMOrganizationalUnit.OU.Delete.NoAction' -StringValues $testItem.Identity -Target $testItem
 						continue main
@@ -108,7 +108,7 @@
 						Remove-ADOrganizationalUnit @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'ConfigurationOnly' {
+				'Create' {
 					$targetOU = Resolve-String -Text $testItem.Configuration.Path
 					try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
 					catch { Stop-PSFFunction -String 'Invoke-DMOrganizationalUnit.OU.Create.OUExistsNot' -StringValues $targetOU, $testItem.Identity -Target $testItem -EnableException $EnableException -Continue -ContinueLabel main }

@@ -64,7 +64,7 @@
 		$Domain,
 		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
-		[ValidateSet('User', 'Group', 'foreignSecurityPrincipal')]
+		[ValidateSet('User', 'Group', 'foreignSecurityPrincipal', 'Computer')]
 		[string]
 		$ItemType,
 		
