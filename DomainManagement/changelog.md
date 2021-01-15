@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 1.5.101 (2021-01-15)
+## 1.5.111 (2021-01-15)
 
 - New: Component: Service Accounts - manage Group Managed Service Accounts
 - New: Command Find-DMObjectCategoryItem - Searches objects that are part of a specified object category.
