@@ -134,6 +134,7 @@
 	'Invoke-DMServiceAccount.Disabling'							    = 'Disabling service account {0}' # $testItem.Identity
 	'Invoke-DMServiceAccount.Enabling'							    = 'Enabling service account {0}' # $testItem.Identity
 	'Invoke-DMServiceAccount.Moving'							    = 'Moving service account {0} to {1}' # $testItem.Identity, $testItem.Changed.NewValue
+	'Invoke-DMServiceAccount.NoKdsRootKey'						    = 'There is no valid KDS Root Key in the target domain, cannot apply service accounts'
 	'Invoke-DMServiceAccount.Updating'							    = 'Updating properties on service account {0}' # $testItem.Identity
 	'Invoke-DMServiceAccount.UpdatingPrincipal'					    = 'Updating principals allowed to access service account {0}' # $testItem.Identity
 	
@@ -201,6 +202,9 @@
 	
 	'Test-DMServiceAccount.Computer.NotFound'					    = 'Error processing service account {1}: Cannot find computer {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	'Test-DMServiceAccount.Computer.Optional.NotFound'			    = 'Error processing service account {1}: Cannot find computer {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
+	
+	'Test-KdsRootKey.Adding'									    = 'Adding KDS Root Key. It is backdated by 10 hours and thus instantly available. Until this has fully replicated however, you may still be unable to reliably use any created group Managed Service Accounts. This is purely to facilitate gMSA creation.' # 
+	'Test-KdsRootKey.Failed'									    = 'Failed to add a KDS Root Key. Make sure you have sufficient permissions to complete the task.'
 	
 	'Validate.DomainData.Pattern'								    = 'Invalid input: {0}. A domain data name must only consist of numbers, letters and underscore.' # <user input>, <validation item>
 	'Validate.GPPermissionFilter'								    = 'Invalid GP Permission filter: {0}' # <user input>, <validation item>
