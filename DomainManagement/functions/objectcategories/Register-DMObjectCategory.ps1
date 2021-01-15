@@ -46,6 +46,11 @@
 		- Subtree: All items under the searchbase. (default)
 		- OneLevel: All items directly under the searchbase.
 		- Base: Only the searchbase itself is inspected.
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
 	
 	.EXAMPLE
 		PS C:\> Register-DMObjectCategory -Name DomainController -ObjectClass computer -Property PrimaryGroupID -TestScript { $args[0].PrimaryGroupID -eq 516 } -LDAPFilter '(&(objectCategory=computer)(primaryGroupID=516))'
@@ -85,7 +90,10 @@
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[ValidateSet('Subtree', 'OneLevel', 'Base')]
 		[string]
-		$SearchScope = 'Subtree'
+		$SearchScope = 'Subtree',
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process
@@ -99,6 +107,7 @@
 			LdapFilter  = $LdapFilter
 			SearchBase  = $SearchBase
 			SearchScope = $SearchScope
+			ContextName = $ContextName
 		}
 	}
 }

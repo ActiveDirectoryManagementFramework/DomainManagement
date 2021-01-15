@@ -63,6 +63,11 @@
 	.PARAMETER Attributes
 		Offer additional attributes to define.
 		This can be either a hashtable or an object and can contain any writeable properties a gMSA can have in your organization.
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
 	
 	.EXAMPLE
 		PS C:\> Get-Content .\serviceaccounts.json | ConvertFrom-Json | Write-Output | Register-DMServiceAccount
@@ -117,7 +122,10 @@
 		$Present = $true,
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		$Attributes
+		$Attributes,
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process {
@@ -136,6 +144,7 @@
 			Enabled			      = $Enabled
 			Present			      = $Present
 			Attributes		      = $Attributes | ConvertTo-PSFHashtable
+			ContextName		     = $ContextName
 		}
 	}
 }
