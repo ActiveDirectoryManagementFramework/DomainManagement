@@ -186,7 +186,7 @@
 			$InputObject = Test-DMServiceAccount @parameters
 		}
 		
-		if (-not (Test-KdsRootKey)) {
+		if (-not (Test-KdsRootKey @parameters)) {
 			Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.NoKdsRootKey'
 			return
 		}

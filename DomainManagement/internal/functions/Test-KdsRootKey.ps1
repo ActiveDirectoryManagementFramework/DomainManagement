@@ -16,14 +16,15 @@
 		The credentials to use for this operation.
 	
 	.EXAMPLE
-		PS C:\> Test-KdsRootKey -Server contoso.com
+		PS C:\> Test-KdsRootKey -ComputerName contoso.com
 	
 		Tests whether the contoso.com domain has been set up for gMSA.
 #>
 	[CmdletBinding()]
 	Param (
 		[PSFComputer]
-		$Server,
+		[Alias('Server')]
+		$ComputerName,
 		
 		[PSCredential]
 		$Credential
@@ -31,7 +32,7 @@
 	
 	begin
 	{
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential
 	}
 	process
 	{
