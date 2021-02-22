@@ -107,7 +107,7 @@
 			foreach ($name in $TestItem.Configuration.ComputerName | Resolve-String @Parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @Parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -120,7 +120,7 @@
 			foreach ($name in $TestItem.Configuration.ComputerNameOptional | Resolve-String @Parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @Parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -132,7 +132,7 @@
 			# Direct Assignment
 			foreach ($name in $TestItem.Configuration.GroupName | Resolve-String @Parameters) {
 				try {
-					$null = Get-ADGroup -Identity $name -ErrorAction Stop
+					$null = Get-ADGroup @Parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {

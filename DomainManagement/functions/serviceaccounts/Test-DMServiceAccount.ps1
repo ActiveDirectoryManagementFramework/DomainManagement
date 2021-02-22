@@ -156,7 +156,7 @@
 			foreach ($name in $serviceAccountDefinition.ComputerName | Resolve-String @parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -169,7 +169,7 @@
 			foreach ($name in $serviceAccountDefinition.ComputerNameOptional | Resolve-String @parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -181,7 +181,7 @@
 			# Direct Group Assignment
 			foreach ($name in $serviceAccountDefinition.GroupName | Resolve-String @parameters) {
 				try {
-					$null = Get-ADGroup -Identity $name -ErrorAction Stop
+					$null = Get-ADGroup @parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
