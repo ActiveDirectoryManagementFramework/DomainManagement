@@ -5,6 +5,7 @@
 - Upd: ServiceAccounts - added support for directly authorizing groups through the new GroupName option, rather than requiring definition of a ObjectCategory for it.
 - Fix: ServiceAccounts - ignores target domain / credentials for computer resolution
 - Fix: ServiceAccounts - name resolution not applied correctly during invocation
+- Fix: ServiceAccounts - KDS RootKey generation ignores target domain / server
 
 ## 1.5.112 (2021-01-15)
 

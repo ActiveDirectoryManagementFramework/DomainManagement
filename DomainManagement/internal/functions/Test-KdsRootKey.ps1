@@ -32,11 +32,10 @@
 	begin
 	{
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-		$limit = (Get-Date).AddHours(-10)
 	}
 	process
 	{
-		$rootKeys = Get-KdsRootKey @parameters
+		$rootKeys = Invoke-Command @parameters { Get-KdsRootKey }
 		if ($rootKeys | Where-Object EffectiveTime -LT $limit) { return $true }
 		
 		$paramGetPSFUserChoice = @{
@@ -50,7 +49,9 @@
 		
 		try {
 			Write-PSFMessage -Level Host -String 'Test-KdsRootKey.Adding'
-			$null = Add-KdsRootKey @parameters -EffectiveTime $limit -ErrorAction Stop
+			$null = Invoke-Command @parameters -ScriptBlock {
+				Add-KdsRootKey -EffectiveTime (Get-Date).AddHours(-10) -ErrorAction Stop
+			} -ErrorAction Stop
 			return $true
 		}
 		catch {
