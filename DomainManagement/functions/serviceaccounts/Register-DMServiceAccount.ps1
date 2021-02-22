@@ -1,5 +1,5 @@
 ﻿function Register-DMServiceAccount {
-<#
+	<#
 	.SYNOPSIS
 		Register a Group Managed Service Account as a desired state object.
 	
@@ -49,6 +49,11 @@
 		Only thus designated principals are allowed to retrieve the password to the gMSA.
 		Using this you can grant access to an explicit list of computer accounts.
 		A missing computer will be logged but not otherwise noted.
+		Supports string resolution.
+
+	.PARAMETER GroupName
+		Only thus designated principals are allowed to retrieve the password to the gMSA.
+		Using this you can grant access to an explicit list of ActiveDirectory groups.
 		Supports string resolution.
 	
 	.PARAMETER Enabled
@@ -111,6 +116,10 @@
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string[]]
 		$ComputerNameOptional,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[string[]]
+		$GroupName,
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
@@ -130,21 +139,22 @@
 	
 	process {
 		$script:serviceAccounts[$Name] = [PSCustomObject]@{
-			PSTypeName		      = 'DomainManagement.Configuration.ServiceAccount'
-			Name				  = $Name
-			SamAccountName	      = $Name
-			DNSHostName		      = $DNSHostName
-			Description		      = $Description
-			Path				  = $Path
-			ServicePrincipalName  = $ServicePrincipalName
-			DisplayName		      = $DisplayName
-			ObjectCategory	      = $ObjectCategory
-			ComputerName		  = $ComputerName
-			ComputerNameOptional  = $ComputerNameOptional
-			Enabled			      = $Enabled
-			Present			      = $Present
-			Attributes		      = $Attributes | ConvertTo-PSFHashtable
-			ContextName		     = $ContextName
+			PSTypeName           = 'DomainManagement.Configuration.ServiceAccount'
+			Name                 = $Name
+			SamAccountName       = $Name
+			DNSHostName          = $DNSHostName
+			Description          = $Description
+			Path                 = $Path
+			ServicePrincipalName = $ServicePrincipalName
+			DisplayName          = $DisplayName
+			ObjectCategory       = $ObjectCategory
+			ComputerName         = $ComputerName
+			ComputerNameOptional = $ComputerNameOptional
+			GroupName            = $GroupName
+			Enabled              = $Enabled
+			Present              = $Present
+			Attributes           = $Attributes | ConvertTo-PSFHashtable
+			ContextName          = $ContextName
 		}
 	}
 }

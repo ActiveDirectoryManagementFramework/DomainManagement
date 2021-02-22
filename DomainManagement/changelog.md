@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: ServiceAccounts - added support for directly authorizing groups through the new GroupName option, rather than requiring definition of a ObjectCategory for it.
+- Fix: ServiceAccounts - name resolution not applied correctly during invocation
+
 ## 1.5.112 (2021-01-15)
 
 - Upd: Invoke-DMServiceAccount - added option to create a KDS Root Key if needed

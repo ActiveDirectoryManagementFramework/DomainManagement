@@ -178,6 +178,18 @@
 				}
 			}
 			
+			# Direct Group Assignment
+			foreach ($name in $serviceAccountDefinition.GroupName | Resolve-String @parameters) {
+				try {
+					$null = Get-ADGroup -Identity $name -ErrorAction Stop
+					$desiredPrincipals += $name
+				}
+				catch {
+					Write-PSFMessage -Level Warning -String 'Test-DMServiceAccount.Group.NotFound' -StringValues $name, $resolvedName -Target $serviceAccountDefinition -Tag error, failed, serviceaccount, group
+					continue
+				}
+			}
+			
 			$principalChanges = @()
 			foreach ($principal in $currentPrincipals) {
 				if ($principal -in $desiredPrincipals) { continue }
