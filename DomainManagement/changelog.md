@@ -2,7 +2,9 @@
 
 ## ???
 
+- New: Component Exchange - adding capability to define Exchange domain object update level.
 - Upd: ServiceAccounts - added support for directly authorizing groups through the new GroupName option, rather than requiring definition of a ObjectCategory for it.
+- Upd: Test-DMGPLink - reordered changes to show delete actions first.
 - Fix: ServiceAccounts - ignores target domain / credentials for computer resolution
 - Fix: ServiceAccounts - name resolution not applied correctly during invocation
 - Fix: ServiceAccounts - KDS RootKey generation ignores target domain / server
