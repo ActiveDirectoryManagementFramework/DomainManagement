@@ -2,7 +2,7 @@
 # Write-PSFMessage, Stop-PSFFunction or the PSFramework validation scriptblocks
 @{
 	'Assert-ADConnection.Failed'                                    = 'Failed to connect to {0}' # $Server
-	
+
 	'Assert-Configuration.NotConfigured'                            = 'No configuration data provided for: {0}' # ($Type -join ", ")
 	
 	'Convert-AccessRule.Identity.ResolutionError'                   = 'Failed to convert identity. This generally means a configuration error, especially when referencing the parent as identity.' # 
@@ -64,6 +64,11 @@
 	'Invoke-DMDomainData.Script.NotFound.Error'                     = 'Critical error: Could not find a registered DomainData set with the name "{0}". Be sure to register an appropriate configuration and check for typos.' # $Name
 	
 	'Invoke-DMDomainLevel.Raise.Level'                              = 'Raising domain level to {0}' # $testItem.Configuration.Level
+	
+	'Invoke-DMExchange.Installing'                                  = 'Installing Exchange domain System Objects for {0}' # $testResult.Configuration
+	'Invoke-DMExchange.IsoPath.Missing'                             = 'Cannot find ISO file on target server in path {0}' # $testResult.Configuration.LocalImagePath
+	'Invoke-DMExchange.Updating'                                    = 'Updating Exchange domain System Objects to {0}' # $testResult.Configuration
+	'Invoke-DMExchange.WinRM.Failed'                                = 'Failed to connect to {0} via WinRM' # $Server
 	
 	'Invoke-DMGPLink.Delete.AllEnabled'                             = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
 	'Invoke-DMGPLink.New'                                           = 'Linking {0} group policies (all new links)' # $countConfigured
@@ -135,7 +140,7 @@
 	'Invoke-DMServiceAccount.Enabling'                              = 'Enabling service account {0}' # $testItem.Identity
 	'Invoke-DMServiceAccount.Group.NotFound'                        = 'Error processing service account {1}: Cannot find group {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	'Invoke-DMServiceAccount.Moving'                                = 'Moving service account {0} to {1}' # $testItem.Identity, $testItem.Changed.NewValue
-	'Invoke-DMServiceAccount.NoKdsRootKey'                          = 'There is no valid KDS Root Key in the target domain, cannot apply service accounts'
+	'Invoke-DMServiceAccount.NoKdsRootKey'                          = 'There is no valid KDS Root Key in the target domain, cannot apply service accounts' # 
 	'Invoke-DMServiceAccount.Updating'                              = 'Updating properties on service account {0}' # $testItem.Identity
 	'Invoke-DMServiceAccount.UpdatingPrincipal'                     = 'Updating principals allowed to access service account {0}' # $testItem.Identity
 	
@@ -206,7 +211,7 @@
 	'Test-DMServiceAccount.Group.NotFound'                          = 'Error processing service account {1}: Cannot find group {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	
 	'Test-KdsRootKey.Adding'                                        = 'Adding KDS Root Key. It is backdated by 10 hours and thus instantly available. Until this has fully replicated however, you may still be unable to reliably use any created group Managed Service Accounts. This is purely to facilitate gMSA creation.' # 
-	'Test-KdsRootKey.Failed'                                        = 'Failed to add a KDS Root Key. Make sure you have sufficient permissions to complete the task.'
+	'Test-KdsRootKey.Failed'                                        = 'Failed to add a KDS Root Key. Make sure you have sufficient permissions to complete the task.' # 
 	
 	'Validate.DomainData.Pattern'                                   = 'Invalid input: {0}. A domain data name must only consist of numbers, letters and underscore.' # <user input>, <validation item>
 	'Validate.GPPermissionFilter'                                   = 'Invalid GP Permission filter: {0}' # <user input>, <validation item>

@@ -9,7 +9,7 @@
 		Prompts the user whether to set it up if not done yet.
 		A valid KDS Root Key is required for using group Managed Service Accounts.
 	
-	.PARAMETER Server
+	.PARAMETER ComputerName
 		The server / domain to work with.
 		
 	.PARAMETER Credential
