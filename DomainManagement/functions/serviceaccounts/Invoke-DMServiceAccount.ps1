@@ -104,10 +104,10 @@
 			}
 			
 			# Direct Assignment
-			foreach ($name in $TestItem.Configuration.ComputerName) {
+			foreach ($name in $TestItem.Configuration.ComputerName | Resolve-String @Parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @Parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -117,10 +117,10 @@
 			}
 			
 			# Optional Direct Assignment
-			foreach ($name in $TestItem.Configuration.ComputerNameOptional) {
+			foreach ($name in $TestItem.Configuration.ComputerNameOptional | Resolve-String @Parameters) {
 				if ($name -notlike '*$') { $name = "$($name)$" }
 				try {
-					$null = Get-ADComputer -Identity $name -ErrorAction Stop
+					$null = Get-ADComputer @Parameters -Identity $name -ErrorAction Stop
 					$desiredPrincipals += $name
 				}
 				catch {
@@ -128,6 +128,19 @@
 					continue
 				}
 			}
+
+			# Direct Assignment
+			foreach ($name in $TestItem.Configuration.GroupName | Resolve-String @Parameters) {
+				try {
+					$null = Get-ADGroup @Parameters -Identity $name -ErrorAction Stop
+					$desiredPrincipals += $name
+				}
+				catch {
+					Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.Group.NotFound' -StringValues $name, $resolvedName -Target $TestItem.Configuration -Tag error, failed, serviceaccount, computer
+					continue
+				}
+			}
+
 			if ($desiredPrincipals) {
 				$newParam.PrincipalsAllowedToRetrieveManagedPassword = $desiredPrincipals
 			}
@@ -173,7 +186,7 @@
 			$InputObject = Test-DMServiceAccount @parameters
 		}
 		
-		if (-not (Test-KdsRootKey)) {
+		if (-not (Test-KdsRootKey @parameters)) {
 			Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.NoKdsRootKey'
 			return
 		}
