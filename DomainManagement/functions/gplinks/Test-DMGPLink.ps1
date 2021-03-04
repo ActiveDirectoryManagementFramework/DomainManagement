@@ -190,7 +190,11 @@
 
 			$updates = Get-LinkUpdate -Configuration $ouDatum -ADObject $adObject
 			if ($updates) {
-				New-TestResult @resultDefaults -Type 'Update' -Changed $updates
+				New-TestResult @resultDefaults -Type 'Update' -Changed ($updates | Sort-Object {
+					if ($_.Action -eq "Delete") { 0 }
+					elseif ($_.Action -eq "Reorder") { 1 }
+					else { 2 }
+				})
 			}
 		}
 
