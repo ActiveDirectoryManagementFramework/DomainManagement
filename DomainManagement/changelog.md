@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.6.118 (2021-03-04)
 
 - New: Component Exchange - adding capability to define Exchange domain object update level.
 - Upd: ServiceAccounts - added support for directly authorizing groups through the new GroupName option, rather than requiring definition of a ObjectCategory for it.

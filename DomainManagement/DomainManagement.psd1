@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.5.112'
+	ModuleVersion      = '1.6.118'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
