@@ -47,7 +47,7 @@
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
-		Assert-Configuration -Type SchemaVersion -Cmdlet $PSCmdlet
+		Assert-Configuration -Type ExchangeVersion -Cmdlet $PSCmdlet
 		$domainObject = Get-ADDomain @parameters
 		
 		#region Utility Functions
@@ -128,20 +128,20 @@
 			switch ($testResult.Type) {
 				'Install'
 				{
-					if (-not (Test-ExchangeIsoPath -Session $session -Path $testItem.Configuration.LocalImagePath)) {
-						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testItem.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
+					if (-not (Test-ExchangeIsoPath -Session $session -Path $testResult.Configuration.LocalImagePath)) {
+						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testResult.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
 					}
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Installing' -ActionStringValues $testItem.Configuration -Target $domainObject -ScriptBlock {
-						Invoke-ExchangeDomainUpdate -Session $session -Path $testItem.Configuration.LocalImagePath -ErrorAction Stop
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Installing' -ActionStringValues $testResult.Configuration -Target $domainObject -ScriptBlock {
+						Invoke-ExchangeDomainUpdate -Session $session -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update'
 				{
-					if (-not (Test-ExchangeIsoPath -Session $session -Path $testItem.Configuration.LocalImagePath)) {
-						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testItem.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
+					if (-not (Test-ExchangeIsoPath -Session $session -Path $testResult.Configuration.LocalImagePath)) {
+						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testResult.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
 					}
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Updating' -ActionStringValues $testItem.Configuration -Target $domainObject -ScriptBlock {
-						Invoke-ExchangeDomainUpdate -Session $session -Path $testItem.Configuration.LocalImagePath -ErrorAction Stop
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Updating' -ActionStringValues $testResult.Configuration -Target $domainObject -ScriptBlock {
+						Invoke-ExchangeDomainUpdate -Session $session -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 			}

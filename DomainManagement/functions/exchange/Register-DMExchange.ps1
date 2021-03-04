@@ -16,10 +16,10 @@
 	.PARAMETER ExchangeVersion
 		The version of the Exchange server to apply.
 		E.g. 2016CU6
-		We map Exchange versions to their respective identifiers in AD:
-		RangeUpper in schema and ObjectVersion in configuration.
-		This parameter is to help avoiding to have to look up those values.
-		If your version is not supported by us yet, look up those numbers and explicitly bind it to -RangeUpper and -ObjectVersion instead.
+		We map Exchange versions to their respective identifier in AD:
+		ObjectVersion in the domain's Microsoft Exchange System Objects container.
+		This parameter is to help avoiding to have to look up that value.
+		If your version is not supported by us yet, look up the version number and explicitly bind it to -ObjectVersion instead.
 	
 	.PARAMETER ObjectVersion
 		The object version on the "Microsoft Exchange System Objects" container in the domain.

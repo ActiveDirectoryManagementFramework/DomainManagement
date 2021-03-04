@@ -35,7 +35,7 @@
 	process
 	{
 		foreach ($typeName in $type) {
-			if ((Get-Variable -Name $typeName -Scope Script -ValueOnly).Count -gt 0) { return }
+			if ((Get-Variable -Name $typeName -Scope Script -ValueOnly -ErrorAction SilentlyContinue).Count -gt 0) { return }
 		}
 		
 		Write-PSFMessage -Level Warning -String 'Assert-Configuration.NotConfigured' -StringValues ($Type -join ", ") -FunctionName $Cmdlet.CommandRuntime
