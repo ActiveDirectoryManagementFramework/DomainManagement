@@ -64,6 +64,7 @@
 		Whether the account should exist or not.
 		By default, it should.
 		Set this to $false in order to explicitly delete an existing gMSA.
+        Set this to 'Undefined' to neither create nor delete it, in which case it will only modify properties if the service account exists.
 	
 	.PARAMETER Attributes
 		Offer additional attributes to define.
@@ -127,8 +128,9 @@
 		$Enabled = 'Undefined',
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[bool]
-		$Present = $true,
+		[PSFramework.Utility.TypeTransformationAttribute([string])]
+		[DomainManagement.TriBool]
+		$Present = 'true',
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		$Attributes,

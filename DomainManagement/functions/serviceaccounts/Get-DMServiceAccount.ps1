@@ -23,6 +23,6 @@
 	)
 	process
 	{
-		($script:serviceAccounts.Values) | Where-Object Name -like $Name
+		$($script:serviceAccounts.Values | Where-Object Name -like $Name)
 	}
 }
