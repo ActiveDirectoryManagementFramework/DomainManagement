@@ -80,12 +80,12 @@
 					foreach ($changeEntry in $testItem.Changed) {
 						#region Remove Access Rules
 						if ($changeEntry.Type -eq 'Delete') {
-							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Remove' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType -Target $changeEntry
-							if (-not $aclObject.RemoveAccessRule($changeEntry.ADObject.OriginalRule)) {
+							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Remove' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry
+							if (-not $aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule)) {
 								Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
 									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
-										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType -Target $changeEntry -Debug:$false
+										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry -Debug:$false
 										$failedCount = $failedCount + 1
 										break
 									}

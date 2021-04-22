@@ -117,7 +117,7 @@
 		Pre-defining domain controllers or other T0 servers and their meta-information objects would be an act of futility and probably harmful.
 		#>
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
-			Get-ADObject @parameters -LDAPFilter '(&(objectCategory=*)(!(|(objectCategory=serviceConnectionPoint)(objectCategory=rIDSet)(objectCategory=msDFSR-LocalSettings)(objectCategory=msDFSR-Subscriber)(objectCategory=msDFSR-Subscription)(objectCategory=computer))))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
+			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
 		}
 		
 		$resolvedConfiguredPaths = $script:acls.Values.Path | Resolve-String

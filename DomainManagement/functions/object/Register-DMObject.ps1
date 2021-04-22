@@ -58,7 +58,7 @@
 	{
 		$identity = "CN=$Name,$Path"
 		if (-not $Name) { $identity = $Path }
-		$script:objects["CN=$Name,$Path"] = [PSCustomObject]@{
+		$script:objects[$identity] = [PSCustomObject]@{
 			PSTypeName = 'DomainManagement.Object'
 			Identity = $identity
 			Path = $Path
