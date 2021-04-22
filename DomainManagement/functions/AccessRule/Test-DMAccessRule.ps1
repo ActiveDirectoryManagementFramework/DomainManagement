@@ -79,7 +79,10 @@
 					$ADObject,
 
 					[AllowNull()]
-					$Configuration
+					$Configuration,
+
+                    [string]
+                    $DistinguishedName
 				)
 
 				$item = [PSCustomObject]@{
@@ -87,6 +90,7 @@
 					Identity = $Identity
 					ADObject = $ADObject
 					Configuration = $Configuration
+                    DistinguishedName = $DistinguishedName
 				}
 				Add-Member -InputObject $item -MemberType ScriptMethod ToString -Value { '{0}: {1}' -f $this.Type, $this.Identity } -Force -PassThru
 			}
@@ -122,20 +126,20 @@
 				foreach ($configuredRule in $ConfiguredRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}
-				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule
+				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
 			}
 
 			:outer foreach ($configuredRule in $ConfiguredRules) {
 				foreach ($defaultRules in $DefaultRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRules -Rule2 $configuredRule) {
-						Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule
+						Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
 						continue outer
 					}
 				}
 				foreach ($relevantADRule in $relevantADRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}
-				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule
+				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule -DistinguishedName $ADObject
 			}
 		}
 

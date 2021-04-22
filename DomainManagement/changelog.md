@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+## 1.6.124 (2021-04-23)
+
+- Upd: Test-DMAcl - removed exclusion for computer objects (and associated types), as ObjectCategory based assignment resolves the original issue.
+- Upd: ServiceAccount - updated "Present" to include third option: "undefined"
+- Upd: Invoke-DMAccessRule - Improved logging for individual rule changes, now including the full DN of the modified AD object
+- Fix: Invoke-DMAccessRule - fails to remove some access rules for unknown reasons
+- Fix: Get-DMServiceAccount | Unregister-DMServiceAccount pipelining fails
+- Fix: Register-DMObject - registers objects under their name/path combination rather than their identity, breaking processing by Unregister-DMObject on mismatch.
+
 ## 1.6.118 (2021-03-04)
 
 - New: Component Exchange - adding capability to define Exchange domain object update level.

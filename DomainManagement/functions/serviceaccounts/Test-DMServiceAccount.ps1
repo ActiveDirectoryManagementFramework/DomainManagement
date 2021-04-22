@@ -86,7 +86,11 @@
 			
 			try { $adObject = Get-ADServiceAccount @parameters -Identity $resolvedName -ErrorAction Stop -Properties * }
 			catch {
-				New-TestResult -Type Create @resultDefaults (New-Change -Identity $resolvedName -Type Create)
+                # .Present is of type TriBool, so itself would be $true for both 'true' and 'undefined' cases,
+                # and we do not want to create if undefined
+                if ($serviceAccountDefinition.Present -eq 'true') {
+                    New-TestResult -Type Create @resultDefaults (New-Change -Identity $resolvedName -Type Create)
+                }
 				continue
 			}
 			$resultDefaults.ADObject = $adObject
