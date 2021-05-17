@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: Group Memberships - can now assign Object Categories
+- Upd: Service Accounts - can now define supported Kerberos encryption types
+- Upd: Service Accounts - added ability to specify previous names, changing a service accounts SamAccountName.
+
 ## 1.6.124 (2021-04-23)
 
 - Upd: Test-DMAcl - removed exclusion for computer objects (and associated types), as ObjectCategory based assignment resolves the original issue.
