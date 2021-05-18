@@ -73,7 +73,7 @@
 					#region Case: No old version present
 					0
 					{
-						if (-not $userDefinition.Optional) {
+						if (-not ($userDefinition.Optional -or ($userDefinition.Present -eq 'Undefined'))) {
 							New-TestResult @resultDefaults -Type Create
 						}
 						continue main

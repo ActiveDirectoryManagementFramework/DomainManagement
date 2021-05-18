@@ -62,6 +62,7 @@
 	.PARAMETER Present
 		Whether the user should be present.
 		This can be used to trigger deletion of a managed account.
+        When set to 'Undefined', this will act exactly as if -Optional were set to $true
 	
 	.EXAMPLE
 		PS C:\> Get-Content .\users.json | ConvertFrom-Json | Write-Output | Register-DMUser
@@ -116,8 +117,9 @@
 		$OldNames = @(),
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[bool]
-		$Present = $true
+		[PSFramework.Utility.TypeTransformationAttribute([string])]
+        [DomainManagement.TriBool]
+		$Present = 'true'
 	)
 	
 	process {

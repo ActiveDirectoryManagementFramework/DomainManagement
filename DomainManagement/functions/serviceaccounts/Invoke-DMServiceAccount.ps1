@@ -89,6 +89,7 @@
 				Name = $TestItem.Configuration.Name | Resolve-String @parameters
 				DNSHostName = $TestItem.Configuration.DNSHostName | Resolve-String @parameters
 				Description = $TestItem.Configuration.Description | Resolve-String @parameters
+                KerberosEncryptionType = $TestItem.Configuration.KerberosEncryptionType
 			}
 			if ($TestItem.Configuration.ServicePrincipalName) { $newParam.ServicePrincipalNames = $TestItem.Configuration.ServicePrincipalName | Resolve-String @parameters }
 			if ($TestItem.Configuration.DisplayName) { $newParam.DisplayName = $TestItem.Configuration.DisplayName | Resolve-String @parameters }
@@ -150,6 +151,7 @@
 		}
 		
 		function Set-ServiceAccount {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]
 			param (
 				$TestItem,
@@ -186,7 +188,7 @@
 			$InputObject = Test-DMServiceAccount @parameters
 		}
 		
-		if (-not (Test-KdsRootKey @parameters)) {
+		if (-not (Test-DmKdsRootKey @parameters)) {
 			Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.NoKdsRootKey'
 			return
 		}
@@ -231,10 +233,16 @@
 				}
 				'Rename'
 				{
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Moving' -ActionStringValues $testItem.Identity -Target $testItem.Identity -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Renaming' -ActionStringValues $testItem.Identity, $testItem.Changed.NewValue -Target $testItem.Identity -ScriptBlock {
 						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -NewName $testItem.Changed.NewValue -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet
 				}
+                'RenameSam'
+                {
+                    Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.RenamingSam' -ActionStringValues $testItem.Identity, $testItem.ADObject.SamAccountName -Target $testItem.Identity -ScriptBlock {
+						Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -Replace @{ samAccountName = $testItem.Identity } -Confirm:$false
+					} -EnableException $EnableException -PSCmdlet $PSCmdlet
+                }
 				'Enable'
 				{
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Enabling' -ActionStringValues $testItem.Identity -Target $testItem.Identity -ScriptBlock {
