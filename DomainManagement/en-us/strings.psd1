@@ -141,6 +141,8 @@
     'Invoke-DMServiceAccount.Group.NotFound'                        = 'Error processing service account {1}: Cannot find group {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
     'Invoke-DMServiceAccount.Moving'                                = 'Moving service account {0} to {1}' # $testItem.Identity, $testItem.Changed.NewValue
     'Invoke-DMServiceAccount.NoKdsRootKey'                          = 'There is no valid KDS Root Key in the target domain, cannot apply service accounts' # 
+    'Invoke-DMServiceAccount.Renaming'                              = 'Renaming service account {0} to {1}' # $testItem.Identity, $testItem.Changed.NewValue
+    'Invoke-DMServiceAccount.RenamingSam'                           = 'Renaming SamAccountName of service account {1} to {0}' # $testItem.Identity, $testItem.ADObject.SamAccountName 
     'Invoke-DMServiceAccount.Updating'                              = 'Updating properties on service account {0}' # $testItem.Identity
     'Invoke-DMServiceAccount.UpdatingPrincipal'                     = 'Updating principals allowed to access service account {0}' # $testItem.Identity
 	

@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 1.6.128 (2021-05-18)
+## 1.6.129 (2021-05-18)
 
 - Upd: Group Memberships - can now assign Object Categories
 - Upd: Group Memberships - can now assign gMSAs as member

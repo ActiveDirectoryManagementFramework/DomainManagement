@@ -151,6 +151,7 @@
 		}
 		
 		function Set-ServiceAccount {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]
 			param (
 				$TestItem,
@@ -187,7 +188,7 @@
 			$InputObject = Test-DMServiceAccount @parameters
 		}
 		
-		if (-not (Test-KdsRootKey @parameters)) {
+		if (-not (Test-DmKdsRootKey @parameters)) {
 			Write-PSFMessage -Level Warning -String 'Invoke-DMServiceAccount.NoKdsRootKey'
 			return
 		}
@@ -232,7 +233,7 @@
 				}
 				'Rename'
 				{
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Renaming' -ActionStringValues $testItem.Identity -Target $testItem.Identity -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Renaming' -ActionStringValues $testItem.Identity, $testItem.Changed.NewValue -Target $testItem.Identity -ScriptBlock {
 						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -NewName $testItem.Changed.NewValue -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet
 				}
