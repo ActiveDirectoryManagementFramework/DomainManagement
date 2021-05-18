@@ -1,8 +1,9 @@
 ﻿# Changelog
 
-## ???
+## 1.6.128 (2021-05-18)
 
 - Upd: Group Memberships - can now assign Object Categories
+- Upd: Group Memberships - can now assign gMSAs as member
 - Upd: Service Accounts - can now define supported Kerberos encryption types
 - Upd: Service Accounts - added ability to specify previous names, changing a service accounts SamAccountName.
 
