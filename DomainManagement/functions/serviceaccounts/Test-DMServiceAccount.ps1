@@ -75,7 +75,6 @@
 		foreach ($serviceAccountDefinition in $script:serviceAccounts.Values) {
 			$resolvedName = (Resolve-String -Text $serviceAccountDefinition.SamAccountName @parameters) -replace '\$$'
 			$resolvedPath = Resolve-String -Text $serviceAccountDefinition.Path @parameters
-			$resolvedSAM = $resolvedName + '$'
 			
 			$resultDefaults = @{
 				Server	      = $Server
@@ -86,13 +85,24 @@
 			
 			try { $adObject = Get-ADServiceAccount @parameters -Identity $resolvedName -ErrorAction Stop -Properties * }
 			catch {
+                foreach ($oldName in $serviceAccountDefinition.OldNames) {
+                    try { $adObject = Get-ADServiceAccount @parameters -Identity ($oldName | Resolve-String @parameters) -ErrorAction Stop -Properties * }
+                    catch { continue }
+                    # No Need to rename when deleting it anyway
+                    if (-not $serviceAccountDefinition.Present) { break }
+                    New-TestResult -Type RenameSam @resultDefaults -ADObject $adObject
+                    break
+                }
+			}
+
+            if (-not $adObject) {
                 # .Present is of type TriBool, so itself would be $true for both 'true' and 'undefined' cases,
                 # and we do not want to create if undefined
                 if ($serviceAccountDefinition.Present -eq 'true') {
                     New-TestResult -Type Create @resultDefaults (New-Change -Identity $resolvedName -Type Create)
                 }
 				continue
-			}
+            }
 			$resultDefaults.ADObject = $adObject
 			
 			if (-not $serviceAccountDefinition.Present) {
@@ -117,6 +127,10 @@
 			if ($adObject.ServicePrincipalName -or $serviceAccountDefinition.ServicePrincipalName) {
 				Compare-Property -Property ServicePrincipalName -Configuration $serviceAccountDefinition -ADObject $adObject -Changes $changes -Resolve -Parameters $parameters
 			}
+            if ($adObject.KerberosEncryptionType[0] -ne $serviceAccountDefinition.KerberosEncryptionType) {
+                $null = $changes.Add('KerberosEncryptionType')
+            }
+            
 			if ($serviceAccountDefinition.Attributes.Count -gt 0) {
 				$attributesObject = [PSCustomObject]$serviceAccountDefinition.Attributes
 				foreach ($key in $serviceAccountDefinition.Attributes.Keys) {

@@ -1,4 +1,4 @@
-﻿function Test-KdsRootKey
+﻿function Test-DmKdsRootKey
 {
 <#
 	.SYNOPSIS
@@ -16,10 +16,11 @@
 		The credentials to use for this operation.
 	
 	.EXAMPLE
-		PS C:\> Test-KdsRootKey -ComputerName contoso.com
+		PS C:\> Test-DmKdsRootKey -ComputerName contoso.com
 	
 		Tests whether the contoso.com domain has been set up for gMSA.
 #>
+    [OutputType([bool])]
 	[CmdletBinding()]
 	Param (
 		[PSFComputer]
@@ -36,8 +37,9 @@
 	}
 	process
 	{
+        if (Get-PSFConfigValue -FullName 'DomainManagement.ServiceAccount.SkipKdsCheck') { return $true }
 		$rootKeys = Invoke-Command @parameters { Get-KdsRootKey }
-		if ($rootKeys | Where-Object EffectiveTime -LT $limit) { return $true }
+		if ($rootKeys | Where-Object EffectiveTime -LT (Get-Date).AddHours(-10)) { return $true }
 		
 		$paramGetPSFUserChoice = @{
 			Caption = 'No active KDS Root Key Detected'

@@ -1,6 +1,5 @@
-﻿function Register-DMGroupMembership
-{
-<#
+﻿function Register-DMGroupMembership {
+    <#
 	.SYNOPSIS
 		Registers a group membership assignment as desired state.
 	
@@ -19,6 +18,10 @@
 	
 	.PARAMETER ItemType
 		The type of object being granted membership.
+
+    .PARAMETER ObjectCategory
+        Rather than specifying an explicit entity, assign all principals in a given Object Cagtegory as group member.
+        Note: In order to be applicable, each category member must be a security principal (that has the ObjectSID property).
 	
 	.PARAMETER Group
 		The group to define members for.
@@ -53,73 +56,82 @@
 		Imports all defined groupmemberships from the targeted json configuration file.
 #>
 	
-	[CmdletBinding(DefaultParameterSetName = 'Entry')]
-	param (
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
-		[string]
-		$Name,
+    [CmdletBinding(DefaultParameterSetName = 'Entry')]
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+        [string]
+        $Name,
 		
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
-		[string]
-		$Domain,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+        [string]
+        $Domain,
 		
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
-		[ValidateSet('User', 'Group', 'foreignSecurityPrincipal', 'Computer')]
-		[string]
-		$ItemType,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+        [ValidateSet('User', 'Group', 'foreignSecurityPrincipal', 'Computer', 'msDS-GroupManagedServiceAccount')]
+        [string]
+        $ItemType,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+        [string]
+        $ObjectCategory,
 		
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
-		[string]
-		$Group,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
+        [string]
+        $Group,
 		
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
-		[bool]
-		$Empty,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
+        [bool]
+        $Empty,
 		
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[ValidateSet('Default', 'MayBeMember', 'MemberIfExists', 'MayBeMemberIfExists')]
-		[string]
-		$Mode = 'Default',
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [ValidateSet('Default', 'MayBeMember', 'MemberIfExists', 'MayBeMemberIfExists')]
+        [string]
+        $Mode = 'Default',
 		
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[ValidateSet('Constrained', 'Additive')]
-		[string]
-		$GroupProcessingMode,
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [ValidateSet('Constrained', 'Additive')]
+        [string]
+        $GroupProcessingMode,
 		
-		[string]
-		$ContextName = '<Undefined>'
-	)
+        [string]
+        $ContextName = '<Undefined>'
+    )
 	
-	process
-	{
-		if (-not $script:groupMemberShips[$Group])
-		{
-			$script:groupMemberShips[$Group] = @{ }
-		}
-		if ($Name)
-		{
-			$script:groupMemberShips[$Group]["$($ItemType):$($Name)"] = [PSCustomObject]@{
-				PSTypeName = 'DomainManagement.GroupMembership'
-				Name	   = $Name
-				Domain	   = $Domain
-				ItemType   = $ItemType
-				Group	   = $Group
-				Mode	   = $Mode
-				ContextName = $ContextName
-			}
-		}
-		elseif ($Empty)
-		{
-			$script:groupMemberShips[$Group] = @{ }
-		}
+    process {
+        if (-not $script:groupMemberShips[$Group]) {
+            $script:groupMemberShips[$Group] = @{ }
+        }
+        if ($Name) {
+            $script:groupMemberShips[$Group]["$($ItemType):$($Name)"] = [PSCustomObject]@{
+                PSTypeName  = 'DomainManagement.GroupMembership'
+                Name        = $Name
+                Domain      = $Domain
+                ItemType    = $ItemType
+                Group       = $Group
+                Mode        = $Mode
+                ContextName = $ContextName
+            }
+        }
+        elseif ($ObjectCategory) {
+            $script:groupMemberShips[$Group]["ObjectCategory:$($ObjectCategory)"] = [PSCustomObject]@{
+                PSTypeName  = 'DomainManagement.GroupMembership'
+                Category    = $ObjectCategory
+                Group       = $Group
+                Mode        = $Mode
+                ContextName = $ContextName
+            }
+        }
+        elseif ($Empty) {
+            $script:groupMemberShips[$Group] = @{ }
+        }
 		
-		if ($GroupProcessingMode)
-		{
-			$script:groupMemberShips[$Group]['__Configuration'] = [PSCustomObject]@{
-				PSTypeName = 'DomainManagement.GroupMembership.Configuration'
-				ProcessingMode = $GroupProcessingMode
-			}
-		}
-	}
+        if ($GroupProcessingMode) {
+            $script:groupMemberShips[$Group]['__Configuration'] = [PSCustomObject]@{
+                PSTypeName     = 'DomainManagement.GroupMembership.Configuration'
+                ProcessingMode = $GroupProcessingMode
+            }
+        }
+    }
 }
