@@ -37,8 +37,9 @@
 	}
 	process
 	{
+        if (Get-PSFConfigValue -FullName 'DomainManagement.ServiceAccount.SkipKdsCheck') { return $true }
 		$rootKeys = Invoke-Command @parameters { Get-KdsRootKey }
-		if ($rootKeys | Where-Object EffectiveTime -LT $limit) { return $true }
+		if ($rootKeys | Where-Object EffectiveTime -LT (Get-Date).AddHours(-10)) { return $true }
 		
 		$paramGetPSFUserChoice = @{
 			Caption = 'No active KDS Root Key Detected'
