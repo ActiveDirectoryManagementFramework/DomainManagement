@@ -215,6 +215,7 @@
 		}
 
 		function Convert-AccessRuleIdentity {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
 			[CmdletBinding()]
 			param (
 				[Parameter(ValueFromPipeline = $true)]
@@ -239,14 +240,14 @@
 					}
 					
 					if (-not $accessRule.IdentityReference.AccountDomainSid) {
-                        try {$identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount}
-						catch { 
+                        try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount }
+						catch {
                             # Empty Catch is OK here, warning happens in command
                         }
 					}
 					else {
 						try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount }
-                        catch { 
+                        catch {
                             # Empty Catch is OK here, warning happens in command
                         }
 					}
