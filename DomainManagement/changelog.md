@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.6.131 (2021-07-13)
+
+- Upd: AccessRules - added "Present" configuration, allowing explicit delete actions as well as optional rule pressence
+- Fix: Test-DMAccessRule - fixed unintended command interruption when Identity on AD object could not be unresolved
+
 ## 1.6.129 (2021-05-28)
 
 - Upd: Group Memberships - can now assign Object Categories
