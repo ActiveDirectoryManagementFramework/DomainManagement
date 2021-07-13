@@ -1,6 +1,5 @@
-﻿function Register-DMAccessRule
-{
-	<#
+﻿function Register-DMAccessRule {
+    <#
 	.SYNOPSIS
 		Registers a new access rule as a desired state.
 	
@@ -52,83 +51,94 @@
 		This makes the rule apply only if the object exists, without triggering errors if it doesn't.
 		It will also ignore access errors on the object.
 		Note: Only if all access rules assigned to an object are set to $true, will the object be considered optional.
+
+    .PARAMETER Present
+		Whether the access rule should exist or not.
+		By default, it should.
+		Set this to $false in order to explicitly delete an existing access rule.
+        Set this to 'Undefined' to neither create nor delete it, in which case it will simply be accepted if it exists.
 	
 	.EXAMPLE
 		PS C:\> Register-DMAccessRule -ObjectCategory DomainControllers -Identity '%DomainName%\Domain Admins' -ActiveDirectoryRights GenericAll
 
 		Grants the domain admins of the target domain FullControl over all domain controllers, without any inheritance.
 	#>
-	[CmdletBinding(DefaultParameterSetName = 'Path')]
-	Param (
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Path')]
-		[string]
-		$Path,
+    [CmdletBinding(DefaultParameterSetName = 'Path')]
+    Param (
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Path')]
+        [string]
+        $Path,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
-		[string]
-		$ObjectCategory,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+        [string]
+        $ObjectCategory,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-		[string]
-		$Identity,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]
+        $Identity,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-		[string]
-		$ActiveDirectoryRights,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]
+        $ActiveDirectoryRights,
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[System.Security.AccessControl.AccessControlType]
-		$AccessControlType = 'Allow',
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [System.Security.AccessControl.AccessControlType]
+        $AccessControlType = 'Allow',
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[System.DirectoryServices.ActiveDirectorySecurityInheritance]
-		$InheritanceType = 'None',
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [System.DirectoryServices.ActiveDirectorySecurityInheritance]
+        $InheritanceType = 'None',
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[string]
-		$ObjectType = '<All>',
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [string]
+        $ObjectType = '<All>',
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[string]
-		$InheritedObjectType = '<All>',
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [string]
+        $InheritedObjectType = '<All>',
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[bool]
-		$Optional = $false
-	)
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [bool]
+        $Optional = $false,
+		
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [PSFramework.Utility.TypeTransformationAttribute([string])]
+        [DomainManagement.TriBool]
+        $Present = 'true'
+    )
 	
-	process
-	{
-		switch ($PSCmdlet.ParameterSetName)
-		{
-			'Path' {
-				if (-not $script:accessRules[$Path]) { $script:accessRules[$Path] = @() }
-				$script:accessRules[$Path] += [PSCustomObject]@{
-					PSTypeName = 'DomainManagement.AccessRule'
-					Path = $Path
-					IdentityReference = $Identity
-					AccessControlType = $AccessControlType
-					ActiveDirectoryRights = $ActiveDirectoryRights
-					InheritanceType = $InheritanceType
-					InheritedObjectType = $InheritedObjectType
-					ObjectType = $ObjectType
-					Optional = $Optional
-				}
-			}
-			'Category' {
-				if (-not $script:accessCategoryRules[$ObjectCategory]) { $script:accessCategoryRules[$ObjectCategory] = @() }
-				$script:accessCategoryRules[$ObjectCategory] += [PSCustomObject]@{
-					PSTypeName = 'DomainManagement.AccessRule'
-					Category = $ObjectCategory
-					IdentityReference = $Identity
-					AccessControlType = $AccessControlType
-					ActiveDirectoryRights = $ActiveDirectoryRights
-					InheritanceType = $InheritanceType
-					InheritedObjectType = $InheritedObjectType
-					ObjectType = $ObjectType
-					Optional = $Optional
-				}
-			}
-		}
-	}
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            'Path' {
+                if (-not $script:accessRules[$Path]) { $script:accessRules[$Path] = @() }
+                $script:accessRules[$Path] += [PSCustomObject]@{
+                    PSTypeName            = 'DomainManagement.AccessRule'
+                    Path                  = $Path
+                    IdentityReference     = $Identity
+                    AccessControlType     = $AccessControlType
+                    ActiveDirectoryRights = $ActiveDirectoryRights
+                    InheritanceType       = $InheritanceType
+                    InheritedObjectType   = $InheritedObjectType
+                    ObjectType            = $ObjectType
+                    Optional              = $Optional
+                    Present               = $Present
+                }
+            }
+            'Category' {
+                if (-not $script:accessCategoryRules[$ObjectCategory]) { $script:accessCategoryRules[$ObjectCategory] = @() }
+                $script:accessCategoryRules[$ObjectCategory] += [PSCustomObject]@{
+                    PSTypeName            = 'DomainManagement.AccessRule'
+                    Category              = $ObjectCategory
+                    IdentityReference     = $Identity
+                    AccessControlType     = $AccessControlType
+                    ActiveDirectoryRights = $ActiveDirectoryRights
+                    InheritanceType       = $InheritanceType
+                    InheritedObjectType   = $InheritedObjectType
+                    ObjectType            = $ObjectType
+                    Optional              = $Optional
+                    Present               = $Present
+                }
+            }
+        }
+    }
 }
