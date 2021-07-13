@@ -114,18 +114,25 @@
 			}
 
 			:outer foreach ($relevantADRule in $relevantADRules) {
-				# Don't generate delete changes
+				foreach ($configuredRule in $ConfiguredRules) {
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
+                        # If explicitly defined for deletion, do so
+                        if ('False' -eq $configuredRule.Present) {
+                            Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
+                        }
+                        continue outer
+                    }
+				}
+
+                # Don't generate delete changes
 				if ($processingMode -eq 'Additive') { break }
-				# Don't generate delete changes, unless we have configured a permission level for the affected identity
+                # Don't generate delete changes, unless we have configured a permission level for the affected identity
 				if ($processingMode -eq 'Defined') {
 					if (-not ($relevantADRule.IdentityReference | Compare-Identity -Parameters $parameters -ReferenceIdentity $ConfiguredRules.IdentityReference -IncludeEqual -ExcludeDifferent)) {
 						continue
 					}
 				}
 
-				foreach ($configuredRule in $ConfiguredRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
-				}
 				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
 			}
 
@@ -139,6 +146,8 @@
 				foreach ($relevantADRule in $relevantADRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
 				}
+                # Do not generate Create rules for any rule not configured for creation
+                if ('True' -ne $configuredRule.Present) { continue }
 				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule -DistinguishedName $ADObject
 			}
 		}
@@ -173,7 +182,10 @@
 					$inheritedObjectTypeName = $convertCmdName.Process($ruleObject.InheritedObjectType)[0]
 
 					try { $identity = Resolve-Identity @parameters -IdentityReference $ruleObject.IdentityReference -ADObject $ADObject }
-					catch { Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue }
+					catch {
+                        if ('True' -ne $ruleObject.Present) { continue }
+                        Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue
+                    }
 
 					[PSCustomObject]@{
 						PSTypeName = 'DomainManagement.AccessRule.Converted'
@@ -188,6 +200,7 @@
 						ObjectType = $objectTypeGuid
 						ObjectTypeName = $objectTypeName
 						PropagationFlags = $ruleObject.PropagationFlags
+                        Present = $ruleObject.Present
 					}
 				}
 			}
@@ -202,6 +215,7 @@
 		}
 
 		function Convert-AccessRuleIdentity {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
 			[CmdletBinding()]
 			param (
 				[Parameter(ValueFromPipeline = $true)]
@@ -226,10 +240,16 @@
 					}
 					
 					if (-not $accessRule.IdentityReference.AccountDomainSid) {
-						$identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount
+                        try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount }
+						catch {
+                            # Empty Catch is OK here, warning happens in command
+                        }
 					}
 					else {
-						$identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount
+						try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount }
+                        catch {
+                            # Empty Catch is OK here, warning happens in command
+                        }
 					}
 					if (-not $identity) {
 						$identity = $accessRule.IdentityReference
@@ -328,6 +348,7 @@
 						ObjectType = $objectTypeGuid
 						ObjectTypeName = $objectTypeName
 						PropagationFlags = $ruleObject.PropagationFlags
+                        Present = $ruleObject.Present
 					}
 				}
 			}
