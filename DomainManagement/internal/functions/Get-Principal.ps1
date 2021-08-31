@@ -118,11 +118,11 @@
 		if ($credentials = Get-DMDomainCredential -Domain $domainName) { $parameters['Credential'] = $credentials }
 
 		$filter = "(objectSID=$Sid)"
-		if (-not $Sid) { $filter = "(&(objectClass=$ObjectClass)(name=$Name))" }
+		if (-not $Sid) { $filter = "(&(objectClass=$ObjectClass)(|(name=$Name)(samAccountName=$Name)))" }
 
-		try { $adObject = Get-ADObject @parameters -LDAPFilter $filter -ErrorAction Stop -Properties * }
+		try { $adObject = Get-ADObject @parameters -LDAPFilter $filter -ErrorAction Stop -Properties * | Select-Object -First 1 }
 		catch {
-			try { $adObject = Get-ADObject @parametersAD -LDAPFilter $filter -ErrorAction Stop -Properties * }
+			try { $adObject = Get-ADObject @parametersAD -LDAPFilter $filter -ErrorAction Stop -Properties * | Select-Object -First 1 }
 			catch { }
 			if (-not $adObject) {
 				Write-PSFMessage -Level Warning -String 'Get-Principal.Resolution.Failed' -StringValues $Sid, $Name, $ObjectClass, $Domain -Target $PSBoundParameters

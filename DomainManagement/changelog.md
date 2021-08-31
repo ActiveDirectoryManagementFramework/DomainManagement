@@ -4,6 +4,7 @@
 
 - Fix: Service Accounts - when renaming account, also tries to delete it
 - Fix: Service Accounts - might be created with bad SamAccountNames in some situations
+- Fix: Principal Resolution - fails to search for samAccountName
 
 ## 1.6.131 (2021-07-13)
 
