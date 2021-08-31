@@ -69,6 +69,7 @@
 		foreach ($rawCategory in $rawCategories) {
 			$categories[$rawCategory] = Find-DMObjectCategoryItem -Name $rawCategory @parameters -Property SamAccountName
 		}
+		$renameCurrentSAM = @()
 		#endregion Prepare Object Categories
 		
 		#region Process Configured Objects
@@ -91,6 +92,7 @@
                     # No Need to rename when deleting it anyway
                     if (-not $serviceAccountDefinition.Present) { break }
                     New-TestResult -Type RenameSam @resultDefaults -ADObject $adObject
+					$renameCurrentSAM += $adObject.SamAccountName
                     break
                 }
 			}
@@ -242,6 +244,7 @@
 		
 		foreach ($foundServiceAccount in $foundServiceAccounts) {
 			if ($foundServiceAccount.SamAccountName -in $configuredNames) { continue }
+			if ($foundServiceAccount.SamAccountName -in $renameCurrentSAM) { continue }
 			
 			New-TestResult @resultDefaults -Type Delete -Identity $foundServiceAccount.SamAccountName -ADObject $foundServiceAccount -Changed (New-Change -Identity $foundServiceAccount.SamAccountName -Type Delete)
 		}

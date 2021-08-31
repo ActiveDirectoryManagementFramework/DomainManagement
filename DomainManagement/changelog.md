@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## ???
+
+- Fix: Service Accounts - when renaming account, also tries to delete it
+- Fix: Service Accounts - might be created with bad SamAccountNames in some situations
+
 ## 1.6.131 (2021-07-13)
 
 - Upd: AccessRules - added "Present" configuration, allowing explicit delete actions as well as optional rule pressence
