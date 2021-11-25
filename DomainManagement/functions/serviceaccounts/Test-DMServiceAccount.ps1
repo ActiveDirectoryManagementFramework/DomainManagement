@@ -83,6 +83,7 @@
 				Identity	  = $resolvedName
 				Configuration = $serviceAccountDefinition
 			}
+			$adObject = $null
 			
 			try { $adObject = Get-ADServiceAccount @parameters -Identity $resolvedName -ErrorAction Stop -Properties * }
 			catch {
