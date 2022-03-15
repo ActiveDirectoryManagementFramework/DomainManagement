@@ -3,10 +3,19 @@
 ## ???
 
 - New: Component "Group Policy Ownership"
+- Upd: AccessRules - Improved initial rights mapping performance
+- Upd: AccessRules - Implemented restoration of default access rules that had been deleted
+- Upd: AccessRules - Added "NoFixConfig" property to disable the FixConfig result for a given configuration entry
+- Upd: AccessRules - Added default permission mappings for explicit diversions from the schema default in the Context default-set.
+- Upd: Acl - Implemented support for disabling inheritance
+- Upd: GPLink - Supports defining the enablement state
+- Fix: AccessRules - Explicit rule deletion would only delete first access rule found on object if undesirable
+- Fix: AccessRules - Fails to show "FixConfig" test result, when configuring a default access rule
 - Fix: Service Accounts - when renaming account, also tries to delete it
 - Fix: Service Accounts - might be created with bad SamAccountNames in some situations
 - Fix: Service Accounts - bad config/ad object matching might lead to wrong intended changes
 - Fix: Principal Resolution - fails to search for samAccountName
+- Fix: BuiltIn account detection in a German-languaged domain
 
 ## 1.6.131 (2021-07-13)
 

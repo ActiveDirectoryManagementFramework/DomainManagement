@@ -91,7 +91,7 @@
 				New-TestResult -ObjectType GPOwner -Type IdentityNotFound -Identity $gpoADObject.DisplayName -Server $Server -Configuration $ownerCfg -ADObject $gpoADObject
 				continue
 			}
-			$actualAcl = Get-AdsAcl -Path $gpoADObject
+			$actualAcl = Get-AdsAcl @parameters -Path $gpoADObject
 			Add-Member -InputObject $gpoADObject -MemberType NoteProperty -Name Acl -Value $actualAcl -Force
 			$actualOwner = $actualAcl.GetOwner([System.Security.Principal.SecurityIdentifier])
 			if ("$actualOwner" -eq "$($desiredOwner.ObjectSID)") { continue }

@@ -118,7 +118,10 @@
 					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.New.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
 					return
 				}
-				"[LDAP://$gpoDN;0]"
+				$stateID = "0"
+				if ($_.State -eq 'Enforced') { $stateID = "2" }
+				if ($_.State -eq 'Disabled') { $stateID = "1" }
+				"[LDAP://$gpoDN;$stateID]"
 			}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.New.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
 			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
@@ -155,12 +158,7 @@
 			}
 			
 			$gpLinkString += ($Configuration.ExtendedInclude | Sort-Object -Property  @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-				$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
-				if (-not $gpoDN) {
-					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.Update.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
-					return
-				}
-				"[LDAP://$gpoDN;0]"
+				$_.ToLink()
 			}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.Update.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
 			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false

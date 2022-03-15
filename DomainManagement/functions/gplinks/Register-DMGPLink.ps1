@@ -31,6 +31,15 @@
 		If you want your own policies to have the least priority however, user Tier -1 or lower.
 		Default: 1
 
+	.PARAMETER State
+		The state the link should be in.
+		Supported states:
+		+ Enabled: Link should be enabled
+		+ Disabled: Link should be disabled
+		+ Enforced: Link is being enforced
+		+ Undefined: The current state of the link is ignored
+		Defaults to: Enabled
+
 	.PARAMETER ProcessingMode
 		In which way GPO links are being processed:
 		- Additive: Add provided links, but do not modify the existing ones.
@@ -49,33 +58,38 @@
 	#>
 	[CmdletBinding()]
 	param (
-		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$PolicyName,
 
-		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Path')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Path')]
 		[Alias('OU')]
 		[string]
 		$OrganizationalUnit,
 
-		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Filter')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Filter')]
 		[string]
 		$OUFilter,
 
-		[parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[int]
 		$Precedence,
 
-		[parameter(ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[int]
 		$Tier = 1,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[ValidateSet('Enabled', 'Disabled', 'Enforced', 'Undefined')]
+		[string]
+		$State = 'Enabled',
 
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[ValidateSet('Constrained', 'Additive')]
 		[string]
 		$ProcessingMode = 'Constrained',
 
-		[parameter(ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[bool]
 		$Present = $true
 	)
@@ -92,6 +106,7 @@
 					OrganizationalUnit = $OrganizationalUnit
 					Precedence         = $Precedence
 					Tier               = $Tier
+					State              = $State
 					ProcessingMode     = $ProcessingMode
 					Present            = $Present
 				}
@@ -106,6 +121,7 @@
 					OUFilter       = $OUFilter
 					Precedence     = $Precedence
 					Tier           = $Tier
+					State          = $State
 					ProcessingMode = $ProcessingMode
 					Present        = $Present
 				}

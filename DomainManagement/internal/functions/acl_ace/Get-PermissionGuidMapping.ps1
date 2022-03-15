@@ -56,8 +56,6 @@
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 
-		Get-ADObject -SearchBase "CN=Extended-Rights,$((Get-ADRootDSE).configurationNamingContext)" -LDAPFilter '(objectClass=controlAccessRight)' -Properties name, rightsGUID
-
 		$configurationNC = (Get-ADRootDSE @parameters).configurationNamingContext
 		$objects = Get-ADObject @parameters -SearchBase "CN=Extended-Rights,$configurationNC" -Properties Name,rightsGUID -LDAPFilter '(objectCategory=controlAccessRight)' # Exclude the schema object itself
 		$processed = $objects | Select-PSFObject Name, 'rightsGUID to Guid as ID' | Select-PSFObject Name, 'ID to string'
