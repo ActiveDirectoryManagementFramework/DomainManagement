@@ -106,6 +106,9 @@
 				NewObject = $desiredOwner
 			}
 			if (-not $change.Old) { $change.Old = $actualOwner }
+			Add-Member -InputObject $change -MemberType ScriptMethod -Name ToString -Value {
+				'{0} -> {1}' -f $this.Old, $this.New
+			} -Force
 
 			New-TestResult -ObjectType GPOwner -Type Update -Identity $gpoADObject.DisplayName -Changed $change -Server $Server -Configuration $ownerCfg -ADObject $gpoADObject
 		}
