@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.7.145 (2022-03-18)
 
 - New: Component "Group Policy Ownership"
 - Upd: AccessRules - Improved initial rights mapping performance
