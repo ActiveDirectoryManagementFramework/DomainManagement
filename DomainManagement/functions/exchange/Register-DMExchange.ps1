@@ -23,7 +23,7 @@
 	
 	.PARAMETER ObjectVersion
 		The object version on the "Microsoft Exchange System Objects" container in the domain.
-	
+
 	.PARAMETER ContextName
 		The name of the context defining the setting.
 		This allows determining the configuration set that provided this setting.
