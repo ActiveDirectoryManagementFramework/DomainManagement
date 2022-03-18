@@ -22,6 +22,7 @@
 	[CmdletBinding()]
 	Param (
 		[PSFComputer]
+		[Alias('ComputerName')]
 		$Server = '<Default>',
 
 		[PSCredential]

@@ -39,6 +39,9 @@ $script:groupPolicyPermissionFilters = @{ }
 # Configured group policy permissions
 $script:groupPolicyPermissions = @{ }
 
+# Configured owners of group policy objects
+$script:groupPolicyOwners = @{ }
+
 # Configured ACLs
 $script:acls = @{ }
 $script:aclByCategory = @{ }

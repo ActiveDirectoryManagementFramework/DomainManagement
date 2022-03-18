@@ -29,6 +29,7 @@
 	
 		Apply the desired exchange domain content update to the emea.contoso.com domain.
 #>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '')]
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		[Parameter(Mandatory = $true)]
@@ -76,23 +77,34 @@
 				$Session,
 				
 				[string]
-				$Path
+				$Path,
+
+				[ValidateSet('Install', 'Update')]
+				[string]
+				$Mode
 			)
 			
 			$result = Invoke-Command -Session $Session -ScriptBlock {
-				$exchangeIsoPath = Resolve-Path -Path $using:Path
+				param (
+					$Parameters
+				)
+				$exchangeIsoPath = Resolve-Path -Path $Parameters.Path
 				
 				# Mount Volume
 				$diskImage = Mount-DiskImage -ImagePath $exchangeIsoPath -PassThru
 				$volume = Get-Volume -DiskImage $diskImage
 				$installPath = "$($volume.DriveLetter):\setup.exe"
 				
-				# Perform Installation
-				$resultText = & $installPath /IAcceptExchangeServerLicenseTerms /PrepareDomain 2>&1
+				#region Execute
+				$resultText = switch ($Parameters.Mode) {
+					'Install' { & $installPath /PrepareDomain /IAcceptExchangeServerLicenseTerms_DiagnosticDataOFF 2>&1 }
+					'Update' { & $installPath /PrepareDomain /IAcceptExchangeServerLicenseTerms_DiagnosticDataOFF 2>&1 }
+				}
 				$results = [pscustomobject]@{
 					Success = $LASTEXITCODE -lt 1
 					Message = $resultText -join "`n"
 				}
+				#endregion Execute
 				
 				# Dismount Volume
 				try { Dismount-DiskImage -ImagePath $exchangeIsoPath }
@@ -100,7 +112,8 @@
 				
 				# Report result
 				$results
-			}
+			} -ArgumentList ($PSBoundParameters | ConvertTo-PSFHashtable -Exclude Session)
+			Write-PSFMessage -Message ($result.Message -join "`n") -Tag exchange, result
 			if (-not $result.Success) {
 				throw "Error applying exchange update: $($result.Message)"
 			}
@@ -132,7 +145,7 @@
 						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testResult.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
 					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Installing' -ActionStringValues $testResult.Configuration -Target $domainObject -ScriptBlock {
-						Invoke-ExchangeDomainUpdate -Session $session -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
+						Invoke-ExchangeDomainUpdate -Session $session -Mode Install -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update'
@@ -141,7 +154,7 @@
 						Stop-PSFFunction -String 'Invoke-DMExchange.IsoPath.Missing' -StringValues $testResult.Configuration.LocalImagePath -EnableException $EnableException -Continue -Category ResourceUnavailable -Target $Server
 					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMExchange.Updating' -ActionStringValues $testResult.Configuration -Target $domainObject -ScriptBlock {
-						Invoke-ExchangeDomainUpdate -Session $session -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
+						Invoke-ExchangeDomainUpdate -Session $session -Mode Update -Path $testResult.Configuration.LocalImagePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 			}

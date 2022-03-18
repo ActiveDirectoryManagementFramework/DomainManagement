@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.6.131'
+	ModuleVersion      = '1.7.145'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -58,6 +58,7 @@
 		'Get-DMDomainLevel'
 		'Get-DMExchange'
 		'Get-DMGPLink'
+		'Get-DMGPOwner'
 		'Get-DMGPPermission'
 		'Get-DMGPPermissionFilter'
 		'Get-DMGPRegistrySetting'
@@ -78,6 +79,7 @@
 		'Invoke-DMDomainLevel'
 		'Invoke-DMExchange'
 		'Invoke-DMGPLink'
+		'Invoke-DMGPOwner'
 		'Invoke-DMGPPermission'
 		'Invoke-DMGroup'
 		'Invoke-DMGroupMembership'
@@ -96,6 +98,7 @@
 		'Register-DMDomainLevel'
 		'Register-DMExchange'
 		'Register-DMGPLink'
+		'Register-DMGPOwner'
 		'Register-DMGPPermission'
 		'Register-DMGPPermissionFilter'
 		'Register-DMGPRegistrySetting'
@@ -121,6 +124,7 @@
 		'Test-DMDomainLevel'
 		'Test-DMExchange'
 		'Test-DMGPLink'
+		'Test-DMGPOwner'
 		'Test-DMGPPermission'
 		'Test-DMGPRegistrySetting'
 		'Test-DMGroup'
@@ -139,6 +143,7 @@
 		'Unregister-DMDomainLevel'
 		'Unregister-DMExchange'
 		'Unregister-DMGPLink'
+		'Unregister-DMGPOwner'
 		'Unregister-DMGPPermission'
 		'Unregister-DMGPPermissionFilter'
 		'Unregister-DMGPRegistrySetting'

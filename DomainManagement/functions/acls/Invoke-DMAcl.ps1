@@ -98,11 +98,8 @@
 					if ($testItem.Changed -contains 'NoInheritance') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAcl.UpdatingInheritance' -ActionStringValues $testItem.Configuration.NoInheritance -Target $testItem -ScriptBlock {
 							if ($testItem.Configuration.NoInheritance) {
-								try { throw (New-Object System.NotImplementedException("This functionality is not yet available!")) }
-								catch {
-									Stop-PSFFunction -Message "Error" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet -Target $testItem -Tag 'error','failed','panic'
-								}
-							} #TODO: Implement Disable-AdsInheritance
+								Disable-AdsInheritance @parameters -Path $testItem.Identity -EnableException -Confirm:$false
+							}
 							else { Enable-AdsInheritance @parameters -Path $testItem.Identity -EnableException -Confirm:$false }
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
