@@ -47,6 +47,7 @@
 	'Invoke-DMAccessRule.AccessRule.Creation.Failed'                    = 'Failed to create accessrule at {0} for {1}' # $testItem.Identity, $changeEntry.Configuration.IdentityReference
 	'Invoke-DMAccessRule.AccessRule.Remove'                             = 'Removing access rule for {0}, granting {1} ({2}) from {3}' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName
 	'Invoke-DMAccessRule.AccessRule.Remove.Failed'                      = 'Failed to removing access rule for {0}, granting {1} ({2}) from {3} for unknown reasons (sorry)' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName
+	'Invoke-DMAccessRule.AccessRule.Restore'                            = 'Restoring access rule from schema default for {0}, granting {1} ({2})' # $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType
 	'Invoke-DMAccessRule.ADObject.Missing'                              = 'Cannot process access rules, due to missing AD object: {0}. Please ensure the domain object is created before trying to apply rules to it!' # $testItem.Identity
 	'Invoke-DMAccessRule.Processing.Execute'                            = 'Applying {0} out of {1} intended access rule changes' # ($testItem.Changed.Count - $failedCount), $testItem.Changed.Count
 	'Invoke-DMAccessRule.Processing.Rules'                              = 'Processing {1} access rule changes on {0}' # $testItem.Identity, $testItem.Changed.Count
@@ -75,7 +76,6 @@
 	'Invoke-DMGPLink.New.GpoNotFound'                                   = 'Unable to find Group POlicy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.New.NewGPLinkString'                               = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString
 	'Invoke-DMGPLink.Update.AllEnabled'                                 = 'Updating GPLink - {0} links configured, {1} links present, {2} links present that are not in configuration (All present and undesired links are enabled)' # $countConfigured, $countActual, $countNotInConfig
-	'Invoke-DMGPLink.Update.GpoNotFound'                                = 'Unable to find Group POlicy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.Update.NewGPLinkString'                            = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString
 
 	'Invoke-DMGPOwner.Invalid.Input'                                    = 'The input object was not recognized as a valid test result for Group Policy Ownership: {0' # $testResult
