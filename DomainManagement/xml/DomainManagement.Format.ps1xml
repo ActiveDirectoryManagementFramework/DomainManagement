@@ -7,8 +7,9 @@
                 <TypeName>DomainManagement.AccessRule.TestResult</TypeName>
                 <TypeName>DomainManagement.Acl.TestResult</TypeName>
 				<TypeName>DomainManagement.DomainLevel.TestResult</TypeName>
-				<TypeName>DomainManagement.Exchange.TestResult</TypeName>
+				<TypeName>DomainManagement.ExchangeVersion.TestResult</TypeName>
                 <TypeName>DomainManagement.GPLink.TestResult</TypeName>
+				<TypeName>DomainManagement.GPOwner.TestResult</TypeName>
 				<TypeName>DomainManagement.GPPermission.TestResult</TypeName>
                 <TypeName>DomainManagement.Group.TestResult</TypeName>
                 <TypeName>DomainManagement.GroupPolicy.TestResult</TypeName>

@@ -69,7 +69,7 @@
 			function Write-Result {
 				[CmdletBinding()]
 				param (
-					[ValidateSet('Create', 'Delete', 'FixConfig')]
+					[ValidateSet('Create', 'Delete', 'FixConfig', 'Restore')]
 					[Parameter(Mandatory = $true)]
 					$Type,
 
@@ -95,6 +95,7 @@
 				Add-Member -InputObject $item -MemberType ScriptMethod ToString -Value { '{0}: {1}' -f $this.Type, $this.Identity } -Force -PassThru
 			}
 
+			$defaultRulesPresent = [System.Collections.ArrayList]::new()
 			$relevantADRules = :outer foreach ($adRule in $ADRules) {
 				if ($adRule.OriginalRule.IsInherited) { continue }
 				#region Skip OUs' "Protect from Accidential Deletion" ACE
@@ -108,11 +109,15 @@
 				#endregion Skip OUs' "Protect from Accidential Deletion" ACE
 
 				foreach ($defaultRule in $DefaultRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $adRule -Rule2 $defaultRule) { continue outer }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $adRule -Rule2 $defaultRule) {
+						$null = $defaultRulesPresent.Add($defaultRule)
+						continue outer
+					}
 				}
 				$adRule
 			}
 
+			#region Foreach non-default AD Rule: Check whether configured and delete if not so
 			:outer foreach ($relevantADRule in $relevantADRules) {
 				foreach ($configuredRule in $ConfiguredRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
@@ -125,7 +130,7 @@
 				}
 
                 # Don't generate delete changes
-				if ($processingMode -eq 'Additive') { break }
+				if ($processingMode -eq 'Additive') { continue }
                 # Don't generate delete changes, unless we have configured a permission level for the affected identity
 				if ($processingMode -eq 'Defined') {
 					if (-not ($relevantADRule.IdentityReference | Compare-Identity -Parameters $parameters -ReferenceIdentity $ConfiguredRules.IdentityReference -IncludeEqual -ExcludeDifferent)) {
@@ -135,21 +140,44 @@
 
 				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
 			}
+			#endregion Foreach non-default AD Rule: Check whether configured and delete if not so
 
+			#region Foreach configured rule: Check whether it exists as defined or make it so
 			:outer foreach ($configuredRule in $ConfiguredRules) {
-				foreach ($defaultRules in $DefaultRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRules -Rule2 $configuredRule) {
+				foreach ($defaultRule in $DefaultRules) {
+					if ('True' -ne $configuredRule.Present) { break }
+					if ($configuredRule.NoFixConfig) { break }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
 						Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
 						continue outer
 					}
 				}
 				foreach ($relevantADRule in $relevantADRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) { continue outer }
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
+						continue outer
+					}
 				}
                 # Do not generate Create rules for any rule not configured for creation
                 if ('True' -ne $configuredRule.Present) { continue }
 				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule -DistinguishedName $ADObject
 			}
+			#endregion Foreach configured rule: Check whether it exists as defined or make it so
+
+			#region Foreach non-existent default rule: Create unless configured otherwise
+			$domainControllersOUFilter = '*{0}' -f ('OU=Domain Controllers,%DomainDN%' | Resolve-String)
+			:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray()}) {
+				# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
+				if ($ADObject -like $domainControllersOUFilter) { break }
+				foreach ($configuredRule in $ConfiguredRules) {
+					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
+						# If we explicitly don't want the rule: Skip and do NOT create a restoration action
+						if ('True' -ne $configuredRule.Present) { continue outer }
+					}
+				}
+
+				Write-Result -Type Restore -Identity $defaultRule.IdentityReference -Configuration $defaultRule -DistinguishedName $ADObject
+			}
+			#endregion Foreach non-existent default rule: Create unless configured otherwise
 		}
 
 		function Convert-AccessRule {

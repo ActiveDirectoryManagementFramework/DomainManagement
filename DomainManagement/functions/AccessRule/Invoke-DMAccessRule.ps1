@@ -113,6 +113,25 @@
 							continue
 						}
 						#endregion Add Access Rules
+
+						#region Restore Default Access Rules
+						if ($changeEntry.Type -eq 'Restore') {
+							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Restore' -StringValues $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType -Target $changeEntry
+							try {
+								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+							}
+							catch
+							{
+								$failedCount = $failedCount + 1
+								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
+							}
+							$null = $aclObject.AddAccessRule($accessRule)
+							#TODO: Validation and remediation of success. Adding can succeed but not do anything, when accessrules are redundant. Potentially flag it for full replacement?
+							continue
+						}
+						#endregion Restore Default Access Rules
 					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAccessRule.Processing.Execute' -ActionStringValues ($testItem.Changed.Count - $failedCount), $testItem.Changed.Count -Target $testItem -ScriptBlock {
 						Set-AdsAcl @parameters -Path $testItem.Identity -AclObject $aclObject -EnableException -Confirm:$false

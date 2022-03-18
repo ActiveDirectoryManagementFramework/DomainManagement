@@ -106,24 +106,120 @@
 			}
 		}
 		
+		function ConvertTo-LinkConfigWithState {
+			<#
+			.SYNOPSIS
+				Convert config object to new object and match it with the state of the current item.
+			#>
+			[CmdletBinding()]
+			param (
+				[Parameter(ValueFromPipeline = $true)]
+				$LinkObject,
+
+				[AllowNull()]
+				$CurrentLinks,
+
+				[hashtable]
+				$GpoDisplayToDN = @{ }
+			)
+
+			process {
+				foreach ($linkItem in $LinkObject) {
+					if (-not $linkItem) { continue }
+					$currentLink = $CurrentLinks | Where-Object DisplayName -eq $linkItem.PolicyName
+
+					$itemHash = $linkItem | ConvertTo-PSFHashtable
+					$itemHash.PSTypeName = 'DomainManagement.GPLink'
+					$itemHash.StateValid = ($linkItem.State -eq $currentLink.Status) -or ($currentLink -and $linkItem.State -eq 'Undefined')
+					$itemHash.CurrentState = $currentLink.Status
+					$itemHash.PolicyName = $itemHash.PolicyName | Resolve-String
+					$itemHash.DistinguishedName = $GpoDisplayToDN[$itemHash.PolicyName]
+
+					$object = [PSCustomObject]$itemHash
+
+					Add-Member -InputObject $object -MemberType ScriptMethod -Name ToString -Value {
+						switch ($this.State) {
+							'Enabled' { $this.PolicyName }
+							'Disabled' { '~|{0}' -f $this.PolicyName }
+							'Enforced' { '*|{0}' -f $this.PolicyName }
+						}
+					} -Force
+					Add-Member -InputObject $object -MemberType ScriptMethod -Name ToLink -Value {
+						# [LDAP://cn={F4A6ADB1-BEDE-497D-901F-F24B19394951},cn=policies,cn=system,DC=contoso,DC=com;0][LDAP://cn={2036B9B6-D5C1-4756-B7AB-8291A9B26521},cn=policies,cn=system,DC=contoso,DC=com;0]
+						$statusLabel = $this.State
+						if ($statusLabel -eq 'Undefined' -and $this.CurrentState) { $statusLabel = $this.CurrentState }
+						elseif ($statusLabel -eq 'Undefined') { $statusLabel = 'Enabled' }
+
+						$status = switch ($statusLabel) {
+							'Enabled' { "0" }
+							'Disabled' { "1" }
+							'Enforced' { "2" }
+						}
+						'[LDAP://{0};{1}]' -f $this.DistinguishedName, $status
+					}
+
+					$object
+				}
+			}
+		}
+
+		function ConvertFrom-ADLink {
+			[CmdletBinding()]
+			param (
+				[Parameter(ValueFromPipeline = $true)]
+				$LinkObject
+			)
+			process {
+				foreach ($object in $LinkObject) {
+					$objectHash = $object | ConvertTo-PSFHashtable
+					$objectHash.Tier = 0
+					$objectHash.PolicyName = $objectHash.DisplayName
+					$objectHash.StateValid = $true
+					$objectHash.CurrentState = $objectHash.Status
+					$objectHash.State = $objectHash.Status
+
+					$item = [PSCustomObject]$objectHash
+
+					Add-Member -InputObject $item -MemberType ScriptMethod -Name ToString -Value {
+						switch ($this.Status) {
+							'Enabled' { $this.DisplayName }
+							'Disabled' { '~|{0}' -f $this.DisplayName }
+							'Enforced' { '*|{0}' -f $this.DisplayName }
+						}
+					} -Force
+					Add-Member -InputObject $item -MemberType ScriptMethod -Name ToLink -Value {
+						# [LDAP://cn={F4A6ADB1-BEDE-497D-901F-F24B19394951},cn=policies,cn=system,DC=contoso,DC=com;0][LDAP://cn={2036B9B6-D5C1-4756-B7AB-8291A9B26521},cn=policies,cn=system,DC=contoso,DC=com;0]
+						$status = '0'
+						if ($this.Status -eq 'Disabled') { $status = '1' }
+						if ($this.Status -eq 'Enforced') { $status = '2' }
+						'[LDAP://{0};{1}]' -f $this.DistinguishedName, $status
+					}
+
+					$item
+				}
+			}
+		}
+
 		function Get-LinkUpdate {
 			[CmdletBinding()]
 			param (
 				$Configuration,
-				$ADObject
+				$ADObject,
+				$GpoDisplayToDN
 			)
 
-			$includeSorted = $Configuration.Include | Sort-Object @{ Expression = { $_.Tier }; Descending = $true }, Precedence | Where-Object PolicyName -NotIn $Configuration.Exclude.PolicyName
 			$currentSorted = $ADObject.LinkedGroupPolicyObjects | Sort-Object Precedence
+			$includeSorted = $Configuration.Include | Sort-Object @{ Expression = { $_.Tier }; Descending = $true }, Precedence | Where-Object PolicyName -NotIn $Configuration.Exclude.PolicyName | ConvertTo-LinkConfigWithState -CurrentLinks $currentSorted -GpoDisplayToDN $GpoDisplayToDN
 
 			if ($Configuration.ProcessingMode -eq 'Additive') {
-				$currentAdditive = $ADObject.LinkedGroupPolicyObjects | Where-Object DisplayName -NotIn $includeSorted.PolicyName | Where-Object DisplayName -NotIn $Configuration.Exclude.PolicyName | Sort-Object Precedence | Add-Member -MemberType NoteProperty -Name Tier -Value 0 -PassThru -Force | Add-Member -MemberType AliasProperty -Name PolicyName -Value DisplayName -PassThru -Force
+				$currentAdditive = $ADObject.LinkedGroupPolicyObjects | Where-Object DisplayName -NotIn $includeSorted.PolicyName | Where-Object DisplayName -NotIn $Configuration.Exclude.PolicyName | Sort-Object Precedence | ConvertFrom-ADLink
 				$newDesiredState = @($currentAdditive) + @($includeSorted) | Write-Output | Remove-PSFNull | Sort-Object @{ Expression = { $_.Tier }; Descending = $true }, Precedence
 			}
 			else { $newDesiredState = $includeSorted }
 			$Configuration.ExtendedInclude = $newDesiredState
-				
-			if (Compare-Array -ReferenceObject $newDesiredState.PolicyName -DifferenceObject $currentSorted.DisplayName -OrderSpecific -Quiet) {
+			
+			$orderCorrect = Compare-Array -ReferenceObject $newDesiredState.PolicyName -DifferenceObject $currentSorted.DisplayName -OrderSpecific -Quiet
+			if ($orderCorrect -and $newDesiredState.StateValid -notcontains $false) {
 				return
 			}
 
@@ -136,6 +232,11 @@
 				}
 				if ($index -gt @($currentSorted).Count -or $desired.PolicyName -ne $currentSorted[$index].DisplayName) {
 					New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled'
+					$index = $index + 1
+					continue
+				}
+				if (-not $desired.StateValid) {
+					New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State
 					$index = $index + 1
 					continue
 				}
@@ -188,13 +289,13 @@
 			}
 			#endregion Handle AD Object does not contain any links
 
-			$updates = Get-LinkUpdate -Configuration $ouDatum -ADObject $adObject
+			$updates = Get-LinkUpdate -Configuration $ouDatum -ADObject $adObject -GpoDisplayToDN $gpoDisplayToDN
 			if ($updates) {
 				New-TestResult @resultDefaults -Type 'Update' -Changed ($updates | Sort-Object {
-					if ($_.Action -eq "Delete") { 0 }
-					elseif ($_.Action -eq "Reorder") { 1 }
-					else { 2 }
-				})
+						if ($_.Action -eq "Delete") { 0 }
+						elseif ($_.Action -eq "Reorder") { 1 }
+						else { 2 }
+					})
 			}
 		}
 

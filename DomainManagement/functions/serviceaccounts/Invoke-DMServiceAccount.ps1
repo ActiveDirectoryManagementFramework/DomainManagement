@@ -86,7 +86,8 @@
 			
 			$newParam = $Parameters.Clone()
 			$newParam += @{
-				Name = $TestItem.Configuration.Name | Resolve-String @parameters
+				Name = $TestItem.Configuration.Name | Resolve-String @parameters | Set-String -OldValue '\$$'
+				SamAccountName = $TestItem.Configuration.Name | Resolve-String @parameters | Set-String -OldValue '\$$' | Add-String '' '$'
 				DNSHostName = $TestItem.Configuration.DNSHostName | Resolve-String @parameters
 				Description = $TestItem.Configuration.Description | Resolve-String @parameters
                 KerberosEncryptionType = $TestItem.Configuration.KerberosEncryptionType
