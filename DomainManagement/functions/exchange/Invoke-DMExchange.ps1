@@ -29,6 +29,7 @@
 	
 		Apply the desired exchange domain content update to the emea.contoso.com domain.
 #>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '')]
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		[Parameter(Mandatory = $true)]
