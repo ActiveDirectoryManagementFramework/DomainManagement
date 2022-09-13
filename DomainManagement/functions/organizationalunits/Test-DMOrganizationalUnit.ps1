@@ -120,7 +120,7 @@
 		foreach ($existingOU in $foundOUs) {
 			if ($existingOU.DistinguishedName -in $resolvedConfiguredNames) { continue } # Ignore configured OUs - they were previously configured for moving them, if they should not be in these containers
 			
-			New-TestResult @resultDefaults -Type Delete -ADObject $existingOU -Identity $existingOU.Name
+			New-TestResult @resultDefaults -Type Delete -ADObject $existingOU -Identity $existingOU.DistinguishedName
 		}
 		#endregion Process Managed Containers
 	}

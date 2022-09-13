@@ -104,12 +104,16 @@
 				'CriticalError' { New-TestResult @resultDefaults -Type 'CriticalError' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName] }
 				'Healthy' {
 					$policyObject = $managedHash[$desiredPolicy.DisplayName]
-					if ($desiredPolicy.ExportID -ne $policyObject.ExportID) {
-						New-TestResult @resultDefaults -Type 'Update' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
+					if (($policyObject.Version -ne $policyObject.ADVersion) -and ($desiredPolicy.ExportID -ne $policyObject.ExportID)) {
+						New-TestResult @resultDefaults -Type 'ModifiedAndUpdate' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
 					if ($policyObject.Version -ne $policyObject.ADVersion) {
 						New-TestResult @resultDefaults -Type 'Modified' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
+						continue
+					}
+					if ($desiredPolicy.ExportID -ne $policyObject.ExportID) {
+						New-TestResult @resultDefaults -Type 'Update' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
 						continue
 					}
 					$registryTest = Test-DMGPRegistrySetting -Server $session -PolicyName $desiredPolicy.DisplayName -PassThru

@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: GroupPolicy - New state for group policies that are out of date and have been modified outside of the system
+- Upd: Organizational Units - TestResults with the DELETE action now show the full DN as identity
+- Fix: AService Accounts - Modifying the "KerberosEncryptionType" property of existing accounts fails
+
 ## 1.7.145 (2022-03-18)
 
 - New: Component "Group Policy Ownership"
