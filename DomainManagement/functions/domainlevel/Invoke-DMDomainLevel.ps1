@@ -13,6 +13,10 @@
 	.PARAMETER Credential
 		The credentials to use for this operation.
 	
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
+	
 	.PARAMETER EnableException
 		This parameters disables user-friendly warnings and enables the throwing of exceptions.
 		This is less user friendly, but allows catching exceptions in calling scripts.
@@ -30,6 +34,9 @@
 #>
 	[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[PSFComputer]
 		$Server,
 		
@@ -51,8 +58,17 @@
 	}
 	process
 	{
-		foreach ($testItem in Test-DMDomainLevel @parameters)
+		if (-not $InputObject) {
+			$InputObject = Test-DMDomainLevel @parameters
+		}
+
+		foreach ($testItem in $InputObject)
 		{
+			# Catch invalid input - can only process test results
+			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.DomainLevel.TestResult') {
+				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMDomainLevel', $testItem -Target $testItem -Continue -EnableException $EnableException
+			}
+
 			switch ($testItem.Type)
 			{
 				'Raise'

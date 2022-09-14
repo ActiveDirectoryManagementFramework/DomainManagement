@@ -4,7 +4,9 @@
 
 - Upd: GroupPolicy - New state for group policies that are out of date and have been modified outside of the system
 - Upd: Organizational Units - TestResults with the DELETE action now show the full DN as identity
-- Fix: AService Accounts - Modifying the "KerberosEncryptionType" property of existing accounts fails
+- Upd: Domain Level - Adding support to accept test results via pipeline for consistency reasons
+- Fix: Service Accounts - Modifying the "KerberosEncryptionType" property of existing accounts fails
+- Fix: Group Members - Identity fails to include member when trying to remove foreign security principals
 
 ## 1.7.145 (2022-03-18)
 
