@@ -77,7 +77,7 @@
                         $failedResolveAssignment = $true
                         [PSCustomObject]@{
                             Assignment = $assignment
-                            ADObject   = $null
+                            ADMember   = $null
                             Type       = 'Explicit'
                         }
                         continue
@@ -89,14 +89,14 @@
                         $failedResolveAssignment = $true
                         [PSCustomObject]@{
                             Assignment = $assignment
-                            ADObject   = $null
+                            ADMember   = $null
                             Type       = 'Explicit'
                         }
                         continue
                     }
                     [PSCustomObject]@{
                         Assignment = $assignment
-                        ADObject   = $adResult
+                        ADMember   = $adResult
                         Type       = 'Explicit'
                     }
                 }
@@ -112,7 +112,7 @@
                     foreach ($adObject in $adObjects) {
                         [PSCustomObject]@{
                             Assignment = $assignment
-                            ADObject   = $adObject
+                            ADMember   = $adObject
                             Type       = 'Category'
                         }
                     }
@@ -139,7 +139,7 @@
 
             #region Compare Assignments to existing state
             foreach ($assignment in $assignments) {
-                if (-not $assignment.ADObject) {
+                if (-not $assignment.ADMember) {
                     # Principal that should be member could not be found
                     New-TestResult @resultDefaults -Type Unresolved -Identity "$(Resolve-String -Text $assignment.Assignment.Group)þ$($assignment.Assignment.ItemType)þ$(Resolve-String -Text $assignment.Assignment.Name)" -Configuration $assignment -ADObject $adObject
                     continue
@@ -164,7 +164,7 @@
                 }
                 $configObject = [PSCustomObject]@{
                     Assignment = $null
-                    ADObject   = $adMember
+                    ADMember   = $adMember
                 }
 
 				$identifier = $adMember.SamAccountName
