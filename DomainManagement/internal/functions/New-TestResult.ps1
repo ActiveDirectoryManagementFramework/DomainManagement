@@ -1,5 +1,4 @@
-﻿function New-TestResult
-{
+﻿function New-TestResult {
 	<#
 	.SYNOPSIS
 		Generates a new test result object.
@@ -62,17 +61,16 @@
 		$ADObject
 	)
 	
-	process
-	{
+	process {
 		$object = [PSCustomObject]@{
-			PSTypeName = "DomainManagement.$ObjectType.TestResult"
-			Type = $Type
-			ObjectType = $ObjectType
-			Identity = $Identity
-			Changed = $Changed
-			Server = $Server
+			PSTypeName    = "DomainManagement.$ObjectType.TestResult"
+			Type          = $Type
+			ObjectType    = $ObjectType
+			Identity      = $Identity
+			Changed       = $Changed
+			Server        = $Server
 			Configuration = $Configuration
-			ADObject = $ADObject
+			ADObject      = $ADObject
 		}
 		Add-Member -InputObject $object -MemberType ScriptMethod -Name ToString -Value { $this.Identity } -Force
 		$object

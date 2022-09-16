@@ -166,6 +166,9 @@
 			$clear = @()
 			foreach ($change in $testItem.Changed) {
 				if (-not $change.NewValue -and 0 -ne $change.NewValue) { $clear += $change.Property }
+				elseif ($change.Property -eq 'KerberosEncryptionType') {
+					$setParam.KerberosEncryptionType = $change.NewValue
+				}
 				else { $properties[$change.Property] = $change.NewValue }
 			}
 			if ($properties.Count -gt 0) { $setParam.Replace = $properties }

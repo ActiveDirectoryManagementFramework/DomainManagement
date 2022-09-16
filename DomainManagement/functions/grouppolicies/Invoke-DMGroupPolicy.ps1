@@ -116,6 +116,11 @@
 				'CriticalError' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMGroupPolicy.Skipping.InCriticalState' -StringValues $testItem.Identity -Target $testItem
 				}
+				'ModifiedAndUpdate' {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnModifiedAndUpdate' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
+						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
+					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
+				}
 				'Update' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnUpdate' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
 						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop

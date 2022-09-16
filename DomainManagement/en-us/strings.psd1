@@ -112,6 +112,7 @@
 	'Invoke-DMGroupPolicy.Install.OnConfigError'                        = 'Re-applying GPO "{0}" after failing to read its configuration' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnManage'                             = 'Re-Applying GPO "{0}" for the first time to bring it under management' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnModify'                             = 'GPO "{0}" was modified outside this system, re-applying GPO' # $testItem.Identity
+	'Invoke-DMGroupPolicy.Install.OnModifiedAndUpdate'                  = 'GPO "{0}" was modified outside this system and is based off an older version of the defined settings, re-applying GPO' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnNew'                                = 'GPO "{0}" not found in AD, creating new GPO' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Install.OnUpdate'                             = 'New GPO definition available, updating GPO "{0}"' # $testItem.Identity
 	'Invoke-DMGroupPolicy.Remote.WorkingDirectory.Failed'               = 'Failed to create working directory on {0}. This is required for importing GPOs' # $computerName
