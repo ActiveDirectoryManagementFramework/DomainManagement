@@ -141,8 +141,10 @@
 				}
 			}
 			$defaultProperties = 'DNSHostName', 'Description', 'ServicePrincipalName', 'DisplayName'
+			$unresolvedProperties = 'KerberosEncryptionType'
 			$changeObjects = foreach ($change in $changes) {
 				if ($change -in $defaultProperties) { New-Change -Type Update -Property $change -Previous $adObject.$change -NewValue ($serviceAccountDefinition.$change | Resolve-String @parameters) -Identity $resolvedName }
+				elseif ($change -in $unresolvedProperties) { New-Change -Type Update -Property $change -Previous $adObject.$change -NewValue $serviceAccountDefinition.$change -Identity $resolvedName }
 				else { New-Change -Type Update -Property $change -Previous $adObject.$change -NewValue $attributesObject.$change -Identity $resolvedName }
 			}
 			if ($changes) {

@@ -126,8 +126,15 @@
 			ObjectType = 'Acl'
 		}
 
+		$processed = @{ }
 		foreach ($foundADObject in $foundADObjects) {
+			# Prevent duplicate processing
+			if ($processed[$foundADObject.DistinguishedName]) { continue }
+			$processed[$foundADObject.DistinguishedName] = $true
+
+			# Skip items that were defined in configuration, they were already processed
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredPaths) { continue }
+			
 			if ($script:aclByCategory.Count -gt 0) {
 				$category = Resolve-DMObjectCategory -ADObject $foundADObject @parameters
 				if ($matchingCategory = $category | Where-Object Name -in $script:aclByCategory.Keys | Select-Object -First 1) {

@@ -453,7 +453,12 @@
 		$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
 		$convertCmdGuid.Begin($true)
 
+		$processed = @{ }
 		foreach ($foundADObject in $foundADObjects) {
+			# Prevent duplicate processing
+			if ($processed[$foundADObject.DistinguishedName]) { continue }
+			$processed[$foundADObject.DistinguishedName] = $true
+
 			# Skip items that were defined in configuration, they were already processed
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }
 
