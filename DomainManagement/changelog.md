@@ -1,8 +1,8 @@
 ﻿# Changelog
 
-## ???
+## 1.7.150 (2022-09-16)
 
-- Upd: GroupPolicy - New state for group policies that are out of date and have been modified outside of the system
+- Upd: GroupPolicy - New state for group policies that are both out of date and have been modified outside of the system
 - Upd: Organizational Units - TestResults with the DELETE action now show the full DN as identity
 - Upd: Domain Level - Adding support to accept test results via pipeline for consistency reasons
 - Fix: Service Accounts - Modifying the "KerberosEncryptionType" property of existing accounts fails
