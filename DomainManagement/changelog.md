@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.8.180 (2022-10-21)
 
 - New: Component: WmiFilter - manage WMI Filters in active directory
 - Upd: Set-DMContentMode - added parameter RemoveUnknownWmiFilter to define how unknown WMI filters are handled
