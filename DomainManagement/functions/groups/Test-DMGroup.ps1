@@ -105,7 +105,7 @@
 				AsUpdate      = $true
 				Type          = 'Group'
 			}
-			Compare-Property @compare -Property Description -Resolve 
+			Compare-Property @compare -Property Description -Resolve
 			Compare-Property @compare -Property Category -ADProperty GroupCategory
 			Compare-Property @compare -Property Scope -ADProperty GroupScope
 			Compare-Property @compare -Property Name -Resolve

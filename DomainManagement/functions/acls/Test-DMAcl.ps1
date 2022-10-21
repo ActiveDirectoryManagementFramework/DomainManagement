@@ -36,6 +36,7 @@
 
 		#region Functions
 		function New-Change {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]
 			param (
 				$Type,

@@ -62,6 +62,7 @@
 		}
 		
 		function ConvertFrom-WmiFilterTime {
+			[OutputType([DateTime])]
 			[CmdletBinding()]
 			param (
 				[Parameter(ValueFromPipeline = $true)]
