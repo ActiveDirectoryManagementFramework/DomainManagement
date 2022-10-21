@@ -86,11 +86,18 @@
 				)
 
 				$item = [PSCustomObject]@{
+					PSTypeName = 'DomainManagement.AccessRule.Change'
 					Type = $Type
+					ACT = $ADObject.AccessControlType
 					Identity = $Identity
+					Rights = $ADObject.ActiveDirectoryRights
+                    DistinguishedName = $DistinguishedName
 					ADObject = $ADObject
 					Configuration = $Configuration
-                    DistinguishedName = $DistinguishedName
+				}
+				if (-not $ADObject) {
+					$item.ACT = $Configuration.AccessControlType
+					$item.Rights = $Configuration.ActiveDirectoryRights
 				}
 				Add-Member -InputObject $item -MemberType ScriptMethod ToString -Value { '{0}: {1}' -f $this.Type, $this.Identity } -Force -PassThru
 			}

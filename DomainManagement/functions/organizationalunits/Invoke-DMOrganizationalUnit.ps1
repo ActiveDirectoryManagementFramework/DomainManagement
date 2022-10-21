@@ -131,9 +131,11 @@
 						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'Changed' {
+				'Update' {
 					$changes = @{ }
-					if ($testItem.Changed -contains 'Description') { $changes['Description'] = (Resolve-String -Text $testItem.Configuration.Description) }
+					if ($change = $testItem.Changed | Where-Object Property -eq 'Description') {
+						$changes['Description'] = $change.New
+					}
 					
 					if ($changes.Keys.Count -gt 0)
 					{

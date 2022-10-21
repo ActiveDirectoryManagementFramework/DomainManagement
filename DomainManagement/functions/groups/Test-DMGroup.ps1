@@ -1,5 +1,4 @@
-﻿function Test-DMGroup
-{
+﻿function Test-DMGroup {
 	<#
 		.SYNOPSIS
 			Tests whether the configured groups match a domain's configuration.
@@ -28,8 +27,7 @@
 		$Credential
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -37,16 +35,15 @@
 		Assert-Configuration -Type Groups -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
+	process {
 		$oldNamesFound = @()
 		:main foreach ($groupDefinition in $script:groups.Values) {
 			$resolvedName = Resolve-String -Text $groupDefinition.SamAccountName
 
 			$resultDefaults = @{
-				Server = $Server
-				ObjectType = 'Group'
-				Identity = $resolvedName
+				Server        = $Server
+				ObjectType    = 'Group'
+				Identity      = $resolvedName
 				Configuration = $groupDefinition
 			}
 
@@ -55,15 +52,14 @@
 				try { $adObject = Get-ADGroup @parameters -Identity $resolvedName -ErrorAction Stop }
 				catch { continue } # Only errors when group not present = All is well
 				
-				New-TestResult @resultDefaults -Type ShouldDelete -ADObject $adObject
+				New-TestResult @resultDefaults -Type Delete -ADObject $adObject
 				continue
 			}
 			#endregion Group that needs to be removed
 
 			#region Groups that don't exist but should | Groups that need to be renamed
 			try { $adObject = Get-ADGroup @parameters -Identity $resolvedName -Properties Description -ErrorAction Stop }
-			catch
-			{
+			catch {
 				$oldGroups = foreach ($oldName in ($groupDefinition.OldNames | Resolve-String)) {
 					try { Get-ADGroup @parameters -Identity $oldName -Properties Description -ErrorAction Stop }
 					catch { }
@@ -71,8 +67,7 @@
 
 				switch (($oldGroups | Measure-Object).Count) {
 					#region Case: No old version present
-					0
-					{
+					0 {
 						if (-not $groupDefinition.Optional) {
 							New-TestResult @resultDefaults -Type Create
 						}
@@ -81,8 +76,7 @@
 					#endregion Case: No old version present
 
 					#region Case: One old version present
-					1
-					{
+					1 {
 						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups
 						$oldNamesFound += $oldGroups.Name
 						continue main
@@ -90,8 +84,7 @@
 					#endregion Case: One old version present
 
 					#region Case: Too many old versions present
-					default
-					{
+					default {
 						New-TestResult @resultDefaults -Type MultipleOldGroups -ADObject $oldGroups
 						$oldNamesFound += $oldGroups.Name
 						continue main
@@ -105,16 +98,23 @@
 			# $adObject contains the relevant object
 
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property Description -Configuration $groupDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property Category -Configuration $groupDefinition -ADObject $adObject -Changes $changes -ADProperty GroupCategory
-			Compare-Property -Property Scope -Configuration $groupDefinition -ADObject $adObject -Changes $changes -ADProperty GroupScope
-			Compare-Property -Property Name -Configuration $groupDefinition -ADObject $adObject -Changes $changes -Resolve
-			$ouPath = ($adObject.DistinguishedName -split ",",2)[1]
+			$compare = @{
+				Configuration = $groupDefinition
+				ADObject      = $adObject
+				Changes       = $changes
+				AsUpdate      = $true
+				Type          = 'Group'
+			}
+			Compare-Property @compare -Property Description -Resolve 
+			Compare-Property @compare -Property Category -ADProperty GroupCategory
+			Compare-Property @compare -Property Scope -ADProperty GroupScope
+			Compare-Property @compare -Property Name -Resolve
+			$ouPath = ($adObject.DistinguishedName -split ",", 2)[1]
 			if ($ouPath -ne (Resolve-String -Text $groupDefinition.Path)) {
-				$null = $changes.Add('Path')
+				$null = $changes.Add((New-Change -Property Path -OldValue $ouPath -NewValue (Resolve-String -Text $groupDefinition.Path) -Identity $adObject -Type Group))
 			}
 			if ($changes.Count) {
-				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject
+				New-TestResult @resultDefaults -Type Update -Changed $changes.ToArray() -ADObject $adObject
 			}
 			#endregion Existing Groups, might need updates
 		}
@@ -125,7 +125,7 @@
 
 		$resolvedConfiguredNames = $script:groups.Values.Name | Resolve-String
 		$resultDefaults = @{
-			Server = $Server
+			Server     = $Server
 			ObjectType = 'Group'
 		}
 
@@ -134,7 +134,7 @@
 			if ($existingGroup.Name -in $resolvedConfiguredNames) { continue }
 			if (1000 -ge ($existingGroup.SID -split "-")[-1]) { continue } # Ignore BuiltIn default groups
 
-			New-TestResult @resultDefaults -Type ShouldDelete -ADObject $existingGroup -Identity $existingGroup.Name
+			New-TestResult @resultDefaults -Type Delete -ADObject $existingGroup -Identity $existingGroup.Name
 		}
 	}
 }

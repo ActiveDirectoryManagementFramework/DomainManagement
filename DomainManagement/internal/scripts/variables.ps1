@@ -74,6 +74,9 @@ $script:exchangeVersion = $null
 # Configured Group Managed Service Accounts
 $script:serviceAccounts = @{ }
 
+# Configured WMI Filter
+$script:wmifilter = @{ }
+
 
 #----------------------------------------------------------------------------#
  #                                Cached Data                                 #
@@ -107,6 +110,7 @@ $script:contentMode = [PSCustomObject]@{
     Include = @()
     Exclude = @()
     UserExcludePattern = @()
+	RemoveUnknownWmiFilter = $false
 }
 $script:contentSearchBases = [PSCustomObject]@{
     Include = @()

@@ -103,20 +103,25 @@
 			# $adObject contains the relevant object
 
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property GivenName -Configuration $userDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property Surname -Configuration $userDefinition -ADObject $adObject -Changes $changes -Resolve
-			if ($null -ne $userDefinition.Description) { Compare-Property -Property Description -Configuration $userDefinition -ADObject $adObject -Changes $changes -Resolve }
-			Compare-Property -Property PasswordNeverExpires -Configuration $userDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property UserPrincipalName -Configuration $userDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property Name -Configuration $userDefinition -ADObject $adObject -Changes $changes -Resolve
+			$compare = @{
+				Configuration = $userDefinition
+				ADObject = $adObject
+				Changes = $changes
+				AsUpdate = $true
+				Type = 'User'
+			}
+			Compare-Property @compare -Property GivenName -Resolve
+			Compare-Property @compare -Property Surname -Resolve
+			if ($null -ne $userDefinition.Description) { Compare-Property @compare -Property Description -Resolve }
+			Compare-Property @compare -Property PasswordNeverExpires
+			Compare-Property @compare -Property UserPrincipalName -Resolve
+			Compare-Property @compare -Property Name -Resolve
 			$ouPath = ($adObject.DistinguishedName -split ",",2)[1]
 			if ($ouPath -ne (Resolve-String -Text $userDefinition.Path)) {
-				$null = $changes.Add('Path')
+				$null = $changes.Add((New-Change -Property Path -OldValue $ouPath -NewValue (Resolve-String -Text $userDefinition.Path) -Identity $adObject -Type User))
 			}
 			if ($userDefinition.Enabled -ne "Undefined") {
-				if ($adObject.Enabled -ne $userDefinition.Enabled) {
-					$null = $changes.Add('Enabled')
-				}
+				Compare-Property @compare -Property Enabled
 			}
 			if ($changes.Count) {
 				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject

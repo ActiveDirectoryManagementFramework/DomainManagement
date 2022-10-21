@@ -87,18 +87,17 @@
 						New-ADObject @createParam -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
-				'Changed' {
+				'Update' {
 					$setParam = $parameters.Clone()
 					$setParam += @{
 						Identity = $testItem.Identity
 					}
 					$replaceHash = @{ }
-					foreach ($propertyName in $testItem.Changed) {
-						if ($propertyName -notin $testItem.Configuration.AttributesToResolve) { $replaceHash[$propertyName] = $testItem.Configuration.Attributes[$propertyName] }
-						else { $replaceHash[$propertyName] = $testItem.Configuration.Attributes[$propertyName] | Resolve-String }
+					foreach ($change in $testItem.Changed) {
+						$replaceHash[$change.Property] = $change.New
 					}
 					$setParam['Replace'] = $replaceHash
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMObject.Object.Change' -ActionStringValues ($testItem.Changed -join ", ") -Target $testItem -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMObject.Object.Change' -ActionStringValues ($testItem.Changed.Property -join ", ") -Target $testItem -ScriptBlock {
 						Set-ADObject @setParam -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}

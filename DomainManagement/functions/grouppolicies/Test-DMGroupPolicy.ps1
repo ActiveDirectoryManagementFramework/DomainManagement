@@ -94,36 +94,50 @@
 
 		#region Compare configuration to actual state
 		foreach ($desiredPolicy in $desiredHash.Values) {
+			$resultUpdateDefaults = $resultDefaults.Clone()
+			$resultUpdateDefaults +=  @{
+				Identity = $desiredPolicy.DisplayName
+				Configuration = $desiredPolicy
+			}
+
 			if (-not $managedHash[$desiredPolicy.DisplayName]) {
-				New-TestResult @resultDefaults -Type 'Create' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy
+				New-TestResult @resultUpdateDefaults -Type 'Create'
 				continue
 			}
 
+			$resultUpdateDefaults.ADObject = $managedHash[$desiredPolicy.DisplayName]
+
 			switch ($managedHash[$desiredPolicy.DisplayName].State) {
-				'ConfigError' { New-TestResult @resultDefaults -Type 'ConfigError' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName] }
-				'CriticalError' { New-TestResult @resultDefaults -Type 'CriticalError' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName] }
+				'ConfigError' { New-TestResult @resultUpdateDefaults -Type 'ConfigError' }
+				'CriticalError' { New-TestResult @resultUpdateDefaults -Type 'CriticalError' }
 				'Healthy' {
+					$changes = [System.Collections.ArrayList]@()
 					$policyObject = $managedHash[$desiredPolicy.DisplayName]
-					if (($policyObject.Version -ne $policyObject.ADVersion) -and ($desiredPolicy.ExportID -ne $policyObject.ExportID)) {
-						New-TestResult @resultDefaults -Type 'ModifiedAndUpdate' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
-						continue
-					}
 					if ($policyObject.Version -ne $policyObject.ADVersion) {
-						New-TestResult @resultDefaults -Type 'Modified' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
-						continue
+						$change = New-Change -Property Modified -OldValue $policyObject.Version -NewValue $policyObject.ADVersion -Identity $desiredPolicy.DisplayName -Type AdmfVersion
+						$null = $changes.Add($change)
 					}
 					if ($desiredPolicy.ExportID -ne $policyObject.ExportID) {
-						New-TestResult @resultDefaults -Type 'Update' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject
-						continue
+						$change = New-Change -Property Update -OldValue $policyObject.ExportID -NewValue $desiredPolicy.ExportID -Identity $desiredPolicy.DisplayName -Type AdmfVersion
+						$null = $changes.Add($change)
 					}
 					$registryTest = Test-DMGPRegistrySetting -Server $session -PolicyName $desiredPolicy.DisplayName -PassThru
 					if (-not $registryTest.Success) {
-						New-TestResult @resultDefaults -Type 'BadRegistryData' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $policyObject -Changed $registryTest.Changes
-						continue
+						foreach ($changeItem in $registryTest.Changes) {
+							$change = New-Change -Property RegistryData -OldValue $changeItem.IsValue -NewValue $changeItem.ShouldValue -Identity ('{0}: {1} > {2}' -f $desiredPolicy.DisplayName, $changeItem.Key, $changeItem.ValueName) -Type AdmfVersion
+							$null = $changes.Add($change)
+						}
+					}
+					if ("$($desiredPolicy.WmiFilter)" -ne "$($managedHash[$desiredPolicy.DisplayName].WmiFilter)") {
+						$change = New-Change -Property WmiFilter -OldValue $managedHash[$desiredPolicy.DisplayName].WmiFilter -NewValue $desiredPolicy.WmiFilter -Identity $desiredPolicy.DisplayName -Type WmiFilterAssignment
+						$null = $changes.Add($change)
+					}
+					if ($changes.Count -gt 0) {
+						New-TestResult @resultUpdateDefaults -Type 'Update' -Changed $changes
 					}
 				}
 				'Unmanaged' {
-					New-TestResult @resultDefaults -Type 'Manage' -Identity $desiredPolicy.DisplayName -Configuration $desiredPolicy -ADObject $managedHash[$desiredPolicy.DisplayName]
+					New-TestResult @resultUpdateDefaults -Type 'Manage'
 				}
 			}
 		}

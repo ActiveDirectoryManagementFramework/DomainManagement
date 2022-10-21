@@ -69,7 +69,7 @@
 			
 			switch ($testItem.Type) {
 				#region Delete
-				'ShouldDelete' {
+				'Delete' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMPasswordPolicy.PSO.Delete' -Target $testItem -ScriptBlock {
 						Remove-ADFineGrainedPasswordPolicy @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
@@ -77,7 +77,7 @@
 				#endregion Delete
 				
 				#region Create
-				'ConfigurationOnly' {
+				'Create' {
 					
 					$parametersNew = $parameters.Clone()
 					$parametersNew += @{
@@ -103,15 +103,15 @@
 				#endregion Create
 				
 				#region Changed
-				'Changed' {
+				'Update' {
 					$changes = @{ }
 					$updateAssignment = $false
 					
-					switch ($testItem.Changed) {
-						'SubjectGroup' { $updateAssignment = $true; continue }
-						'DisplayName' { $changes['DisplayName'] = Resolve-String -Text $testItem.Configuration.DisplayName; continue }
-						'Description' { $changes['Description'] = Resolve-String -Text $testItem.Configuration.Description; continue }
-						default { $changes[$_] = $testItem.Configuration.$_; continue }
+					foreach ($change in $testItem.Changed) {
+						switch ($change.Property) {
+							'SubjectGroup' { $updateAssignment = $true }
+							default { $changes[$change.Property] = $change.New }
+						}
 					}
 					
 					if ($changes.Keys.Count -gt 0) {

@@ -39,6 +39,11 @@
 		Regex expressions that are applied to the name property of user objects found in AD.
 		By default, in Constrained mode, all users found in paths resolved to be under management (through -Include and -Exclude specified in this command) that are not configured will be flagged for deletion.
 		Using this parameter, it becomes possible to exempt specific accounts or accounts according to a specific pattern from this.
+
+	.PARAMETER RemoveUnknownWmiFilter
+		Whether to remove unknown, undefined WMI Filters.
+		Only relevant when defining the WMI Filter component.
+		By default, WMI filters defined outside of the configuration will not be deleted if found.
 	
 	.EXAMPLE
 		PS C:\> Set-DMContentMode -Mode 'Constrained' -Include 'OU=Administration,%DomainDN%'
@@ -62,7 +67,10 @@
 
 		[AllowEmptyCollection()]
 		[string[]]
-		$UserExcludePattern
+		$UserExcludePattern,
+
+		[bool]
+		$RemoveUnknownWmiFilter
 	)
 	
 	process
@@ -71,5 +79,6 @@
 		if (Test-PSFParameterBinding -ParameterName Include) { $script:contentMode.Include = $Include }
 		if (Test-PSFParameterBinding -ParameterName Exclude) { $script:contentMode.Exclude = $Exclude }
 		if (Test-PSFParameterBinding -ParameterName UserExcludePattern) { $script:contentMode.UserExcludePattern = $UserExcludePattern }
+		if (Test-PSFParameterBinding -ParameterName RemoveUnknownWmiFilter) { $script:contentMode.RemoveUnknownWmiFilter = $RemoveUnknownWmiFilter }
 	}
 }
