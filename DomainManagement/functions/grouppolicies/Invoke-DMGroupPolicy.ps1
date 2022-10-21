@@ -116,28 +116,16 @@
 				'CriticalError' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMGroupPolicy.Skipping.InCriticalState' -StringValues $testItem.Identity -Target $testItem
 				}
-				'ModifiedAndUpdate' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnModifiedAndUpdate' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
-						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
-					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
-				}
 				'Update' {
+					foreach ($change in $testItem.Changed) {
+						Write-PSFMessage -Level Verbose -String 'Invoke-DMGroupPolicy.Update.Detail' -StringValues $change.Property, $change.Old, $change.New, $change.Identity -Target $testItem -Tag gpoUpdateDetail
+					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnUpdate' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
-						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
-					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
-				}
-				'Modified' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnModify' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
 						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 				'Manage' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnManage' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
-						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
-					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
-				}
-				'BadRegistryData' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupPolicy.Install.OnBadRegistry' -ActionStringValues $testItem.Identity -Target $testItem -ScriptBlock {
 						Install-GroupPolicy -Session $session -Configuration $testItem.Configuration -WorkingDirectory $gpoRemotePath -ErrorAction Stop
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}

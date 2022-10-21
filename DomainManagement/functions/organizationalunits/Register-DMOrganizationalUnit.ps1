@@ -42,7 +42,8 @@
 		[string]
 		$Name,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[AllowEmptyString()]
 		[string]
 		$Description,
 

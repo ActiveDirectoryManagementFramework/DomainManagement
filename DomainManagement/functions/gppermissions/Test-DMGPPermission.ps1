@@ -107,7 +107,7 @@
 				foreach ($inputItem in $InputObject) {
 					#region Case: Input from AD
 					if ($inputItem.PSObject.TypeNames -like "*Microsoft.GroupPolicy.GPPermission") {
-						[PSCustomObject]@{
+						$result = [PSCustomObject]@{
 							PSTypeName = 'DomainManagement.Result.GPPermission.Action'
 							Identity = $inputItem.Trustee.Sid
 							DisplayName = '{0}\{1}' -f $inputItem.Trustee.Domain, $inputItem.Trustee.Name
@@ -115,6 +115,9 @@
 							Allow = -not $inputItem.Denied
 							Action = $null
 							ADObject = $ADObject
+						}
+						$result | Add-Member -MemberType ScriptMethod -Name ToString -Force -PassThru -Value {
+							'{0}: {1}' -f $this.Action, $this.DisplayName
 						}
 					}
 					#endregion Case: Input from AD
@@ -129,14 +132,17 @@
 							catch { throw }
 							$identity = $principal.ObjectSID
 						}
-						[PSCustomObject]@{
+						$result = [PSCustomObject]@{
 							PSTypeName = 'DomainManagement.Result.GPPermission.Action'
 							Identity = $identity
-							DisplayName = $inputItem.Identity
+							DisplayName = $inputItem.Identity | Resolve-String
 							Permission = $inputItem.Permission
 							Allow = -not $inputItem.Deny
 							Action = $null
 							ADObject = $ADObject
+						}
+						$result | Add-Member -MemberType ScriptMethod -Name ToString -Force -PassThru -Value {
+							'{0}: {1}' -f $this.Action, $this.DisplayName
 						}
 					}
 					#endregion Case: Input from Configuration

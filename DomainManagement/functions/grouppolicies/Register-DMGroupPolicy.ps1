@@ -1,5 +1,4 @@
-﻿function Register-DMGroupPolicy
-{
+﻿function Register-DMGroupPolicy {
 	<#
 	.SYNOPSIS
 		Adds a group policy object to the list of desired GPOs.
@@ -22,6 +21,14 @@
 	
 	.PARAMETER ExportID
 		The tracking ID assigned to the GPO in order to detect its revision.
+
+	.PARAMETER WmiFilter
+		The WmiFilter to apply to the group policy object.
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
 	
 	.EXAMPLE
 		PS C:\> Get-Content gpos.json | ConvertFrom-Json | Write-Output | Register-DMGroupPolicy
@@ -49,18 +56,26 @@
 
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
-		$ExportID
+		$ExportID,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[string]
+		$WmiFilter,
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
-	process
-	{
+	process {
 		$script:groupPolicyObjects[$DisplayName] = [PSCustomObject]@{
-			PSTypeName = 'DomainManagement.GroupPolicyObject'
+			PSTypeName  = 'DomainManagement.GroupPolicyObject'
 			DisplayName = $DisplayName
 			Description = $Description
-			ID = $ID
-			Path = $Path
-			ExportID = $ExportID
+			ID          = $ID
+			Path        = $Path
+			ExportID    = $ExportID
+			WmiFilter   = $WmiFilter
+			ContextName = $ContextName
 		}
 	}
 }

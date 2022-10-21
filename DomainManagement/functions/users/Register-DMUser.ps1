@@ -63,6 +63,11 @@
 		Whether the user should be present.
 		This can be used to trigger deletion of a managed account.
         When set to 'Undefined', this will act exactly as if -Optional were set to $true
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
 	
 	.EXAMPLE
 		PS C:\> Get-Content .\users.json | ConvertFrom-Json | Write-Output | Register-DMUser
@@ -118,8 +123,11 @@
 		
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
-        [DomainManagement.TriBool]
-		$Present = 'true'
+		[DomainManagement.TriBool]
+		$Present = 'true',
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process {
@@ -138,6 +146,7 @@
 			Optional             = $Optional
 			OldNames             = $OldNames
 			Present              = $Present
+			ContextName          = $ContextName
 		}
 		if ($Description) {
 			$userHash['Description'] = $Description

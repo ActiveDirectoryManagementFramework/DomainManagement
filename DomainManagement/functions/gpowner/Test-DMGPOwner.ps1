@@ -85,7 +85,7 @@
 			if (-not $ownerCfg) { continue }
 			#endregion Resolve applicable config item
 
-			try { $desiredOwner = Resolve-Principal @parameters -Name (Resolve-String -Text $ownerCfg.Identity) -OutputType ADObject }
+			try { $desiredOwner = Resolve-Principal @parameters -Name (Resolve-String -Text $ownerCfg.Identity) -OutputType ADObject -ErrorAction Stop }
 			catch {
 				Write-PSFMessage -Level Warning -String 'Test-DMGPOwner.Identity.NotFound' -StringValues $ownerCfg.Identity, $gpoADObject.DisplayName -Target $ownerCfg
 				New-TestResult -ObjectType GPOwner -Type IdentityNotFound -Identity $gpoADObject.DisplayName -Server $Server -Configuration $ownerCfg -ADObject $gpoADObject
@@ -100,10 +100,12 @@
 			catch { $actualOwnerAD = $null }
 
 			$change = [PSCustomObject]@{
-				Type = 'ChangeOwner'
-				New = $desiredOwner.SamAccountName
-				Old = $actualOwnerAD.SamAccountName
-				NewObject = $desiredOwner
+				PSTypeName = 'DomainManagement.GPOwner.Change'
+				Type       = 'ChangeOwner'
+				New        = $desiredOwner.SamAccountName
+				Old        = $actualOwnerAD.SamAccountName
+				NewObject  = $desiredOwner
+				Policy     = $gpoADObject.DisplayName
 			}
 			if (-not $change.Old) { $change.Old = $actualOwner }
 			Add-Member -InputObject $change -MemberType ScriptMethod -Name ToString -Value {

@@ -200,7 +200,7 @@
 						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'New' {
+				'Create' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.New' -ActionStringValues $countConfigured -Target $testItem -ScriptBlock {
 						New-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue

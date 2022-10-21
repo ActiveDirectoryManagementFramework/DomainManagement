@@ -88,14 +88,14 @@
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAcl.OwnerNotResolved' -StringValues $testItem.Identity, $testItem.ADObject.GetOwner([System.Security.Principal.SecurityIdentifier]) -Target $testItem
 					continue
 				}
-				'Changed'
+				'Update'
 				{
-					if ($testItem.Changed -contains 'Owner') {
+					if ($testItem.Changed.Type -contains 'Owner') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAcl.UpdatingOwner' -ActionStringValues ($testItem.Configuration.Owner | Resolve-String) -Target $testItem -ScriptBlock {
 							Set-AdsOwner @parameters -Path $testItem.Identity -Identity (Convert-Principal @parameters -Name ($testItem.Configuration.Owner | Resolve-String)) -EnableException -Confirm:$false
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
-					if ($testItem.Changed -contains 'NoInheritance') {
+					if ($testItem.Changed.Type -contains 'NoInheritance') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAcl.UpdatingInheritance' -ActionStringValues $testItem.Configuration.NoInheritance -Target $testItem -ScriptBlock {
 							if ($testItem.Configuration.NoInheritance) {
 								Disable-AdsInheritance @parameters -Path $testItem.Identity -EnableException -Confirm:$false

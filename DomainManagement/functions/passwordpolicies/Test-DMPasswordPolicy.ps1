@@ -55,7 +55,7 @@
 				try { $adObject = Get-ADFineGrainedPasswordPolicy @parameters -Identity $resolvedName -Properties DisplayName, Description -ErrorAction Stop }
 				catch { continue main } # Only errors when PSO not present = All is well
 				
-				New-TestResult @resultDefaults -Type ShouldDelete -ADObject $adObject
+				New-TestResult @resultDefaults -Type Delete -ADObject $adObject
 				continue
 			}
 			#endregion Password Policy that needs to be removed
@@ -64,34 +64,41 @@
 			try { $adObject = Get-ADFineGrainedPasswordPolicy @parameters -Identity $resolvedName -Properties Description, DisplayName -ErrorAction Stop }
 			catch
 			{
-				New-TestResult @resultDefaults -Type ConfigurationOnly
+				New-TestResult @resultDefaults -Type Create
 				continue main
 			}
 			#endregion Password Policies that don't exist but should : $adObject
 
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property ComplexityEnabled -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property Description -Configuration $psoDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property DisplayName -Configuration $psoDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property LockoutDuration -Configuration $psoDefinition -ADObject $adObject -Changes $changes -Resolve
-			Compare-Property -Property LockoutObservationWindow -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property LockoutThreshold -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property MaxPasswordAge -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property MinPasswordAge -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property MinPasswordLength -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property PasswordHistoryCount -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property Precedence -Configuration $psoDefinition -ADObject $adObject -Changes $changes
-			Compare-Property -Property ReversibleEncryptionEnabled -Configuration $psoDefinition -ADObject $adObject -Changes $changes
+			$compare = @{
+				Configuration = $psoDefinition
+				ADObject = $adObject
+				Changes = $changes
+				Type = 'PSO'
+				AsUpdate = $true
+			}
+			Compare-Property @compare -Property ComplexityEnabled
+			Compare-Property @compare -Property Description -Resolve
+			Compare-Property @compare -Property DisplayName -Resolve
+			Compare-Property @compare -Property LockoutDuration -Resolve
+			Compare-Property @compare -Property LockoutObservationWindow
+			Compare-Property @compare -Property LockoutThreshold
+			Compare-Property @compare -Property MaxPasswordAge
+			Compare-Property @compare -Property MinPasswordAge
+			Compare-Property @compare -Property MinPasswordLength
+			Compare-Property @compare -Property PasswordHistoryCount
+			Compare-Property @compare -Property Precedence
+			Compare-Property @compare -Property ReversibleEncryptionEnabled
 			$groupObjects = foreach ($groupName in $psoDefinition.SubjectGroup) {
 				try { Get-ADGroup @parameters -Identity (Resolve-String -Text $groupName) }
 				catch { Write-PSFMessage -Level Warning -String 'Test-DMPasswordPolicy.SubjectGroup.NotFound' -StringValues $groupName, $resolvedName }
 			}
-			if (-not $groupObjects -or -not $ADObject.AppliesTo -or (Compare-Object $groupObjects.DistinguishedName $ADObject.AppliesTo)) {
-				$null = $changes.Add('SubjectGroup')
+			if (-not $groupObjects -or -not $adObject.AppliesTo -or (Compare-Object $groupObjects.DistinguishedName $adObject.AppliesTo)) {
+				$null = $changes.Add((New-Change -Property 'SubjectGroup' -OldValue $adObject.AppliesTo -NewValue $groupObjects -Identity $adObject.DistinguishedName -Type PSO))
 			}
 
 			if ($changes.Count) {
-				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject
+				New-TestResult @resultDefaults -Type Update -Changed $changes.ToArray() -ADObject $adObject
 			}
 		}
 
@@ -105,7 +112,7 @@
 
 		foreach ($passwordPolicy in $passwordPolicies) {
 			if ($passwordPolicy.Name -in $resolvedPolicies) { continue }
-			New-TestResult @resultDefaults -Type ShouldDelete -ADObject $passwordPolicy -Identity $passwordPolicy.Name
+			New-TestResult @resultDefaults -Type Delete -ADObject $passwordPolicy -Identity $passwordPolicy.Name
 		}
 	}
 }

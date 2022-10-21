@@ -33,6 +33,13 @@
 	.PARAMETER AsString
 		Compare properties as string.
 		Will convert all $null values to "".
+
+	.PARAMETER AsUpdate
+		The result added to the changes arraylist is a custom object with greater details than the default.
+
+	.PARAMETER Type
+		What kind of component is the compared object part of.
+		Used together with the -AsUpdate parameter to name the resulting object.
 	
 	.EXAMPLE
 		PS C:\> Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve
@@ -69,7 +76,13 @@
 		$Parameters = @{ },
 		
 		[switch]
-		$AsString
+		$AsString,
+
+		[switch]
+		$AsUpdate,
+
+		[string]
+		$Type = 'Unknown'
 	)
 	
 	begin
@@ -78,21 +91,29 @@
 	}
 	process
 	{
+		$param = @{
+			Property = $Property
+			Identity = $ADObject.DistinguishedName
+			Type = $Type
+		}
 		$propValue = $Configuration.$Property
 		if ($Resolve) { $propValue = $propValue | Resolve-String @parameters }
 
 		if (($propValue -is [System.Collections.ICollection]) -and ($ADObject.$ADProperty -is [System.Collections.ICollection])) {
 			if (Compare-Object $propValue $ADObject.$ADProperty) {
-				$null = $Changes.Add($Property)
+				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $ADObject.$ADProperty)) }
+				else { $null = $Changes.Add($Property) }
 			}
 		}
 		elseif ($AsString) {
 			if ("$propValue" -ne "$($ADObject.$ADProperty)") {
-				$null = $Changes.Add($Property)
+				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue "$propValue" -OldValue "$($ADObject.$ADProperty)")) }
+				else { $null = $Changes.Add($Property) }
 			}
 		}
 		elseif ($propValue -ne $ADObject.$ADProperty) {
-			$null = $Changes.Add($Property)
+			if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $ADObject.$ADProperty)) }
+			else { $null = $Changes.Add($Property) }
 		}
 	}
 }

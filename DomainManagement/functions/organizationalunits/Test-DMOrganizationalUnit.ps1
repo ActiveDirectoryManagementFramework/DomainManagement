@@ -97,10 +97,10 @@
 			$adObject = Get-ADOrganizationalUnit @parameters -Identity $resolvedDN -Properties Description, nTSecurityDescriptor
 			
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve
+			Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve -AsUpdate -Type OrganizationalUnit
 
 			if ($changes.Count) {
-				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject
+				New-TestResult @resultDefaults -Type Update -Changed $changes.ToArray() -ADObject $adObject
 			}
 		}
 		#endregion Process Configured OUs
