@@ -1,5 +1,38 @@
 ﻿# Changelog
 
+## 1.8.180 (2022-10-21)
+
+- New: Component: WmiFilter - manage WMI Filters in active directory
+- Upd: Set-DMContentMode - added parameter RemoveUnknownWmiFilter to define how unknown WMI filters are handled
+- Upd: ACL - renamed test result "Changed" to "Update" to be in line with other test result types.
+- Upd: ACL - Improved user experience of the test results / more useful change information
+- Upd: Access Rules - Improved user experience of the test results / more useful change information
+- Upd: GPLink - renamed test result "New" to "Create" to be in line with other test result types.
+- Upd: GPLink - Improved user experience of the test results / more useful change information
+- Upd: GPLink - add change information when creating first links to an OU
+- Upd: GPO Owner - Improved user experience of the test results / more useful change information
+- Upd: GPPermission - Improved user experience of the test results / more useful change information
+- Upd: Group Policies - Improved user experience of the test results / more useful change information
+- Upd: Group Policies - Standardized test result codes, merging most update-related codes into the Update result code and adding the details to the Changed property
+- Upd: Group Membership - Identity of test results now more readable
+- Upd: Group Membership - renamed test result "Remove" to "Delete" to be in line with other test result types
+- Upd: Group Membership - Improved user experience of the test results / more useful change information
+- Upd: Group - renamed test result "ShouldDelete" to "Delete"  to be in line with other test result types
+- Upd: Group - renamed test result "Changed" to "Update"  to be in line with other test result types
+- Upd: Group - Improved user experience of the test results / more useful change information
+- Upd: Object - Improved user experience of the test results / more useful change information
+- Upd: Organizational Unit - renamed test result "Changed" to "Update"  to be in line with other test result types
+- Upd: Organizational Unit - Improved user experience of the test results / more useful change information
+- Upd: Organizational Unit - the "Description" property is now optional and may be left empty in configuration
+- Upd: Password Policy - renamed test result "ShouldDelete" to "Delete" to be in line with other test result types
+- Upd: Password Policy - renamed test result "ConfigurationOnly" to "Create" to be in line with other test result types
+- Upd: Password Policy - renamed test result "Changed" to "Update" to be in line with other test result types
+- Upd: Password Policy - Improved user experience of the test results / more useful change information
+- Upd: User - Improved user experience of the test results / more useful change information
+- Fix: Group Membership - Identity for "Add" operation now includes actual information
+- Fix: Group Membership - Will always try to add and remove all members
+- Fix: GPO Owner - test will not fail correctly when the intended owner cannot be resolve and still generate an Update action
+
 ## 1.7.150 (2022-09-16)
 
 - Upd: GroupPolicy - New state for group policies that are both out of date and have been modified outside of the system

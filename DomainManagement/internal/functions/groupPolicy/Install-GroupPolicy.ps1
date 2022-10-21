@@ -26,6 +26,7 @@
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseUsingScopeModifierInNewRunspaces", "")]
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 	[CmdletBinding()]
 	param (
 		[System.Management.Automation.Runspaces.PSSession]
@@ -42,8 +43,8 @@
 		$timestamp = (Get-Date).AddMinutes(-5)
 		
 		$stopDefault = @{
-			Target		    = $Configuration
-			Cmdlet		    = $PSCmdlet
+			Target          = $Configuration
+			Cmdlet          = $PSCmdlet
 			EnableException = $true
 		}
 	}
@@ -64,13 +65,13 @@
 				try {
 					$domain = Get-ADDomain -Server localhost
 					$paramImportGPO = @{
-						Domain = $domain.DNSRoot
-						Server = $env:COMPUTERNAME
-						BackupGpoName = $Configuration.DisplayName
-						TargetName = $Configuration.DisplayName
-						Path   = $WorkingDirectory
+						Domain         = $domain.DNSRoot
+						Server         = $env:COMPUTERNAME
+						BackupGpoName  = $Configuration.DisplayName
+						TargetName     = $Configuration.DisplayName
+						Path           = $WorkingDirectory
 						CreateIfNeeded = $true
-						ErrorAction = 'Stop'
+						ErrorAction    = 'Stop'
 					}
 					$null = Import-GPO @paramImportGPO
 				}
@@ -89,20 +90,20 @@
 			$registryData = foreach ($applicableRegistrySetting in $applicableRegistrySettings) {
 				if ($applicableRegistrySetting.PSObject.Properties.Name -contains 'Value') {
 					[PSCustomObject]@{
-						GPO = $resolvedName
-						Key = Resolve-String @parameters -Text $applicableRegistrySetting.Key
+						GPO       = $resolvedName
+						Key       = Resolve-String @parameters -Text $applicableRegistrySetting.Key
 						ValueName = Resolve-String @parameters -Text $applicableRegistrySetting.ValueName
-						Type = $applicableRegistrySetting.Type
-						Value = $applicableRegistrySetting.Value
+						Type      = $applicableRegistrySetting.Type
+						Value     = $applicableRegistrySetting.Value
 					}
 				}
 				else {
 					[PSCustomObject]@{
-						GPO = $resolvedName
-						Key = Resolve-String @parameters -Text $applicableRegistrySetting.Key
+						GPO       = $resolvedName
+						Key       = Resolve-String @parameters -Text $applicableRegistrySetting.Key
 						ValueName = Resolve-String @parameters -Text $applicableRegistrySetting.ValueName
-						Type = $applicableRegistrySetting.Type
-						Value = ((Invoke-DMDomainData @parameters -Name $applicableRegistrySetting.DomainData).Data | Write-Output)
+						Type      = $applicableRegistrySetting.Type
+						Value     = ((Invoke-DMDomainData @parameters -Name $applicableRegistrySetting.DomainData).Data | Write-Output)
 					}
 				}
 			}
@@ -126,13 +127,72 @@
 		try {
 			$policyObject = Invoke-Command -Session $session -ArgumentList $Configuration -ScriptBlock {
 				param ($Configuration)
-				Get-ADObject -Server localhost -LDAPFilter "(&(objectCategory=groupPolicyContainer)(DisplayName=$($Configuration.DisplayName)))" -Properties Modified, gPCFileSysPath, versionNumber -ErrorAction Stop
+				Get-ADObject -Server localhost -LDAPFilter "(&(objectCategory=groupPolicyContainer)(DisplayName=$($Configuration.DisplayName)))" -Properties Modified, gPCFileSysPath, gPCWQLFilter, versionNumber -ErrorAction Stop
 			} -ErrorAction Stop
 		}
 		catch { Stop-PSFFunction @stopDefault -String 'Install-GroupPolicy.ReadingADObject.Failed.Error' -StringValues $Configuration.DisplayName -ErrorRecord $_ }
 		if (-not $policyObject) { Stop-PSFFunction @stopDefault -String 'Install-GroupPolicy.ReadingADObject.Failed.NoObject' -StringValues $Configuration.DisplayName }
 		if ($policyObject.Modified -lt $timestamp) { Stop-PSFFunction @stopDefault -String 'Install-GroupPolicy.ReadingADObject.Failed.Timestamp' -StringValues $Configuration.DisplayName, $policyObject.Modified, $timestamp }
+
+		#region Apply WMI Filters
+		if ($Configuration.WmiFilter -or $policyObject.gPCWQLFilter) {
+			$code = {
+				param ($Configuration, $PolicyObject)
+				$adParam = @{ Server = 'localhost' }
+
+				if (-not $Configuration.WmiFilter) {
+					try {
+						Set-ADObject @adParam -Identity $PolicyObject.DistinguishedName -Clear 'gPCWQLFilter' -ErrorAction Stop
+						[PSCustomObject]@{
+							Success = $true
+							Message = ''
+						}
+					}
+					catch {
+						[PSCustomObject]@{
+							Success = $false
+							Message = "Error clearing WMI Filter: $_"
+						}
+					}
+					return
+				}
+
+				$wmiFilter = Get-ADObject @adParam -LDAPFilter "(&(objectClass=msWMI-Som)(msWMI-Name=$($Configuration.WmiFilter)))" -Properties msWMI-ID
+				if (-not $wmiFilter) {
+					[PSCustomObject]@{
+						Success = $false
+						Message = "WMI Filter does not exist! $($Configuration.WmiFilter)"
+					}
+					return
+				}
+
+				$domain = Get-ADDomain @adParam
+				$filterProperty = '[{0};{1};0]' -f $domain.DnsRoot, $wmiFilter.'msWMI-ID'
+				try {
+					Set-ADObject @adParam -Identity $PolicyObject.DistinguishedName -Replace @{ 'gPCWQLFilter' = $filterProperty } -ErrorAction Stop
+					[PSCustomObject]@{
+						Success = $true
+						Message = ''
+					}
+				}
+				catch {
+					[PSCustomObject]@{
+						Success = $false
+						Message = "Error applying WMI Filter: $_"
+					}
+				}
+			}
+			Invoke-PSFProtectedCommand -ActionString 'Install-GroupPolicy.WmiFilter' -ActionStringValues $Configuration.DisplayName, $Configuration.WmiFilter -ScriptBlock {
+				$wmiResult = Invoke-Command -Session $session -ArgumentList $Configuration,$policyObject -ScriptBlock $code -ErrorAction Stop
+			} -Target $Configuration -EnableException $true -PSCmdlet $PSCmdlet
+
+			if (-not $wmiResult.Success) {
+				Write-PSFMessage -Level Warning -String 'Install-GroupPolicy.WmiFilter.Failed' -StringValues $Configuration.DisplayName, $Configuration.WmiFilter, $wmiResult.Message -Target $Configuration
+			}
+		}
+		#endregion Apply WMI Filters
 		
+		#region Create/Update ADMF Tracking File
 		Write-PSFMessage -Level Debug -String 'Install-GroupPolicy.UpdatingConfigurationFile' -StringValues $Configuration.DisplayName -Target $Configuration
 		try {
 			Invoke-Command -Session $session -ArgumentList $Configuration, $policyObject -ScriptBlock {
@@ -142,15 +202,16 @@
 					$PolicyObject
 				)
 				$object = [PSCustomObject]@{
-					ExportID = $Configuration.ExportID
+					ExportID  = $Configuration.ExportID
 					Timestamp = $PolicyObject.Modified
-					Version  = $PolicyObject.VersionNumber
+					Version   = $PolicyObject.VersionNumber
 				}
 				$object | Export-Clixml -Path "$($PolicyObject.gPCFileSysPath)\dm_config.xml" -Force -ErrorAction Stop
 			} -ErrorAction Stop
 		}
 		catch { Stop-PSFFunction @stopDefault -String 'Install-GroupPolicy.UpdatingConfigurationFile.Failed' -StringValues $Configuration.DisplayName -ErrorRecord $_ }
-		
+		#endregion Create/Update ADMF Tracking File
+
 		Write-PSFMessage -Level Debug -String 'Install-GroupPolicy.DeletingImportFiles' -StringValues $Configuration.DisplayName -Target $Configuration
 		Invoke-Command -Session $session -ArgumentList $WorkingDirectory -ScriptBlock {
 			param ($WorkingDirectory)

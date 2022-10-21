@@ -95,15 +95,20 @@
 			param (
 				$PolicyName,
 				$Status,
-				$Action
+				$Action,
+				$Identity
 			)
 
-			[PSCustomObject]@{
+			$update = [PSCustomObject]@{
 				PSTypeName = 'DomainManagement.GPLink.Update'
 				Action     = $Action
 				Policy     = $PolicyName
 				Status     = $Status
+				Identity   = $Identity
 			}
+			Add-Member -InputObject $update -MemberType ScriptMethod -Name ToString -Value {
+				'{0}: {1}' -f $this.Action, $this.Policy
+			} -Force -PassThru
 		}
 		
 		function ConvertTo-LinkConfigWithState {
@@ -126,7 +131,7 @@
 			process {
 				foreach ($linkItem in $LinkObject) {
 					if (-not $linkItem) { continue }
-					$currentLink = $CurrentLinks | Where-Object DisplayName -eq $linkItem.PolicyName
+					$currentLink = $CurrentLinks | Where-Object DisplayName -EQ $linkItem.PolicyName
 
 					$itemHash = $linkItem | ConvertTo-PSFHashtable
 					$itemHash.PSTypeName = 'DomainManagement.GPLink'
@@ -226,17 +231,17 @@
 			$index = 0
 			foreach ($desired in $newDesiredState) {
 				if ($currentSorted.DisplayName -notcontains $desired.PolicyName) {
-					New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled'
+					New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
 				if ($index -gt @($currentSorted).Count -or $desired.PolicyName -ne $currentSorted[$index].DisplayName) {
-					New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled'
+					New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
 				if (-not $desired.StateValid) {
-					New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State
+					New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
@@ -244,7 +249,7 @@
 			}
 			foreach ($current in $currentSorted) {
 				if ($current.DisplayName -notin $newDesiredState.PolicyName) {
-					New-Update -Action Delete -PolicyName $current.DisplayName -Status $current.Status
+					New-Update -Action Delete -PolicyName $current.DisplayName -Status $current.Status -Identity $ADObject.DistinguishedName
 				}
 			}
 		}
@@ -284,7 +289,10 @@
 			$currentState = $adObject | ConvertTo-GPLink -PolicyMapping $gpoDNToDisplay
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value $currentState -Force
 			if (-not $currentState) {
-				New-TestResult @resultDefaults -Type 'New'
+				$updates = foreach ($includedLink in $ouDatum.Include) {
+					New-Update -Action Create -PolicyName $includedLink.PolicyName -Status $includedLink.State -Identity $ouDatum.OrganizationalUnit
+				}
+				New-TestResult @resultDefaults -Type 'Create' -Changed $updates
 				continue
 			}
 			#endregion Handle AD Object does not contain any links
@@ -320,7 +328,7 @@
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value $linkObjects -Force
 
 			$changes = foreach ($linkedObject in $linkObjects) {
-				New-Update -PolicyName $linkedObject.DisplayName -Status $linkedObject.Status -Action Delete
+				New-Update -PolicyName $linkedObject.DisplayName -Status $linkedObject.Status -Action Delete -Identity $adObject.DistinguishedName
 			}
 			New-TestResult -ObjectType GPLink -Type 'Delete' -Identity $adObject.DistinguishedName -Server $Server -ADObject $adObject -Changed $changes
 		}

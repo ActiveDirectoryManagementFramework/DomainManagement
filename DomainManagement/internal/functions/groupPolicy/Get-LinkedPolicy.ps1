@@ -36,10 +36,12 @@
 		$translateScope = @{
 			'Subtree'  = 'Subtree'
 			'OneLevel' = 'Base'
-			'Base'	   = 'Base'
+			'Base'     = 'Base'
 		}
 		
-		$gpoProperties = 'DisplayName', 'Description', 'DistinguishedName', 'CN', 'Created', 'Modified', 'gPCFileSysPath', 'ObjectGUID', 'isCriticalSystemObject', 'VersionNumber'
+		$gpoProperties = 'DisplayName', 'Description', 'DistinguishedName', 'CN', 'Created', 'Modified', 'gPCFileSysPath', 'ObjectGUID', 'isCriticalSystemObject', 'VersionNumber', 'gPCWQLFilter'
+
+		$wmiFilters = Get-ADWmiFilter @parameters
 	}
 	process {
 		$adObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
@@ -49,24 +51,33 @@
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value ($adObject.gPLink | Split-GPLink) -Force
 		}
 		foreach ($adPolicyObject in ($adObjects.LinkedGroupPolicyObjects | Select-Object -Unique | Get-ADObject @parameters -Properties $gpoProperties)) {
-			[PSCustomObject]@{
-				PSTypeName  = 'DomainManagement.GroupPolicy.Linked'
-				DisplayName = $adPolicyObject.DisplayName
-				Description = $adPolicyObject.Description
+			$result = [PSCustomObject]@{
+				PSTypeName        = 'DomainManagement.GroupPolicy.Linked'
+				DisplayName       = $adPolicyObject.DisplayName
+				Description       = $adPolicyObject.Description
 				DistinguishedName = $adPolicyObject.DistinguishedName
-				LinkedTo    = $adObjects | Where-Object LinkedGroupPolicyObjects -Contains $adPolicyObject.DistinguishedName
-				CN		    = $adPolicyObject.CN
-				Created	    = $adPolicyObject.Created
-				Modified    = $adPolicyObject.Modified
-				Path	    = $adPolicyObject.gPCFileSysPath
-				ObjectGUID  = $adPolicyObject.ObjectGUID
-				IsCritical  = $adPolicyObject.isCriticalSystemObject
-				ADVersion   = $adPolicyObject.VersionNumber
-				ExportID    = $null
-				ImportTime  = $null
-				Version	    = -1
-				State	    = "Unknown"
+				LinkedTo          = $adObjects | Where-Object LinkedGroupPolicyObjects -Contains $adPolicyObject.DistinguishedName
+				CN                = $adPolicyObject.CN
+				Created           = $adPolicyObject.Created
+				Modified          = $adPolicyObject.Modified
+				Path              = $adPolicyObject.gPCFileSysPath
+				ObjectGUID        = $adPolicyObject.ObjectGUID
+				IsCritical        = $adPolicyObject.isCriticalSystemObject
+				ADVersion         = $adPolicyObject.VersionNumber
+				ExportID          = $null
+				ImportTime        = $null
+				WmiFilter         = $null
+				Version           = -1
+				State             = "Unknown"
 			}
+
+			if ($adPolicyObject.gPCWQLFilter) {
+				$result.WmiFilter = "<unknown: $($adPolicyObject.gPCWQLFilter))=>"
+				$registeredID = ($adPolicyObject.gPCWQLFilter -split ";")[1]
+				$wmiFilter = $wmiFilters | Where-Object ID -eq $registeredID
+				if ($wmiFilter) { $result.WmiFilter = $wmiFilter.Name }
+			}
+			$result
 		}
 	}
 }

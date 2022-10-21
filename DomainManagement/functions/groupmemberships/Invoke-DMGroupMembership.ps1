@@ -80,11 +80,11 @@
 
 			if ($Server) { $path = "LDAP://$Server/$GroupDN" }
 			else { $path = "LDAP://$GroupDN" }
-			if ($Credential) {
-				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+			if ($Credential) {
+				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
 			}
-			else {
-				$group = New-Object DirectoryServices.DirectoryEntry($path)
+			else {
+				$group = New-Object DirectoryServices.DirectoryEntry($path)
 			}
 			[void]$group.member.Add("<SID=$SID>")
 			try { $group.CommitChanges() }
@@ -115,11 +115,11 @@
 
 			if ($Server) { $path = "LDAP://$Server/$GroupDN" }
 			else { $path = "LDAP://$GroupDN" }
-			if ($Credential) {
-				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+			if ($Credential) {
+				$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
 			}
-			else {
-				$group = New-Object DirectoryServices.DirectoryEntry($path)
+			else {
+				$group = New-Object DirectoryServices.DirectoryEntry($path)
 			}
 			$group.member.Remove("<SID=$SID>")
 			$group.member.Remove($TargetDN)
@@ -129,11 +129,11 @@
 			catch {
 				$group.Close()
 
-				if ($Credential) {
-					$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
+				if ($Credential) {
+					$group = New-Object DirectoryServices.DirectoryEntry($path, $Credential.UserName, $Credential.GetNetworkCredential().Password)
 				}
-				else {
-					$group = New-Object DirectoryServices.DirectoryEntry($path)
+				else {
+					$group = New-Object DirectoryServices.DirectoryEntry($path)
 				}
 				$group.member.Remove($TargetDN)
 				$group.CommitChanges()
@@ -158,12 +158,12 @@
 			switch ($testItem.Type) {
 				'Add' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupMembership.GroupMember.Add' -ActionStringValues $testItem.ADObject.Name -Target $testItem -ScriptBlock {
-						Add-GroupMember @parameters -SID $testItem.Configuration.ADObject.ObjectSID -GroupDN $testItem.ADObject.DistinguishedName
+						Add-GroupMember @parameters -SID $testItem.Configuration.ADMember.ObjectSID -GroupDN $testItem.ADObject.DistinguishedName
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
-				'Remove' {
+				'Delete' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupMembership.GroupMember.Remove' -ActionStringValues $testItem.ADObject.Name -Target $testItem -ScriptBlock {
-						Remove-GroupMember @parameters -SID $testItem.Configuration.ADObject.ObjectSID -TargetDN $testItem.Configuration.ADObject.DistinguishedName -GroupDN $testItem.ADObject.DistinguishedName
+						Remove-GroupMember @parameters -SID $testItem.Configuration.ADMember.ObjectSID -TargetDN $testItem.Configuration.ADMember.DistinguishedName -GroupDN $testItem.ADObject.DistinguishedName
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Unresolved' {
@@ -172,7 +172,7 @@
 				'Unidentified' {
 					if ($RemoveUnidentified) {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGroupMembership.GroupMember.RemoveUnidentified' -ActionStringValues $testItem.ADObject.Name -Target $testItem -ScriptBlock {
-							Remove-GroupMember @parameters -SID $testItem.Configuration.ADObject.ObjectSID -GroupDN $testItem.ADObject.DistinguishedName
+							Remove-GroupMember @parameters -SID $testItem.Configuration.ADMember.ObjectSID -GroupDN $testItem.ADObject.DistinguishedName
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 					else {

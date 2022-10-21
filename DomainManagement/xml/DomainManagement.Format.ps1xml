@@ -19,6 +19,7 @@
                 <TypeName>DomainManagement.PSO.TestResult</TypeName>
 				<TypeName>DomainManagement.ServiceAccount.TestResult</TypeName>
                 <TypeName>DomainManagement.User.TestResult</TypeName>
+				<TypeName>DomainManagement.WmiFilter.TestResult</TypeName>
             </Types>
         </SelectionSet>
     </SelectionSets>
@@ -105,6 +106,47 @@ else { $_.ObjectCategory }
             </TableControl>
         </View>
 
+        <!-- DomainManagement.AccessRule.Change -->
+        <View>
+            <Name>DomainManagement.AccessRule.Change</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.AccessRule.Change</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Width>80</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ACT</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Rights</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>DistinguishedName</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- DomainManagement.Acl -->
         <View>
             <Name>DomainManagement.Acl</Name>
@@ -138,6 +180,41 @@ else { $_.Category }
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>Optional</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.Acl.Change -->
+        <View>
+            <Name>DomainManagement.Acl.Change</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.Acl.Change</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Old</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>New</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
@@ -196,6 +273,7 @@ else { $_.Category }
                     <TableColumnHeader/>
                     <TableColumnHeader/>
                     <TableColumnHeader/>
+                    <TableColumnHeader/>
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
@@ -208,6 +286,9 @@ else { $_.Category }
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>Status</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Identity</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
@@ -390,6 +471,76 @@ if ($_.GpoName) { return $_.GpoName }
 if ($_.All) { return "All" }
 
                                 </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.GPOwner.Change -->
+        <View>
+            <Name>DomainManagement.GPOwner.Change</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.GPOwner.Change</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Old</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>New</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Policy</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
+        <!-- DomainManagement.GroupMember.Change -->
+        <View>
+            <Name>DomainManagement.GroupMember.Change</Name>
+            <ViewSelectedBy>
+                <TypeName>DomainManagement.GroupMember.Change</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Action</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Group</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Member</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

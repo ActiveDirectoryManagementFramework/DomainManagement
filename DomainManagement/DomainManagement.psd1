@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.7.150'
+	ModuleVersion      = '1.8.180'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -21,7 +21,7 @@
 	Description        = 'Module to manage domain configuration'
 	
 	# Minimum version of the Windows PowerShell engine required by this module
-	PowerShellVersion  = '5.0'
+	PowerShellVersion  = '5.1'
 	
 	# Modules that must be imported into the global environment prior to importing
 	# this module
@@ -73,6 +73,7 @@
 		'Get-DMPasswordPolicy'
 		'Get-DMServiceAccount'
 		'Get-DMUser'
+		'Get-DMWmiFilter'
 		'Invoke-DMAccessRule'
 		'Invoke-DMAcl'
 		'Invoke-DMDomainData'
@@ -89,6 +90,7 @@
 		'Invoke-DMPasswordPolicy'
 		'Invoke-DMServiceAccount'
 		'Invoke-DMUser'
+		'Invoke-DMWmiFilter'
 		'Register-DMAccessRule'
 		'Register-DMAccessRuleMode'
 		'Register-DMAcl'
@@ -112,6 +114,7 @@
 		'Register-DMPasswordPolicy'
 		'Register-DMServiceAccount'
 		'Register-DMUser'
+		'Register-DMWmiFilter'
 		'Reset-DMDomainCredential'
 		'Resolve-DMAccessRuleMode'
 		'Resolve-DMObjectCategory'
@@ -135,6 +138,7 @@
 		'Test-DMPasswordPolicy'
 		'Test-DMServiceAccount'
 		'Test-DMUser'
+		'Test-DMWmiFilter'
 		'Unregister-DMAccessRule'
 		'Unregister-DMAccessRuleMode'
 		'Unregister-DMAcl'
@@ -157,6 +161,7 @@
 		'Unregister-DMPasswordPolicy'
 		'Unregister-DMServiceAccount'
 		'Unregister-DMUser'
+		'Unregister-DMWmiFilter'
 	)
 	
 	# Cmdlets to export from this module
