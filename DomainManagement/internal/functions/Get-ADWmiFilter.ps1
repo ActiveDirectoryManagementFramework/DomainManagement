@@ -71,6 +71,7 @@
 			)
 
 			process {
+				if ($Time -notmatch '000-000$') { return }
 				[datetime]::ParseExact(($Time -replace '000-000$'), 'yyyyMMddHHmmss.fff', $null)
 			}
 		}

@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## ???
+
+- Fix: Group Policy - error for `ParseExact` in some cases (related to WMI Filters)
+
 ## 1.8.180 (2022-10-21)
 
 - New: Component: WmiFilter - manage WMI Filters in active directory
