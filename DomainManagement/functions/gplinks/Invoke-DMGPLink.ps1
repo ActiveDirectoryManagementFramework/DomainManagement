@@ -157,7 +157,7 @@
 				}) -join ""
 			}
 			
-			$gpLinkString += ($Configuration.ExtendedInclude | Sort-Object -Property  @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
+			$gpLinkString += ($Configuration.ExtendedInclude | Where-Object DistinguishedName | Sort-Object -Property  @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
 				$_.ToLink()
 			}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.Update.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
@@ -206,6 +206,7 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update' {
+					if (-not ($testItem.Changed | Where-Object Action -ne 'GpoMissing')) { continue }
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.AllEnabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
 						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue

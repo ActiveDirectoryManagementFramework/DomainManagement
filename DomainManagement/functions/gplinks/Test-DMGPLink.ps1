@@ -231,7 +231,12 @@
 			$index = 0
 			foreach ($desired in $newDesiredState) {
 				if ($currentSorted.DisplayName -notcontains $desired.PolicyName) {
-					New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+					if ($desired.DistinguishedName) {
+						New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+					}
+					else {
+						New-Update -Action GpoMissing -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+					}
 					$index = $index + 1
 					continue
 				}

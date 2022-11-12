@@ -2,6 +2,7 @@
 
 ## ???
 
+- Fix: GPLink - adds links without a matching group policy objects, leading to a corrupt GPLink configuration
 - Fix: Group Policy - error for `ParseExact` in some cases (related to WMI Filters)
 
 ## 1.8.180 (2022-10-21)
