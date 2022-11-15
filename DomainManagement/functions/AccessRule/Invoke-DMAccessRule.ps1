@@ -1,5 +1,4 @@
-﻿function Invoke-DMAccessRule
-{
+﻿function Invoke-DMAccessRule {
 	<#
 	.SYNOPSIS
 		Applies the desired state of accessrule configuration.
@@ -49,16 +48,17 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type accessRules -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
+
+		$alternativeRemoval = Get-PSFConfigValue -FullName 'DomainManagement.AccessRules.Remove.Option2' -Fallback $false
 	}
-	process{
+	process {
 		if (-not $InputObject) {
 			$InputObject = Test-DMAccessRule @parameters
 		}
@@ -70,8 +70,7 @@
 			}
 			
 			switch ($testItem.Type) {
-				'Update'
-				{
+				'Update' {
 					Write-PSFMessage -Level Debug -String 'Invoke-DMAccessRule.Processing.Rules' -StringValues $testItem.Identity, $testItem.Changed.Count -Target $testItem
 
 					try { $aclObject = Get-AdsAcl @parameters -Path $testItem.Identity -EnableException }
@@ -81,15 +80,34 @@
 						#region Remove Access Rules
 						if ($changeEntry.Type -eq 'Delete') {
 							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Remove' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry
-							if (-not $aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule)) {
+							$aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule)
+							Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
+							
+							$stillThere = $false
+							foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
+								if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
+									$stillThere = $true
+									$failedCount = $failedCount + 1
+									break
+								}
+							}
+
+							if ($stillThere -and $alternativeRemoval) {
+								$null = $aclObject.RemoveAccessRule($changeEntry.ADObject.OriginalRule)
 								Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
+							
+								$stillThere = $false
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
 									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
-										Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry -Debug:$false
+										$stillThere = $true
 										$failedCount = $failedCount + 1
 										break
 									}
 								}
+							}
+
+							if ($stillThere) {
+								Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Failed' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry -Debug:$false
 							}
 							continue
 						}
@@ -103,8 +121,7 @@
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
 							}
-							catch
-							{
+							catch {
 								$failedCount = $failedCount + 1
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
@@ -122,8 +139,7 @@
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
 							}
-							catch
-							{
+							catch {
 								$failedCount = $failedCount + 1
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
@@ -137,8 +153,7 @@
 						Set-AdsAcl @parameters -Path $testItem.Identity -AclObject $aclObject -EnableException -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
-				'MissingADObject'
-				{
+				'MissingADObject' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.ADObject.Missing' -StringValues $testItem.Identity -Target $testItem -Debug:$false
 				}
 			}
