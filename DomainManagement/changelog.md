@@ -1,7 +1,8 @@
 ﻿# Changelog
 
-## ???
+## 1.8.183 (2022-11-15)
 
+- Upd: AccessRules - added alternative option to remove access rules
 - Fix: GPLink - adds links without a matching group policy objects, leading to a corrupt GPLink configuration
 - Fix: Group Policy - error for `ParseExact` in some cases (related to WMI Filters)
 
