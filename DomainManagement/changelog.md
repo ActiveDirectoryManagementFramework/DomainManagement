@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: GPLink - added result type "GpoMissing", refusing to update links when involved GPOs do not exist.
+- Fix: Password Generation - a very rare few passwords would not meet complexity requirements.
+
 ## 1.8.183 (2022-11-15)
 
 - Upd: AccessRules - added alternative option to remove access rules
