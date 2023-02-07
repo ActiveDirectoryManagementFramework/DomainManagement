@@ -2,6 +2,7 @@
 
 ## ???
 
+- Upd: ServiceAccount - extended KDS Root Key validation to accept presence of a gMSA as proof of existence, even if we cannot see the key.
 - Upd: GPLink - added result type "GpoMissing", refusing to update links when involved GPOs do not exist.
 - Fix: Password Generation - a very rare few passwords would not meet complexity requirements.
 
