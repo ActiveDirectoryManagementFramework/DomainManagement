@@ -18,6 +18,7 @@
 
 		Returns the access rules applied to the AdminSDHolder object of the current domain.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer]
