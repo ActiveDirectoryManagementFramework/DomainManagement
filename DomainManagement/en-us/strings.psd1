@@ -74,6 +74,7 @@
 	'Invoke-DMExchange.WinRM.Failed'                                    = 'Failed to connect to {0} via WinRM' # $Server
 	
 	'Invoke-DMGPLink.Delete.AllEnabled'                                 = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
+	'Invoke-DMGPLink.GpoMissing'                                        = 'Skipping GP Link application for {0} - cannot resolve Group Policies "{1}"' # $testItem.ADObject, (($testItem.Changed | Where-Object Action -eq 'GpoMissing').Policy -join ", ")
 	'Invoke-DMGPLink.New'                                               = 'Linking {0} group policies (all new links)' # $countConfigured
 	'Invoke-DMGPLink.New.GpoNotFound'                                   = 'Unable to find Group POlicy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.New.NewGPLinkString'                               = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString

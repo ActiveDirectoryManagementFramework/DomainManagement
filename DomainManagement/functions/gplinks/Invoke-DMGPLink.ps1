@@ -206,10 +206,12 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update' {
-					if (-not ($testItem.Changed | Where-Object Action -ne 'GpoMissing')) { continue }
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.AllEnabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
 						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
+				}
+				'GpoMissing' {
+					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.GpoMissing' -StringValues $testItem.ADObject, (($testItem.Changed | Where-Object Action -eq 'GpoMissing').Policy -join ", ")
 				}
 			}
 		}

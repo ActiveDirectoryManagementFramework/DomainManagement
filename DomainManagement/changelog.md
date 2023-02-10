@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## 1.8.188 (2023-02-10)
+
+- Upd: ServiceAccount - extended KDS Root Key validation to accept presence of a gMSA as proof of existence, even if we cannot see the key.
+- Upd: GPLink - added result type "GpoMissing", refusing to update links when involved GPOs do not exist.
+- Upd: AccessRules - prevented 'Restore' results for the 'CREATOR OWNER' identity
+- Upd: AccessRules - protected accounts (AdminCount -eq 1) will attempt to take the same permissions as the AdminSDHolder object, rather than any configuration or schema defaults as their desired state.
+- Fix: Password Generation - a very rare few passwords would not meet complexity requirements.
+
 ## 1.8.183 (2022-11-15)
 
 - Upd: AccessRules - added alternative option to remove access rules

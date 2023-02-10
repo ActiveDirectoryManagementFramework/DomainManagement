@@ -45,9 +45,13 @@
 	}
 	process
 	{
-		$letters = foreach ($number in (1..$Length)) {
-			$characters[(($number % 4) + (1..4 | Get-Random))] | Get-Random
+		$letters = foreach ($number in (5..$Length)) {
+			$characters[(($number % 4) + (0..4 | Get-Random))] | Get-Random
 		}
+		0,1,2,3 | ForEach-Object {
+			$letters += $characters[$_] | Get-Random
+		}
+		$letters = $letters | Sort-Object { Get-Random }
 		if ($AsSecureString) { $letters -join "" | ConvertTo-SecureString -AsPlainText -Force }
 		else { $letters -join "" }
 	}

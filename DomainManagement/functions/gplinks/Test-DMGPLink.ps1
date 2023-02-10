@@ -302,13 +302,17 @@
 			}
 			#endregion Handle AD Object does not contain any links
 
-			$updates = Get-LinkUpdate -Configuration $ouDatum -ADObject $adObject -GpoDisplayToDN $gpoDisplayToDN
+			$updates = Get-LinkUpdate -Configuration $ouDatum -ADObject $adObject -GpoDisplayToDN $gpoDisplayToDN | Sort-Object {
+				if ($_.Action -eq "Delete") { 0 }
+				elseif ($_.Action -eq "Reorder") { 1 }
+				else { 2 }
+			}
+			if ($updates.Action -contains 'GpoMissing') {
+				New-TestResult @resultDefaults -Type 'GpoMissing' -Changed $updates
+				continue
+			}
 			if ($updates) {
-				New-TestResult @resultDefaults -Type 'Update' -Changed ($updates | Sort-Object {
-						if ($_.Action -eq "Delete") { 0 }
-						elseif ($_.Action -eq "Reorder") { 1 }
-						else { 2 }
-					})
+				New-TestResult @resultDefaults -Type 'Update' -Changed $updates
 			}
 		}
 
