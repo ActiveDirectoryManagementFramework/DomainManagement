@@ -34,6 +34,7 @@
 	begin
 	{
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential
+		$adParameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential -Remap @{ ComputerName = 'Server' }
 	}
 	process
 	{
@@ -45,6 +46,11 @@
 			$_.EffectiveTime -LT (Get-Date).AddHours(-10) -and
 			$_.DomainController -match ",OU=[^,]+,$($domain.DistinguishedName)$"
 		}) { return $true }
+
+		# If at least one gMSA exists, we can know it exists, even if we cannot see the KDS Root Key
+		if (Get-ADServiceAccount @adParameters -Filter * -ResultSetSize 1) {
+			return $true
+		}
 		
 		$paramGetPSFUserChoice = @{
 			Caption = 'No active KDS Root Key Detected'

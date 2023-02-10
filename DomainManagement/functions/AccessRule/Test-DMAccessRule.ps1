@@ -49,8 +49,11 @@
 		function Compare-AccessRules {
 			[CmdletBinding()]
 			param (
+				[AllowEmptyCollection()]
 				$ADRules,
+				[AllowEmptyCollection()]
 				$ConfiguredRules,
+				[AllowEmptyCollection()]
 				$DefaultRules,
 				$ADObject,
 
@@ -175,6 +178,12 @@
 			:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray()}) {
 				# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
 				if ($ADObject -like $domainControllersOUFilter) { break }
+
+				# Skip 'CREATOR OWNER' Rules, as those should never be restored.
+				# When creating an AD object that has this group as default permissions, it will instead
+				# Translate those to the identity creating the object
+				if ('S-1-3-0' -eq $defaultRule.SID) { continue }
+
 				foreach ($configuredRule in $ConfiguredRules) {
 					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
 						# If we explicitly don't want the rule: Skip and do NOT create a restoration action
@@ -431,10 +440,18 @@
 				Continue
 			}
 
-			$adObject = Get-ADObject @parameters -Identity $resolvedPath
+			$adObject = Get-ADObject @parameters -Identity $resolvedPath -Properties adminCount
 			
-			$defaultPermissions = Get-DMObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
-			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules ($script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject) -DefaultRules $defaultPermissions -ADObject $adObject
+			if ($adObject.adminCount) {
+				$defaultPermissions = @()
+				$desiredPermmissions = Get-AdminSDHolderRules @parameters
+			}
+			else {
+				$defaultPermissions = Get-DMObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
+				$desiredPermmissions = $script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject
+			}
+
+			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules $desiredPermmissions -DefaultRules $defaultPermissions -ADObject $adObject
 
 			if ($delta) {
 				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject
@@ -447,7 +464,7 @@
 		$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
 
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
-			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
+			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties adminCount
 		}
 
 		$resultDefaults = @{
@@ -476,6 +493,13 @@
 				ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
 				ADObject = $foundADObject
 			}
+
+			# Protected Objects
+			if ($foundADObject.AdminCount) {
+				$compareParam.DefaultRules = @()
+				$compareParam.ConfiguredRules = Get-AdminSDHolderRules @parameters
+			}
+
 			$compareParam += $parameters
 			$delta = Compare-AccessRules @compareParam
 
