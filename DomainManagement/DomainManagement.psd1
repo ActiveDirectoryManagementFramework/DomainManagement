@@ -26,12 +26,12 @@
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules    = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.6.198' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.7.270' }
 		
 		# Additional Dependencies, cannot declare due to bug in dependency handling in PS5.1
-		# @{ ModuleName = 'ADSec'; ModuleVersion = '0.2.1' }
+		# @{ ModuleName = 'ADSec'; ModuleVersion = '1.0.0' }
 		# @{ ModuleName = 'ResolveString'; ModuleVersion = '1.0.0' }
-		# @{ ModuleName = 'ADMF.Core'; ModuleVersion = '1.0.0' }
+		# @{ ModuleName = 'ADMF.Core'; ModuleVersion = '1.1.6' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
