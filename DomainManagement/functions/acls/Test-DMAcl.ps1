@@ -82,7 +82,10 @@
 				$null = $changes.Add((New-Change -Identity $ADObject -Type Owner -OldValue $aclObject.Owner -NewValue ($Category.Owner | Resolve-String) -OldSID $ownerSID -NewSID $configuredSID))
 			}
 			if ($Category.NoInheritance -ne $aclObject.AreAccessRulesProtected) {
-				$null = $changes.Add((New-Change -Identity $ADObject -Type NoInheritance -OldValue $aclObject.AreAccessRulesProtected -NewValue $Category.NoInheritance))
+				# If AdminCount -eq 1, then inheritance should be disabled, no matter the configuration
+				if (-not ($aclObject.AreAccessRulesProtected -and $ADObject.AdminCount)) {
+					$null = $changes.Add((New-Change -Identity $ADObject -Type NoInheritance -OldValue $aclObject.AreAccessRulesProtected -NewValue $Category.NoInheritance))
+				}
 			}
 
 			if ($changes.Count) {
@@ -138,7 +141,7 @@
 
 		#region check if all ADObjects are managed
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
-			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
+			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties AdminCount
 		}
 		
 		$resolvedConfiguredPaths = $script:acls.Values.Path | Resolve-String

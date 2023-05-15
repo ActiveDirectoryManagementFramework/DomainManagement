@@ -132,7 +132,7 @@
 
 		#region Process Managed Containers
 		$foundUsers = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
-			Get-ADUser @parameters -LDAPFilter '(!(isCriticalSystemObject=*))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
+			Get-ADUser @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
 		}
 
 		$resolvedConfiguredNames = $script:users.Values.SamAccountName | Resolve-String

@@ -73,8 +73,12 @@
 			{
 				'Raise'
 				{
+					# Raising the Domain Functional Level MUST target the PDC Emulator
+					$clonedParam = $parameters.Clone()
+					$clonedParam.Server = (Resolve-Domain @parameters).PDCEmulator
+
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMDomainLevel.Raise.Level' -ActionStringValues $testItem.Configuration.Level -Target $testItem.ADObject -ScriptBlock {
-						Set-ADDomainMode @parameters -DomainMode $testItem.Configuration.DesiredLevel -Identity $testItem.ADObject -ErrorAction Stop -Confirm:$false
+						Set-ADDomainMode @clonedParam -DomainMode $testItem.Configuration.DesiredLevel -Identity $testItem.ADObject -ErrorAction Stop -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 				}
 			}
