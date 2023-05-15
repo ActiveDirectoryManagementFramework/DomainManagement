@@ -51,7 +51,9 @@
 		$domain = Get-ADDomain @parameters
 		if ($domain.DomainMode -lt $desiredLevel)
 		{
-			New-TestResult -ObjectType DomainLevel -Type Raise -Identity $domain -Server $Server -Configuration ([pscustomobject]$tempConfiguration) -ADObject $domain
+			New-TestResult -ObjectType DomainLevel -Type Raise -Identity $domain -Server $Server -Configuration ([pscustomobject]$tempConfiguration) -ADObject $domain -Changed (
+				New-AdcChange -Property DomainLevel -OldValue $domain.DomainMode -NewValue $tempConfiguration['DesiredLevel'] -Identity $domain -Type DomainLevel
+			)
 		}
 	}
 }

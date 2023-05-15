@@ -107,7 +107,7 @@
 
 		#region Process Managed Containers
 		$foundOUs = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -IgnoreMissingSearchbase)) {
-			Get-ADOrganizationalUnit @parameters -LDAPFilter '(!(isCriticalSystemObject=*))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties nTSecurityDescriptor | Where-Object DistinguishedName -Ne $searchBase.SearchBase
+			Get-ADOrganizationalUnit @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties nTSecurityDescriptor | Where-Object DistinguishedName -Ne $searchBase.SearchBase
 		}
 
 		$resolvedConfiguredNames = $script:organizationalUnits.Values.DistinguishedName | Resolve-String

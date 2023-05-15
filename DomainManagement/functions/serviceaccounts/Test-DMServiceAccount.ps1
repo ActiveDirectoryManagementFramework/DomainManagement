@@ -1,5 +1,5 @@
 ﻿function Test-DMServiceAccount {
-<#
+	<#
 	.SYNOPSIS
 		Tests whether the currently deployed service accoaunts match the configured desired state.
 	
@@ -44,14 +44,22 @@
 				$NewValue
 			)
 			
-			[pscustomobject]@{
+			$object = [pscustomobject]@{
 				PSTypeName = 'DomainManagement.Change.ServiceAccount'
 				Identity   = $Identity
-				Type	   = $Type
+				Type       = $Type
 				Property   = $Property
-				Previous   = $Previous
-				NewValue   = $NewValue
+				Old        = $Previous
+				New        = $NewValue
 			}
+			Add-Member -InputObject $object -MemberType ScriptMethod -Name ToString -Value {
+				switch ($this.Type) {
+					'Create' { "Create: $($this.Identity)" }
+					'Delete' { "Delete: $($this.Identity)" }
+					# Move, Rename, Update
+					default { "$($this.Type): $($this.Old) -> $($this.New)" }
+				}
+			} -Force -PassThru
 		}
 		#endregion Utility Functions
 		
@@ -78,34 +86,34 @@
 			$resolvedPath = Resolve-String -Text $serviceAccountDefinition.Path @parameters
 			
 			$resultDefaults = @{
-				Server	      = $Server
+				Server        = $Server
 				ObjectType    = 'ServiceAccount'
-				Identity	  = $resolvedName
+				Identity      = $resolvedName
 				Configuration = $serviceAccountDefinition
 			}
 			$adObject = $null
 			
 			try { $adObject = Get-ADServiceAccount @parameters -Identity $resolvedName -ErrorAction Stop -Properties * }
 			catch {
-                foreach ($oldName in $serviceAccountDefinition.OldNames) {
-                    try { $adObject = Get-ADServiceAccount @parameters -Identity ($oldName | Resolve-String @parameters) -ErrorAction Stop -Properties * }
-                    catch { continue }
-                    # No Need to rename when deleting it anyway
-                    if (-not $serviceAccountDefinition.Present) { break }
-                    New-TestResult -Type RenameSam @resultDefaults -ADObject $adObject
+				foreach ($oldName in $serviceAccountDefinition.OldNames) {
+					try { $adObject = Get-ADServiceAccount @parameters -Identity ($oldName | Resolve-String @parameters) -ErrorAction Stop -Properties * }
+					catch { continue }
+					# No Need to rename when deleting it anyway
+					if (-not $serviceAccountDefinition.Present) { break }
+					New-TestResult -Type RenameSam @resultDefaults -ADObject $adObject -Changed (New-AdcChange -Property SamAccountName -OldValue $adObject.SamAccountName -NewValue $resolvedName -Identity $adObject)
 					$renameCurrentSAM += $adObject.SamAccountName
-                    break
-                }
+					break
+				}
 			}
 
-            if (-not $adObject) {
-                # .Present is of type TriBool, so itself would be $true for both 'true' and 'undefined' cases,
-                # and we do not want to create if undefined
-                if ($serviceAccountDefinition.Present -eq 'true') {
-                    New-TestResult -Type Create @resultDefaults (New-Change -Identity $resolvedName -Type Create)
-                }
+			if (-not $adObject) {
+				# .Present is of type TriBool, so itself would be $true for both 'true' and 'undefined' cases,
+				# and we do not want to create if undefined
+				if ($serviceAccountDefinition.Present -eq 'true') {
+					New-TestResult -Type Create @resultDefaults (New-Change -Identity $resolvedName -Type Create)
+				}
 				continue
-            }
+			}
 			$resultDefaults.ADObject = $adObject
 			
 			if (-not $serviceAccountDefinition.Present) {
@@ -130,9 +138,9 @@
 			if ($adObject.ServicePrincipalName -or $serviceAccountDefinition.ServicePrincipalName) {
 				Compare-Property -Property ServicePrincipalName -Configuration $serviceAccountDefinition -ADObject $adObject -Changes $changes -Resolve -Parameters $parameters
 			}
-            if ($adObject.KerberosEncryptionType[0] -ne $serviceAccountDefinition.KerberosEncryptionType) {
-                $null = $changes.Add('KerberosEncryptionType')
-            }
+			if ($adObject.KerberosEncryptionType[0] -ne $serviceAccountDefinition.KerberosEncryptionType) {
+				$null = $changes.Add('KerberosEncryptionType')
+			}
             
 			if ($serviceAccountDefinition.Attributes.Count -gt 0) {
 				$attributesObject = [PSCustomObject]$serviceAccountDefinition.Attributes
@@ -241,7 +249,7 @@
 		}
 		
 		$resultDefaults = @{
-			Server	   = $Server
+			Server     = $Server
 			ObjectType = 'ServiceAccount'
 		}
 		

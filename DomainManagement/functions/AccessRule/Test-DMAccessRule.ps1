@@ -175,7 +175,7 @@
 
 			#region Foreach non-existent default rule: Create unless configured otherwise
 			$domainControllersOUFilter = '*{0}' -f ('OU=Domain Controllers,%DomainDN%' | Resolve-String)
-			:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray()}) {
+			:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray() }) {
 				# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
 				if ($ADObject -like $domainControllersOUFilter) { break }
 
