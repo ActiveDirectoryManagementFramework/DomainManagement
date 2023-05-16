@@ -167,7 +167,8 @@
 
 		Set-DMDomainContext @parameters
 		$warningLevel = 'Warning'
-		if (@(Get-ADOrganizationalUnit @parameters -ErrorAction Ignore -ResultSetSize 2 -Filter *).Count -eq 1) { $warningLevel = 'Verbose' }
+		$domain = Get-Domain2 @parameters
+		if (@(Get-ADOrganizationalUnit @parameters -ErrorAction Ignore -ResultSetSize 2 -Filter * -SearchBase $domain).Count -eq 1) { $warningLevel = 'Verbose' }
     }
     process
     {

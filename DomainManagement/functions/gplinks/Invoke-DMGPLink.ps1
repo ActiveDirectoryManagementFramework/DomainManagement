@@ -1,5 +1,4 @@
-﻿function Invoke-DMGPLink
-{
+﻿function Invoke-DMGPLink {
 	<#
 	.SYNOPSIS
 		Applies the desired group policy linking configuration.
@@ -67,8 +66,7 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		#region Utility Functions
 		function Clear-Link {
 			[CmdletBinding()]
@@ -90,7 +88,7 @@
 				Set-ADObject @parameters -Identity $ADObject -Clear gPLink -ErrorAction Stop
 				return
 			}
-			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = ($ADObject.gPLink -replace ";\d\]",";1]") } -ErrorAction Stop -Confirm:$false
+			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = ($ADObject.gPLink -replace ";\d\]", ";1]") } -ErrorAction Stop -Confirm:$false
 		}
 
 		function New-Link {
@@ -113,16 +111,16 @@
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
 			$gpLinkString = ($Configuration.Include | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-				$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
-				if (-not $gpoDN) {
-					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.New.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
-					return
-				}
-				$stateID = "0"
-				if ($_.State -eq 'Enforced') { $stateID = "2" }
-				if ($_.State -eq 'Disabled') { $stateID = "1" }
-				"[LDAP://$gpoDN;$stateID]"
-			}) -Join ""
+					$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
+					if (-not $gpoDN) {
+						Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.New.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
+						return
+					}
+					$stateID = "0"
+					if ($_.State -eq 'Enforced') { $stateID = "2" }
+					if ($_.State -eq 'Disabled') { $stateID = "1" }
+					"[LDAP://$gpoDN;$stateID]"
+				}) -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.New.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
 			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
 		}
@@ -145,7 +143,9 @@
 				$Disable,
 
 				[Hashtable]
-				$GpoNameMapping
+				$GpoNameMapping,
+
+				$Changes
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
@@ -153,14 +153,24 @@
 			if ($Disable) {
 				$desiredDNs = $Configuration.ExtendedInclude.PolicyName | Resolve-String | ForEach-Object { $GpoNameMapping[$_] }
 				$gpLinkString += ($ADobject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn $desiredDNs | Sort-Object -Property Precedence -Descending | ForEach-Object {
-					"[LDAP://$($_.DistinguishedName);1]"
-				}) -join ""
+						"[LDAP://$($_.DistinguishedName);1]"
+					}) -join ""
 			}
 			
-			$gpLinkString += ($Configuration.ExtendedInclude | Where-Object DistinguishedName | Sort-Object -Property  @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-				$_.ToLink()
-			}) -Join ""
-			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.Update.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
+			$gpLinkString += ($Configuration.ExtendedInclude | Where-Object DistinguishedName | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
+					$_.ToLink()
+				}) -Join ""
+			$msgParam = @{
+				Level        = 'SomewhatVerbose'
+				Tag          = 'change'
+				Target       = $ADObject
+				FunctionName = 'Invoke-DMGPLink'
+			}
+			Write-PSFMessage @msgParam -String 'Invoke-DMGPLink.Update.OldGPLinkString' -StringValues $ADObject.DistinguishedName, $ADObject.gPLink
+			foreach ($change in $Changes) {
+				Write-PSFMessage @msgParam -String 'Invoke-DMGPLink.Update.Change' -StringValues $change.Action, $change.Policy, $ADObject.DistinguishedName
+			}
+			Write-PSFMessage @msgParam -String 'Invoke-DMGPLink.Update.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString
 			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
 		}
 		#endregion Utility Functions
@@ -178,7 +188,7 @@
 			$gpoDNToDisplay[$adPolicyObject.DistinguishedName] = $adPolicyObject.DisplayName
 		}
 	}
-	process{
+	process {
 		if (-not $InputObject) {
 			$InputObject = Test-DMGPLink @parameters
 		}
@@ -192,7 +202,7 @@
 			
 			$countConfigured = ($testItem.Configuration | Measure-Object).Count
 			$countActual = ($testItem.ADObject.LinkedGroupPolicyObjects | Measure-Object).Count
-			$countNotInConfig = ($testItem.ADObject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -notin ($testItem.Configuration.PolicyName | Remove-PSFNull| Resolve-String | ForEach-Object { $gpoDisplayToDN[$_] }) | Measure-Object).Count
+			$countNotInConfig = ($testItem.ADObject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn ($testItem.Configuration.PolicyName | Remove-PSFNull | Resolve-String | ForEach-Object { $gpoDisplayToDN[$_] }) | Measure-Object).Count
 
 			switch ($testItem.Type) {
 				'Delete' {
@@ -207,11 +217,11 @@
 				}
 				'Update' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Update.AllEnabled' -ActionStringValues $countConfigured, $countActual, $countNotInConfig -Target $testItem -ScriptBlock {
-						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
+						Update-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -Disable $Disable -GpoNameMapping $gpoDisplayToDN -Changes $testItem.Changed -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'GpoMissing' {
-					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.GpoMissing' -StringValues $testItem.ADObject, (($testItem.Changed | Where-Object Action -eq 'GpoMissing').Policy -join ", ")
+					Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.GpoMissing' -StringValues $testItem.ADObject, (($testItem.Changed | Where-Object Action -EQ 'GpoMissing').Policy -join ", ")
 				}
 			}
 		}

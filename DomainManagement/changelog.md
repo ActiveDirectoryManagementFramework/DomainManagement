@@ -1,5 +1,18 @@
 ﻿# Changelog
 
+## 1.8.198 (2023-05-15)
+
+- Upd: Acl - Will no longer try to enable inheritance for objects protected under the AdminSDHolder
+- Upd: DomainLevel - Test Result includes a proper `Changed` field, better displaying the pending changes
+- Upd: GPLink - improved logging messages to include individual changes on update.
+- Upd: GPLink - OUFilter now supports full range of wildcard patterns
+- Upd: Groups - improved test result user experience
+- Upd: ServiceAccount - changed KDS Root Key evaluation order to first look for an existing gMSA.
+- Upd: ServiceAccount - improved test result user experience
+- Fix: DomainLevel - Invoking against a non-PDC Emulator fails.
+- Fix: Groups - fails to detect undesired group objects if they were once flagged as system critical
+- Fix: Users - fails to detect undesired user objects if they were once flagged as system critical
+
 ## 1.8.188 (2023-02-10)
 
 - Upd: ServiceAccount - extended KDS Root Key validation to accept presence of a gMSA as proof of existence, even if we cannot see the key.

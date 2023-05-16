@@ -52,7 +52,8 @@
 			)
 	
 			$nameFilter = (@($Fragments)[0] -split "=",2)[-1]
-			$adObjects = Get-ADObject @Parameters -SearchBase $BasePath -SearchScope OneLevel -LDAPFilter "(name=$nameFilter)"
+			$nameLdapFilter = $nameFilter -replace '\[.+?\]|\?','*'
+			$adObjects = Get-ADObject @Parameters -SearchBase $BasePath -SearchScope OneLevel -LDAPFilter "(name=$nameLdapFilter)" | Where-Object Name -like $nameFilter
 			if (@($Fragments).Count -eq 1) {
 				return $adObjects
 			}

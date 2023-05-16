@@ -77,7 +77,7 @@
 
 					#region Case: One old version present
 					1 {
-						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups
+						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups -Changed (New-AdcChange -Identity $adObject -Property Name -OldValue $oldGroups.Name -NewValue $resolvedName)
 						$oldNamesFound += $oldGroups.Name
 						continue main
 					}
@@ -120,7 +120,7 @@
 		}
 
 		$foundGroups = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
-			Get-ADGroup @parameters -LDAPFilter '(!(isCriticalSystemObject=*))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
+			Get-ADGroup @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
 		}
 
 		$resolvedConfiguredNames = $script:groups.Values.Name | Resolve-String
