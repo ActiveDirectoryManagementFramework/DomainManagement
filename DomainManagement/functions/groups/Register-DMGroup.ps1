@@ -25,7 +25,7 @@
 	
 	.PARAMETER Scope
 		The scope of the group.
-		Use DomainLocal for groups that grrant direct permissions and Global for role groups.
+		Use DomainLocal for groups that grant direct permissions and Global for role groups.
 
 	.PARAMETER Category
 		Whether the group should be a security group or a distribution group.
