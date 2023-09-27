@@ -52,7 +52,9 @@
 		if ($domain.DomainMode -lt $desiredLevel)
 		{
 			New-TestResult -ObjectType DomainLevel -Type Raise -Identity $domain -Server $Server -Configuration ([pscustomobject]$tempConfiguration) -ADObject $domain -Changed (
-				New-AdcChange -Property DomainLevel -OldValue $domain.DomainMode -NewValue $tempConfiguration['DesiredLevel'] -Identity $domain -Type DomainLevel
+				New-AdcChange -Property DomainLevel -OldValue $domain.DomainMode -NewValue $tempConfiguration['DesiredLevel'] -Identity $domain -Type DomainLevel -ToString {
+					{ '{0}: {1} -> {2}' -f $this.Identity, $this.Old, $this.New }
+				}
 			)
 		}
 	}

@@ -58,6 +58,8 @@
 			#endregion Group that needs to be removed
 
 			#region Groups that don't exist but should | Groups that need to be renamed
+			# Flag to avoid duplicate renames in case of OldNames
+			$noNameUpdate = $false
 			try { $adObject = Get-ADGroup @parameters -Identity $resolvedName -Properties Description -ErrorAction Stop }
 			catch {
 				$oldGroups = foreach ($oldName in ($groupDefinition.OldNames | Resolve-String)) {
@@ -79,7 +81,8 @@
 					1 {
 						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups -Changed (New-AdcChange -Identity $adObject -Property Name -OldValue $oldGroups.Name -NewValue $resolvedName)
 						$oldNamesFound += $oldGroups.Name
-						continue main
+						$noNameUpdate = $true
+						$adObject = $oldGroups
 					}
 					#endregion Case: One old version present
 
@@ -108,7 +111,9 @@
 			Compare-Property @compare -Property Description -Resolve
 			Compare-Property @compare -Property Category -ADProperty GroupCategory
 			Compare-Property @compare -Property Scope -ADProperty GroupScope
-			Compare-Property @compare -Property Name -Resolve
+			if (-not $noNameUpdate) {
+				Compare-Property @compare -Property Name -Resolve
+			}
 			$ouPath = ($adObject.DistinguishedName -split ",", 2)[1]
 			if ($ouPath -ne (Resolve-String -Text $groupDefinition.Path)) {
 				$null = $changes.Add((New-Change -Property Path -OldValue $ouPath -NewValue (Resolve-String -Text $groupDefinition.Path) -Identity $adObject -Type Group))

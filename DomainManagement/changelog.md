@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.8.199 (2023-09-27)
+
+- Fix: Groups - When renaming a group from a previous name, it will not find other updates to apply
+
 ## 1.8.198 (2023-05-15)
 
 - Upd: Acl - Will no longer try to enable inheritance for objects protected under the AdminSDHolder
