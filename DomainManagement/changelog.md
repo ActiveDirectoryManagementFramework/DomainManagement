@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: Group Policy - will now detect group policies that have been created but not yet linked as created.
+
 ## 1.8.199 (2023-09-27)
 
 - Fix: Groups - When renaming a group from a previous name, it will not find other updates to apply

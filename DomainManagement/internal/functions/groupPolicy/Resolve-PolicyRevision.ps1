@@ -101,7 +101,7 @@
 			else {
 				$Policy.State = 'CriticalError'
 				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.PolicyError' -StringValues $Policy.DisplayName -Target $Policy
-				throw "Policy object not found in filesystem. Check existence and permissions!"
+				throw "Policy object not found in filesystem. Check existence and permissions! $($Policy.DisplayName) ($($Policy.ObjectGUID))"
 			}
 		}
 		else {
