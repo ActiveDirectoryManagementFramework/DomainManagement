@@ -113,7 +113,7 @@
 				'Healthy' {
 					$changes = [System.Collections.ArrayList]@()
 					$policyObject = $policyHash[$desiredPolicy.DisplayName]
-					if ($policyObject.Version -ne $policyObject.ADVersion) {
+					if (-not $desiredPolicy.MayModify -and $policyObject.Version -ne $policyObject.ADVersion) {
 						$change = New-Change -Property Modified -OldValue $policyObject.Version -NewValue $policyObject.ADVersion -Identity $desiredPolicy.DisplayName -Type AdmfVersion
 						$null = $changes.Add($change)
 					}
