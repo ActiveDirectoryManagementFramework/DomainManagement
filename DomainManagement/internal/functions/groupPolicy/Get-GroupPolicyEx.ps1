@@ -1,4 +1,4 @@
-﻿function Get-LinkedPolicy {
+﻿function Get-GroupPolicyEx {
 	<#
 	.SYNOPSIS
 		Scans all managed OUs and returns linked GPOs.
@@ -14,7 +14,7 @@
 		The credentials to use for this operation.
 	
 	.EXAMPLE
-		PS C:\> Get-LinkedPolicy @parameters
+		PS C:\> Get-GroupPolicyEx @parameters
 
 		Returns all group policy objects that are linked to OUs under management.
 	#>
@@ -47,10 +47,11 @@
 		$adObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
 			Get-ADObject @parameters -LDAPFilter '(gPLink=*)' -SearchBase $searchBase.SearchBase -SearchScope $translateScope[$searchBase.SearchScope] -Properties gPLink
 		}
+		$managedGPs = $adObjects.gPLink | Split-GPLink | Sort-Object -Unique
 		foreach ($adObject in $adObjects) {
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value ($adObject.gPLink | Split-GPLink) -Force
 		}
-		foreach ($adPolicyObject in ($adObjects.LinkedGroupPolicyObjects | Select-Object -Unique | Get-ADObject @parameters -Properties $gpoProperties)) {
+		foreach ($adPolicyObject in Get-ADObject @parameters -LDAPFilter '(objectCategory=groupPolicyContainer)' -Properties $gpoProperties) {
 			$result = [PSCustomObject]@{
 				PSTypeName        = 'DomainManagement.GroupPolicy.Linked'
 				DisplayName       = $adPolicyObject.DisplayName
@@ -63,6 +64,7 @@
 				Path              = $adPolicyObject.gPCFileSysPath
 				ObjectGUID        = $adPolicyObject.ObjectGUID
 				IsCritical        = $adPolicyObject.isCriticalSystemObject
+				IsManageLinked    = $adPolicyObject.DistinguishedName -in $managedGPs
 				ADVersion         = $adPolicyObject.VersionNumber
 				ExportID          = $null
 				ImportTime        = $null
@@ -74,7 +76,7 @@
 			if ($adPolicyObject.gPCWQLFilter) {
 				$result.WmiFilter = "<unknown: $($adPolicyObject.gPCWQLFilter))=>"
 				$registeredID = ($adPolicyObject.gPCWQLFilter -split ";")[1]
-				$wmiFilter = $wmiFilters | Where-Object ID -eq $registeredID
+				$wmiFilter = $wmiFilters | Where-Object ID -EQ $registeredID
 				if ($wmiFilter) { $result.WmiFilter = $wmiFilter.Name }
 			}
 			$result
