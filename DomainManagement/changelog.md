@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 1.8.201 (2023-12-08)
+
+- Upd: Group Policy - will now detect group policies that have been created but not yet linked as created.
+- Upd: Group Policy - supports a setting (`-MayModify`) to ignore manual changes after deploying a GPO via ADMF.
+
 ## 1.8.199 (2023-09-27)
 
 - Fix: Groups - When renaming a group from a previous name, it will not find other updates to apply

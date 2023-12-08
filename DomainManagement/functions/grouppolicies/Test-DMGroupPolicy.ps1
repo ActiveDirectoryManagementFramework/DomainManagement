@@ -72,23 +72,23 @@
 
 		#region Gather data
 		$desiredPolicies = Get-DMGroupPolicy
-		$managedPolicies = Get-LinkedPolicy @parameters
-		foreach ($managedPolicy in $managedPolicies) {
-			if (-not $managedPolicy.DisplayName) {
-				Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.ADObjectAccess.Failed' -StringValues $managedPolicy.DistinguishedName -Target $managedPolicy
-				New-TestResult @resultDefaults -Type 'ADAccessFailed' -Identity $managedPolicy.DistinguishedName -ADObject $managedPolicy
+		$allPolicies = Get-GroupPolicyEx @parameters
+		foreach ($groupPolicy in $allPolicies) {
+			if (-not $groupPolicy.DisplayName) {
+				Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.ADObjectAccess.Failed' -StringValues $groupPolicy.DistinguishedName -Target $groupPolicy
+				New-TestResult @resultDefaults -Type 'ADAccessFailed' -Identity $groupPolicy.DistinguishedName -ADObject $groupPolicy
 				continue
 			}
-			# Resolve-PolicyRevision updates the content of $managedPolicy without producing output
-			try { Resolve-PolicyRevision -Policy $managedPolicy -Session $session }
-			catch { Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.PolicyRevision.Lookup.Failed' -StringValues $managedPolicies.DisplayName -ErrorRecord $_ -EnableException $EnableException.ToBool() }
+			# Resolve-PolicyRevision updates the content of $groupPolicy without producing output
+			try { Resolve-PolicyRevision -Policy $groupPolicy -Session $session }
+			catch { Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.PolicyRevision.Lookup.Failed' -StringValues $allPolicies.DisplayName -ErrorRecord $_ -EnableException $EnableException.ToBool() }
 		}
 		$desiredHash = @{ }
-		$managedHash = @{ }
+		$policyHash = @{ }
 		foreach ($desiredPolicy in $desiredPolicies) { $desiredHash[$desiredPolicy.DisplayName] = $desiredPolicy }
-		foreach ($managedPolicy in $managedPolicies) {
-			if (-not $managedPolicy.DisplayName) { continue }
-			$managedHash[$managedPolicy.DisplayName] = $managedPolicy
+		foreach ($groupPolicy in $allPolicies) {
+			if (-not $groupPolicy.DisplayName) { continue }
+			$policyHash[$groupPolicy.DisplayName] = $groupPolicy
 		}
 		#endregion Gather data
 
@@ -100,20 +100,20 @@
 				Configuration = $desiredPolicy
 			}
 
-			if (-not $managedHash[$desiredPolicy.DisplayName]) {
+			if (-not $policyHash[$desiredPolicy.DisplayName]) {
 				New-TestResult @resultUpdateDefaults -Type 'Create'
 				continue
 			}
 
-			$resultUpdateDefaults.ADObject = $managedHash[$desiredPolicy.DisplayName]
+			$resultUpdateDefaults.ADObject = $policyHash[$desiredPolicy.DisplayName]
 
-			switch ($managedHash[$desiredPolicy.DisplayName].State) {
+			switch ($policyHash[$desiredPolicy.DisplayName].State) {
 				'ConfigError' { New-TestResult @resultUpdateDefaults -Type 'ConfigError' }
 				'CriticalError' { New-TestResult @resultUpdateDefaults -Type 'CriticalError' }
 				'Healthy' {
 					$changes = [System.Collections.ArrayList]@()
-					$policyObject = $managedHash[$desiredPolicy.DisplayName]
-					if ($policyObject.Version -ne $policyObject.ADVersion) {
+					$policyObject = $policyHash[$desiredPolicy.DisplayName]
+					if (-not $desiredPolicy.MayModify -and $policyObject.Version -ne $policyObject.ADVersion) {
 						$change = New-Change -Property Modified -OldValue $policyObject.Version -NewValue $policyObject.ADVersion -Identity $desiredPolicy.DisplayName -Type AdmfVersion
 						$null = $changes.Add($change)
 					}
@@ -128,8 +128,8 @@
 							$null = $changes.Add($change)
 						}
 					}
-					if ("$($desiredPolicy.WmiFilter)" -ne "$($managedHash[$desiredPolicy.DisplayName].WmiFilter)") {
-						$change = New-Change -Property WmiFilter -OldValue $managedHash[$desiredPolicy.DisplayName].WmiFilter -NewValue $desiredPolicy.WmiFilter -Identity $desiredPolicy.DisplayName -Type WmiFilterAssignment
+					if ("$($desiredPolicy.WmiFilter)" -ne "$($policyHash[$desiredPolicy.DisplayName].WmiFilter)") {
+						$change = New-Change -Property WmiFilter -OldValue $policyHash[$desiredPolicy.DisplayName].WmiFilter -NewValue $desiredPolicy.WmiFilter -Identity $desiredPolicy.DisplayName -Type WmiFilterAssignment
 						$null = $changes.Add($change)
 					}
 					if ($changes.Count -gt 0) {
@@ -144,10 +144,13 @@
 		#endregion Compare configuration to actual state
 
 		#region Compare actual state to configuration
-		foreach ($managedPolicy in $managedHash.Values) {
-			if ($desiredHash[$managedPolicy.DisplayName]) { continue }
-			if ($managedPolicy.IsCritical) { continue }
-			New-TestResult @resultDefaults -Type 'Delete' -Identity $managedPolicy.DisplayName -ADObject $managedPolicy
+		foreach ($groupPolicy in $policyHash.Values) {
+			if ($desiredHash[$groupPolicy.DisplayName]) { continue }
+			if ($groupPolicy.IsCritical) { continue }
+
+			# Don't delete any GPOs that have not been linked under a managed OU while not being desired
+			if (-not $groupPolicy.IsManageLinked) { continue }
+			New-TestResult @resultDefaults -Type 'Delete' -Identity $groupPolicy.DisplayName -ADObject $groupPolicy
 		}
 		#endregion Compare actual state to configuration
 	}

@@ -22,6 +22,9 @@
 	.PARAMETER ExportID
 		The tracking ID assigned to the GPO in order to detect its revision.
 
+	.PARAMETER MayModify
+		The group policy may be modified manually after deployment.
+
 	.PARAMETER WmiFilter
 		The WmiFilter to apply to the group policy object.
 
@@ -59,6 +62,10 @@
 		$ExportID,
 
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[switch]
+		$MayModify,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$WmiFilter,
 		
@@ -74,6 +81,7 @@
 			ID          = $ID
 			Path        = $Path
 			ExportID    = $ExportID
+			MayModify   = $MayModify
 			WmiFilter   = $WmiFilter
 			ContextName = $ContextName
 		}

@@ -11,7 +11,7 @@
 		PowerShell remoting session to the server on which to perform the operation.
 	
 	.PARAMETER ADObject
-		AD object data retrieved when scanning the domain using Get-LinkedPolicy.
+		AD object data retrieved when scanning the domain using Get-GroupPolicyEx.
 	
 	.EXAMPLE
 		PS C:\> Remove-GroupPolicy -Session $session -ADObject $testItem.ADObject -ErrorAction Stop
