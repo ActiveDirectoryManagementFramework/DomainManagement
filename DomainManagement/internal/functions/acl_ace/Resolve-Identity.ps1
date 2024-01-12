@@ -29,6 +29,7 @@
 
 		Resolve the Identity in $name
 	#>
+	[OutputType([System.Security.Principal.NTAccount])]
 	[CmdletBinding()]
 	param (
 		[string]

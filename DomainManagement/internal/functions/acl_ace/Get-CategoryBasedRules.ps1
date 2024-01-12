@@ -26,6 +26,7 @@
 
 		Returns all access rules applicable to $foundADObject via category rules.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
