@@ -194,6 +194,7 @@
 	
 	'Test-DMAccessRule.DefaultPermission.Failed'                        = 'Failed to retrieve default permissions from Schema when connecting to {0}' # $Server
 	'Test-DMAccessRule.NoAccess'                                        = 'Failed to access {0}' # $resolvedPath
+	'Test-DMAccessRule.Parallel.Error'                                  = 'Failed to process {0}' # $fail.ADObject
 	
 	'Test-DMAcl.ADObjectNotFound'                                       = 'The target object could not be found: {0}' # $resolvedPath
 	'Test-DMAcl.NoAccess'                                               = 'Failed to access Acl on {0}' # $resolvedPath

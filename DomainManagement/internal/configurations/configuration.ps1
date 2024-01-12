@@ -16,3 +16,10 @@ Set-PSFConfig -Module 'DomainManagement' -Name 'Import.IndividualFiles' -Value $
 
 Set-PSFConfig -Module 'DomainManagement' -Name 'ServiceAccount.SkipKdsCheck' -Value $false -Initialize -Validation bool -Description 'Whether the check for a KDS Root Key should be skipped. By default, Invoke-DMServiceAccount will validate the necessary key exists before creating gMSA. However, reading the key requires Domain Admin privileges, which may not always be available. Skipping the check will cause gMSA creation to fail with an error, if the KDSRootKey does not yet exist.'
 Set-PSFConfig -Module 'DomainManagement' -Name 'AccessRules.Remove.Option2' -Value $false -Initialize -Validation bool -Description 'In some environments, the default way of removing access rules have proved to not work out. Using this option enables a second way for removing access rules.'
+
+#$coreCount = $env:NUMBER_OF_PROCESSORS
+#if (-not $coreCount) { $coreCount = 4 }
+# Should not use more than 4 for now, until retries are configurable
+Set-PSFConfig -Module 'DomainManagement' -Name 'AccessRules.Threads' -Value 4 -Initialize -Validation integerpositive -Description 'The number of runspaces to use for access rule processing. This is an in-memory operation, using more cores than available is disadviced.'
+# Should be disabled by default, as runspace feature not quite stable yet
+Set-PSFConfig -Module 'DomainManagement' -Name 'AccessRules.Parallelize' -Value $false -Initialize -Validation bool -Description 'Whether to process AccessRules with multiple runspaces (recommended for performance reasons).'
