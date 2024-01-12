@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.8.202 (2024-01-12)
+
+- Upd: Access Rules - added option to parallelize tests (experimental)
+
 ## 1.8.201 (2023-12-08)
 
 - Upd: Group Policy - will now detect group policies that have been created but not yet linked as created.
