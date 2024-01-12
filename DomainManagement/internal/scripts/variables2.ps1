@@ -28,3 +28,6 @@ $script:builtInSidMapping = @{
 	# 'BUILTIN\RDS Management Servers'                                    = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-577'
 	# 'BUILTIN\Storage Replica Administrators'                            = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-582'
 }
+
+# Persistent Cache for Default Permissions
+$script:schemaObjectDefaultPermission = @{ }

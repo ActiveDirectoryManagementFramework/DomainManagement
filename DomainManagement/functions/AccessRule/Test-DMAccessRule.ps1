@@ -1,5 +1,4 @@
-﻿function Test-DMAccessRule
-{
+﻿function Test-DMAccessRule {
 	<#
 	.SYNOPSIS
 		Validates the targeted domain's Access Rule configuration.
@@ -34,6 +33,7 @@
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseOutputTypeCorrectly", "")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer]
@@ -43,159 +43,8 @@
 		$Credential
 	)
 	
-	begin
-	{
+	begin {
 		#region Utility Functions
-		function Compare-AccessRules {
-			[CmdletBinding()]
-			param (
-				[AllowEmptyCollection()]
-				$ADRules,
-				[AllowEmptyCollection()]
-				$ConfiguredRules,
-				[AllowEmptyCollection()]
-				$DefaultRules,
-				$ADObject,
-
-				[PSFComputer]
-				$Server,
-				
-				[PSCredential]
-				$Credential
-			)
-
-			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-
-			# Resolve the mode under which it will be evaluated. Either 'Additive' or 'Constrained'
-			$processingMode = Resolve-DMAccessRuleMode @parameters -ADObject $adObject
-
-			function Write-Result {
-				[CmdletBinding()]
-				param (
-					[ValidateSet('Create', 'Delete', 'FixConfig', 'Restore')]
-					[Parameter(Mandatory = $true)]
-					$Type,
-
-					$Identity,
-
-					[AllowNull()]
-					$ADObject,
-
-					[AllowNull()]
-					$Configuration,
-
-                    [string]
-                    $DistinguishedName
-				)
-
-				$item = [PSCustomObject]@{
-					PSTypeName = 'DomainManagement.AccessRule.Change'
-					Type = $Type
-					ACT = $ADObject.AccessControlType
-					Identity = $Identity
-					Rights = $ADObject.ActiveDirectoryRights
-                    DistinguishedName = $DistinguishedName
-					ADObject = $ADObject
-					Configuration = $Configuration
-				}
-				if (-not $ADObject) {
-					$item.ACT = $Configuration.AccessControlType
-					$item.Rights = $Configuration.ActiveDirectoryRights
-				}
-				Add-Member -InputObject $item -MemberType ScriptMethod ToString -Value { '{0}: {1}' -f $this.Type, $this.Identity } -Force -PassThru
-			}
-
-			$defaultRulesPresent = [System.Collections.ArrayList]::new()
-			$relevantADRules = :outer foreach ($adRule in $ADRules) {
-				if ($adRule.OriginalRule.IsInherited) { continue }
-				#region Skip OUs' "Protect from Accidential Deletion" ACE
-				if (($adRule.AccessControlType -eq 'Deny') -and ($ADObject.ObjectClass -eq 'organizationalUnit')) {
-					if ($adRule.IdentityReference -eq 'everyone') { continue }
-					$eSid = [System.Security.Principal.SecurityIdentifier]'S-1-1-0'
-					$eName = $eSid.Translate([System.Security.Principal.NTAccount])
-					if ($adRule.IdentityReference -eq $eName) { continue }
-					if ($adRule.IdentityReference -eq $eSid) { continue }
-				}
-				#endregion Skip OUs' "Protect from Accidential Deletion" ACE
-
-				foreach ($defaultRule in $DefaultRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $adRule -Rule2 $defaultRule) {
-						$null = $defaultRulesPresent.Add($defaultRule)
-						continue outer
-					}
-				}
-				$adRule
-			}
-
-			#region Foreach non-default AD Rule: Check whether configured and delete if not so
-			:outer foreach ($relevantADRule in $relevantADRules) {
-				foreach ($configuredRule in $ConfiguredRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
-                        # If explicitly defined for deletion, do so
-                        if ('False' -eq $configuredRule.Present) {
-                            Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
-                        }
-                        continue outer
-                    }
-				}
-
-                # Don't generate delete changes
-				if ($processingMode -eq 'Additive') { continue }
-                # Don't generate delete changes, unless we have configured a permission level for the affected identity
-				if ($processingMode -eq 'Defined') {
-					if (-not ($relevantADRule.IdentityReference | Compare-Identity -Parameters $parameters -ReferenceIdentity $ConfiguredRules.IdentityReference -IncludeEqual -ExcludeDifferent)) {
-						continue
-					}
-				}
-
-				Write-Result -Type Delete -Identity $relevantADRule.IdentityReference -ADObject $relevantADRule -DistinguishedName $ADObject
-			}
-			#endregion Foreach non-default AD Rule: Check whether configured and delete if not so
-
-			#region Foreach configured rule: Check whether it exists as defined or make it so
-			:outer foreach ($configuredRule in $ConfiguredRules) {
-				foreach ($defaultRule in $DefaultRules) {
-					if ('True' -ne $configuredRule.Present) { break }
-					if ($configuredRule.NoFixConfig) { break }
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
-						Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
-						continue outer
-					}
-				}
-				foreach ($relevantADRule in $relevantADRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
-						continue outer
-					}
-				}
-                # Do not generate Create rules for any rule not configured for creation
-                if ('True' -ne $configuredRule.Present) { continue }
-				Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule -DistinguishedName $ADObject
-			}
-			#endregion Foreach configured rule: Check whether it exists as defined or make it so
-
-			#region Foreach non-existent default rule: Create unless configured otherwise
-			$domainControllersOUFilter = '*{0}' -f ('OU=Domain Controllers,%DomainDN%' | Resolve-String)
-			:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray() }) {
-				# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
-				if ($ADObject -like $domainControllersOUFilter) { break }
-
-				# Skip 'CREATOR OWNER' Rules, as those should never be restored.
-				# When creating an AD object that has this group as default permissions, it will instead
-				# Translate those to the identity creating the object
-				if ('S-1-3-0' -eq $defaultRule.SID) { continue }
-
-				foreach ($configuredRule in $ConfiguredRules) {
-					if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
-						# If we explicitly don't want the rule: Skip and do NOT create a restoration action
-						if ('True' -ne $configuredRule.Present) { continue outer }
-					}
-				}
-
-				Write-Result -Type Restore -Identity $defaultRule.IdentityReference -Configuration $defaultRule -DistinguishedName $ADObject
-			}
-			#endregion Foreach non-existent default rule: Create unless configured otherwise
-		}
-
 		function Convert-AccessRule {
 			[CmdletBinding()]
 			param (
@@ -227,24 +76,24 @@
 
 					try { $identity = Resolve-Identity @parameters -IdentityReference $ruleObject.IdentityReference -ADObject $ADObject }
 					catch {
-                        if ('True' -ne $ruleObject.Present) { continue }
-                        Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue
-                    }
+						if ('True' -ne $ruleObject.Present) { continue }
+						Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue
+					}
 
 					[PSCustomObject]@{
-						PSTypeName = 'DomainManagement.AccessRule.Converted'
-						IdentityReference = $identity
-						AccessControlType = $ruleObject.AccessControlType
-						ActiveDirectoryRights = $ruleObject.ActiveDirectoryRights
-						InheritanceFlags = $ruleObject.InheritanceFlags
-						InheritanceType = $ruleObject.InheritanceType
-						InheritedObjectType = $inheritedObjectTypeGuid
+						PSTypeName              = 'DomainManagement.AccessRule.Converted'
+						IdentityReference       = $identity
+						AccessControlType       = $ruleObject.AccessControlType
+						ActiveDirectoryRights   = $ruleObject.ActiveDirectoryRights
+						InheritanceFlags        = $ruleObject.InheritanceFlags
+						InheritanceType         = $ruleObject.InheritanceType
+						InheritedObjectType     = $inheritedObjectTypeGuid
 						InheritedObjectTypeName = $inheritedObjectTypeName
-						ObjectFlags = $ruleObject.ObjectFlags
-						ObjectType = $objectTypeGuid
-						ObjectTypeName = $objectTypeName
-						PropagationFlags = $ruleObject.PropagationFlags
-                        Present = $ruleObject.Present
+						ObjectFlags             = $ruleObject.ObjectFlags
+						ObjectType              = $objectTypeGuid
+						ObjectTypeName          = $objectTypeName
+						PropagationFlags        = $ruleObject.PropagationFlags
+						Present                 = $ruleObject.Present
 					}
 				}
 			}
@@ -255,146 +104,6 @@
 
 				$convertCmdName.End()
 				$convertCmdGuid.End()
-			}
-		}
-
-		function Convert-AccessRuleIdentity {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '')]
-			[CmdletBinding()]
-			param (
-				[Parameter(ValueFromPipeline = $true)]
-				[System.DirectoryServices.ActiveDirectoryAccessRule[]]
-				$InputObject,
-
-				[PSFComputer]
-				$Server,
-
-				[PSCredential]
-				$Credential
-			)
-			begin {
-				$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-				$domainObject = Get-Domain2 @parameters
-			}
-			process {
-				:main foreach ($accessRule in $InputObject) {
-					if ($accessRule.IdentityReference -is [System.Security.Principal.NTAccount]) {
-						Add-Member -InputObject $accessRule -MemberType NoteProperty -Name OriginalRule -Value $accessRule -PassThru
-						continue main
-					}
-					
-					if (-not $accessRule.IdentityReference.AccountDomainSid) {
-                        try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount }
-						catch {
-                            # Empty Catch is OK here, warning happens in command
-                        }
-					}
-					else {
-						try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount }
-                        catch {
-                            # Empty Catch is OK here, warning happens in command
-                        }
-					}
-					if (-not $identity) {
-						$identity = $accessRule.IdentityReference
-					}
-
-					$newRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new($identity, $accessRule.ActiveDirectoryRights, $accessRule.AccessControlType, $accessRule.ObjectType, $accessRule.InheritanceType, $accessRule.InheritedObjectType)
-					# Include original object as property in order to facilitate removal if needed.
-					Add-Member -InputObject $newRule -MemberType NoteProperty -Name OriginalRule -Value $accessRule -PassThru
-				}
-			}
-		}
-
-		function Resolve-Identity {
-			[CmdletBinding()]
-			param (
-				[string]
-				$IdentityReference,
-
-				$ADObject,
-
-				[PSFComputer]
-				$Server,
-
-				[PSCredential]
-				$Credential
-			)
-
-			#region Parent Resolution
-			if ($IdentityReference -eq '<Parent>') {
-				$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-				$domainObject = Get-Domain2 @parameters
-				$parentPath = ($ADObject.DistinguishedName -split ",",2)[1]
-				$parentObject = Get-ADObject @parameters -Identity $parentPath -Properties SamAccountName, Name, ObjectSID
-				if (-not $parentObject.ObjectSID) {
-					Stop-PSFFunction -String 'Resolve-Identity.ParentObject.NoSecurityPrincipal' -StringValues $ADObject, $parentObject.Name, $parentObject.ObjectClass -EnableException $true -Cmdlet $PSCmdlet
-				}
-				if ($parentObject.SamAccountName) { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.Name, $parentObject.SamAccountName) }
-				else { return [System.Security.Principal.NTAccount]('{0}\{1}' -f $domainObject.Name, $parentObject.Name) }
-			}
-			#endregion Parent Resolution
-
-			#region Default Resolution
-			$identity = Resolve-String -Text $IdentityReference
-			if ($identity -as [System.Security.Principal.SecurityIdentifier]) {
-				$identity = $identity -as [System.Security.Principal.SecurityIdentifier]
-			}
-			else {
-				$identity = $identity -as [System.Security.Principal.NTAccount]
-			}
-			if ($null -eq $identity) { $identity = (Resolve-String -Text $IdentityReference) -as [System.Security.Principal.NTAccount] }
-
-			$identity
-			#endregion Default Resolution
-		}
-
-		function Get-CategoryBasedRules {
-			[CmdletBinding()]
-			param (
-				[Parameter(Mandatory = $true)]
-				$ADObject,
-
-				[PSFComputer]
-				$Server,
-
-				[PSCredential]
-				$Credential,
-
-				$ConvertNameCommand,
-
-				$ConvertGuidCommand
-			)
-
-			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include ADObject, Server, Credential
-
-			$resolvedCategories = Resolve-DMObjectCategory @parameters
-			foreach ($resolvedCategory in $resolvedCategories) {
-				foreach ($ruleObject in $script:accessCategoryRules[$resolvedCategory.Name]) {
-					$objectTypeGuid = $ConvertGuidCommand.Process($ruleObject.ObjectType)[0]
-					$objectTypeName = $ConvertNameCommand.Process($ruleObject.ObjectType)[0]
-					$inheritedObjectTypeGuid = $ConvertGuidCommand.Process($ruleObject.InheritedObjectType)[0]
-					$inheritedObjectTypeName = $ConvertNameCommand.Process($ruleObject.InheritedObjectType)[0]
-
-					try { $identity = Resolve-Identity @parameters -IdentityReference $ruleObject.IdentityReference }
-					catch { Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue }
-
-					[PSCustomObject]@{
-						PSTypeName = 'DomainManagement.AccessRule.Converted'
-						IdentityReference = $identity
-						AccessControlType = $ruleObject.AccessControlType
-						ActiveDirectoryRights = $ruleObject.ActiveDirectoryRights
-						InheritanceFlags = $ruleObject.InheritanceFlags
-						InheritanceType = $ruleObject.InheritanceType
-						InheritedObjectType = $inheritedObjectTypeGuid
-						InheritedObjectTypeName = $inheritedObjectTypeName
-						ObjectFlags = $ruleObject.ObjectFlags
-						ObjectType = $objectTypeGuid
-						ObjectTypeName = $objectTypeName
-						PropagationFlags = $ruleObject.PropagationFlags
-                        Present = $ruleObject.Present
-					}
-				}
 			}
 		}
 		#endregion Utility Functions
@@ -412,8 +121,7 @@
 			return
 		}
 	}
-	process
-	{
+	process {
 		if (Test-PSFFunctionInterrupt) { return }
 
 		#region Process Configured Objects
@@ -421,9 +129,9 @@
 			$resolvedPath = Resolve-String -Text $key
 
 			$resultDefaults = @{
-				Server = $Server
-				ObjectType = 'AccessRule'
-				Identity = $resolvedPath
+				Server        = $Server
+				ObjectType    = 'AccessRule'
+				Identity      = $resolvedPath
 				Configuration = $script:accessRules[$key]
 			}
 
@@ -435,7 +143,7 @@
 			try { $adAclObject = Get-AdsAcl @parameters -Path $resolvedPath -EnableException }
 			catch {
 				if ($script:accessRules[$key].Optional -notcontains $false) { continue }
-				Write-PSFMessage -String 'Test-DMAccessRule.NoAccess' -StringValues $resolvedPath -Tag 'panic','failed' -Target $script:accessRules[$key] -ErrorRecord $_
+				Write-PSFMessage -String 'Test-DMAccessRule.NoAccess' -StringValues $resolvedPath -Tag 'panic', 'failed' -Target $script:accessRules[$key] -ErrorRecord $_
 				New-TestResult @resultDefaults -Type 'NoAccess'
 				Continue
 			}
@@ -444,14 +152,14 @@
 			
 			if ($adObject.adminCount) {
 				$defaultPermissions = @()
-				$desiredPermmissions = Get-AdminSDHolderRules @parameters
+				$desiredPermissions = Get-AdminSDHolderRules @parameters
 			}
 			else {
 				$defaultPermissions = Get-DMObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
-				$desiredPermmissions = $script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject
+				$desiredPermissions = $script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject
 			}
 
-			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules $desiredPermmissions -DefaultRules $defaultPermissions -ADObject $adObject
+			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
 
 			if ($delta) {
 				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject
@@ -460,22 +168,186 @@
 		}
 		#endregion Process Configured Objects
 
-		#region Process Non-Configured AD Objects
-		$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
+		$doParallelize = Get-PSFConfigValue -FullName 'DomainManagement.AccessRules.Parallelize'
+		#region Process Non-Configured AD Objects - Serial
+		if (-not $doParallelize) {
+			$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
+	
+			$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
+				Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties adminCount
+			}
+	
+			$resultDefaults = @{
+				Server     = $Server
+				ObjectType = 'AccessRule'
+			}
+	
+			$convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
+			$convertCmdName.Begin($true)
+			$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
+			$convertCmdGuid.Begin($true)
+	
+			$processed = @{ }
+			foreach ($foundADObject in $foundADObjects) {
+				# Prevent duplicate processing
+				if ($processed[$foundADObject.DistinguishedName]) { continue }
+				$processed[$foundADObject.DistinguishedName] = $true
+	
+				# Skip items that were defined in configuration, they were already processed
+				if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }
+	
+				$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
+				$compareParam = @{
+					ADRules         = $adAclObject.Access | Convert-AccessRuleIdentity @parameters
+					DefaultRules    = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
+					ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
+					ADObject        = $foundADObject
+				}
+	
+				# Protected Objects
+				if ($foundADObject.AdminCount) {
+					$compareParam.DefaultRules = @()
+					$compareParam.ConfiguredRules = Get-AdminSDHolderRules @parameters
+				}
+	
+				$compareParam += $parameters
+				$delta = Compare-AccessRules @compareParam
+	
+				if ($delta) {
+					New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject -Identity $foundADObject.DistinguishedName
+					continue
+				}
+			}
+	
+			$convertCmdName.End()
+			$convertCmdGuid.End()
 
+			return
+		}
+		#endregion Process Non-Configured AD Objects - Serial
+
+		#region Process Non-Configured AD Objects - Parallel
+		#region Prepare Runspace Environment
+		$variables = @{
+			resultDefaults           = @{
+				Server     = $Server
+				ObjectType = 'AccessRule'
+			}
+			parameters               = $parameters
+			adminSDHolderRules       = Get-AdminSDHolderRules @parameters
+			schemaDefaultPermissions = $script:schemaObjectDefaultPermission["$Server"]
+			accessRuleConfiguration  = @{
+				accessRules         = $script:accessRules
+				accessCategoryRules = $script:accessCategoryRules
+			}
+			objectCategorySettings   = $script:objectCategories
+			stringTable              = $script:nameReplacementTable
+		}
+		$modules = @(
+			(Get-Module DomainManagement).ModuleBase
+			(Get-Module ADSec).ModuleBase
+		)
+		$functions = @{
+			'New-TestResult' = [ScriptBlock]::Create((Get-Command -Name New-TestResult).Definition)
+		}
+
+		$begin = {
+			$null = Get-Acl -Path .
+			& (Get-Module DomainManagement) {
+				$script:schemaObjectDefaultPermission["$($global:parameters.Server)"] = $global:schemaDefaultPermissions.Clone()
+				$script:accessRules = $global:accessRuleConfiguration.accessRules.Clone()
+				$script:accessCategoryRules = $global:accessRuleConfiguration.accessCategoryRules.Clone()
+				$script:nameReplacementTable = $global:stringTable.Clone()
+				$script:objectCategories = $global:objectCategorySettings.Clone()
+				foreach ($__category in $script:objectCategories.Values) {
+					if ($__category.TestScript -is [scriptblock]) {
+						$__category.TestScript = ([PsfScriptBlock]$__category.TestScript).ToGlobal()
+					}
+				}
+			}
+
+			$global:convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
+			$global:convertCmdName.Begin($true)
+			$global:convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
+			$global:convertCmdGuid.Begin($true)
+
+			$global:cmdCompareAccessRules = & (Get-Module DomainManagement) { Get-Command Compare-AccessRules }
+			$global:cmdConvertAccessRuleIdentity = & (Get-Module DomainManagement) { Get-Command Convert-AccessRuleIdentity }
+			$global:cmdGetCategoryBasedRules = & (Get-Module DomainManagement) { Get-Command Get-CategoryBasedRules }
+		}
+		$process = {
+			$count = 0
+			do {
+				try {
+					$foundADObject = $_
+					$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
+					$compareParam = @{
+						ADRules         = & $global:cmdConvertAccessRuleIdentity -InputObject $adAclObject.Access @parameters
+						DefaultRules    = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
+						ConfiguredRules = & $global:cmdGetCategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
+						ADObject        = $foundADObject
+					}
+
+					# Protected Objects
+					if ($foundADObject.AdminCount) {
+						$compareParam.DefaultRules = @()
+						$compareParam.ConfiguredRules = $adminSDHolderRules
+					}
+
+					$compareParam += $parameters
+					$delta = & $global:cmdCompareAccessRules @compareParam
+				}
+				catch {
+					$count++
+					if ($count -lt 10) { continue }
+
+					$fail = [PSCustomObject]@{
+						ADObject = $foundADObject
+						Acl      = $adAclObject
+						Error    = $_
+					}
+					Write-PSFRunspaceQueue -Name fails -Value $fail
+					break
+				}
+
+				if ($delta) {
+					New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject -Identity $foundADObject.DistinguishedName
+				}
+
+				break
+			}
+			while ($true)
+		}
+		$end = {
+			$global:convertCmdName.End()
+			$global:convertCmdGuid.End()
+		}
+
+		$param = @{
+			Name          = 'AccessRuleProcessor'
+			Count         = (Get-PSFConfigValue -FullName 'DomainManagement.AccessRules.Threads' -Fallback 4)
+			InQueue       = 'input'
+			OutQueue      = 'results'
+			Functions     = $functions
+			Modules       = $modules
+			Variables     = $variables
+
+			Begin         = $begin
+			Process       = $process
+			End           = $end
+
+			CloseOutQueue = $true
+		}
+		#endregion Prepare Runspace Environment
+
+		$workflow = New-PSFRunspaceWorkflow -Name 'DomainManagement.AccessRules' -Force
+		$null = $workflow | Add-PSFRunspaceWorker @param
+
+		$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
+	
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
 			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties adminCount
 		}
-
-		$resultDefaults = @{
-			Server = $Server
-			ObjectType = 'AccessRule'
-		}
-
-		$convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
-		$convertCmdName.Begin($true)
-		$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
-		$convertCmdGuid.Begin($true)
 
 		$processed = @{ }
 		foreach ($foundADObject in $foundADObjects) {
@@ -486,31 +358,27 @@
 			# Skip items that were defined in configuration, they were already processed
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }
 
-			$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
-			$compareParam = @{
-				ADRules = $adAclObject.Access | Convert-AccessRuleIdentity @parameters
-				DefaultRules = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
-				ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
-				ADObject = $foundADObject
-			}
-
-			# Protected Objects
-			if ($foundADObject.AdminCount) {
-				$compareParam.DefaultRules = @()
-				$compareParam.ConfiguredRules = Get-AdminSDHolderRules @parameters
-			}
-
-			$compareParam += $parameters
-			$delta = Compare-AccessRules @compareParam
-
-			if ($delta) {
-				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject -Identity $foundADObject.DistinguishedName
-				continue
-			}
+			Write-PSFRunspaceQueue -Name input -InputObject $workflow -Value $foundADObject
 		}
+		$workflow.Queues.input.Closed = $true
 
-		$convertCmdName.End()
-		$convertCmdGuid.End()
-		#endregion Process Non-Configured AD Objects
+		try {
+			$workflow | Start-PSFRunspaceWorkflow
+			$workflow | Wait-PSFRunspaceWorkflow -WorkerName AccessRuleProcessor -Closed -PassThru | Stop-PSFRunspaceWorkflow
+			$fails = Read-PSFRunspaceQueue -InputObject $workflow -Name fails -All
+			foreach ($fail in $fails) {
+				Write-PSFMessage -Level Warning -String 'Test-DMAccessRule.Parallel.Error' -StringValues $fail.ADObject -ErrorRecord $fail.Error -Target $fail
+			}
+			
+			$results = Read-PSFRunspaceQueue -InputObject $workflow -Name results -All
+			# Fix String Presentation for objects from a background runspace
+			$results | Add-Member -MemberType ScriptMethod -Name ToString -Value { $this.Identity } -Force
+			$results.Changed | Add-Member -MemberType ScriptMethod ToString -Value { '{0}: {1}' -f $this.Type, $this.Identity } -Force
+			$results
+		}
+		finally {
+			$workflow | Remove-PSFRunspaceWorkflow
+		}
+		#endregion Process Non-Configured AD Objects - Parallel
 	}
 }
