@@ -3,6 +3,7 @@
 ## ??? (???)
 
 - Fix: Access Rules - "NoFixConfig" option within AccessRules wasn't respected. (issue #81)
+- Upd: Access Rules - Add warning message when access rule is applied but redundant or simply not working in the acl object
 
 ## 1.8.202 (2024-01-12)
 
