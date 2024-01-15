@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## ??? (???)
+
+- Fix: Access Rules - "NoFixConfig" option within AccessRules wasn't respected. (issue #81)
+
 ## 1.8.202 (2024-01-12)
 
 - Upd: Access Rules - added option to parallelize tests (experimental)
