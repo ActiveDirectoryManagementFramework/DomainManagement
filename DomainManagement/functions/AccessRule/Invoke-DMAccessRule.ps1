@@ -2,32 +2,32 @@
 	<#
 	.SYNOPSIS
 		Applies the desired state of accessrule configuration.
-	
+
 	.DESCRIPTION
 		Applies the desired state of accessrule configuration.
 		Define the desired state with Register-DMAccessRule.
 		Test the desired state with Test-DMAccessRule.
-	
+
 	.PARAMETER InputObject
 		Test results provided by the associated test command.
 		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
-	
+
 	.PARAMETER Server
 		The server / domain to work with.
-	
+
 	.PARAMETER Credential
 		The credentials to use for this operation.
 
 	.PARAMETER Confirm
 		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
-	
+
 	.PARAMETER WhatIf
 		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
-	
+
 	.PARAMETER EnableException
 		This parameters disables user-friendly warnings and enables the throwing of exceptions.
 		This is less user friendly, but allows catching exceptions in calling scripts.
-	
+
 	.EXAMPLE
 		PS C:\> Invoke-DMAccessRule -Server contoso.com
 
@@ -37,17 +37,17 @@
 	param (
 		[Parameter(ValueFromPipeline = $true)]
 		$InputObject,
-		
+
 		[PSFComputer]
 		$Server,
-		
+
 		[PSCredential]
 		$Credential,
 
 		[switch]
 		$EnableException
 	)
-	
+
 	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
@@ -62,13 +62,13 @@
 		if (-not $InputObject) {
 			$InputObject = Test-DMAccessRule @parameters
 		}
-		
+
 		foreach ($testItem in $InputObject) {
 			# Catch invalid input - can only process test results
 			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.AccessRule.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMAccessRule', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
-			
+
 			switch ($testItem.Type) {
 				'Update' {
 					Write-PSFMessage -Level Debug -String 'Invoke-DMAccessRule.Processing.Rules' -StringValues $testItem.Identity, $testItem.Changed.Count -Target $testItem
@@ -82,7 +82,7 @@
 							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Remove' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry
 							$aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule)
 							Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
-							
+
 							$stillThere = $false
 							foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
 								if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
@@ -95,7 +95,7 @@
 							if ($stillThere -and $alternativeRemoval) {
 								$null = $aclObject.RemoveAccessRule($changeEntry.ADObject.OriginalRule)
 								Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
-							
+
 								$stillThere = $false
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
 									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
@@ -119,15 +119,26 @@
 							try {
 								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
-								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new(
+                                    (Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference),
+                                    $changeEntry.Configuration.ActiveDirectoryRights,
+                                    $changeEntry.Configuration.AccessControlType,
+                                    $changeEntry.Configuration.ObjectType,
+                                    $changeEntry.Configuration.InheritanceType,
+                                    $changeEntry.Configuration.InheritedObjectType
+                                )
 							}
 							catch {
 								$failedCount = $failedCount + 1
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
 							$null = $aclObject.AddAccessRule($accessRule)
-							#TODO: Validation and remediation of success. Adding can succeed but not do anything, when accessrules are redundant. Potentially flag it for full replacement?
-							continue
+							# Validation and remediation of success. Adding can succeed but not do anything, when accessrules are redundant. Potentially flag it for full replacement?
+                            if (-not ($aclObject.Access | Where-Object { $_ -in $accessRule })) {
+                                $failedCount = $failedCount + 1
+                                Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Creation.NotApplied' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -Target $changeEntry
+                            }
+                            continue
 						}
 						#endregion Add Access Rules
 
@@ -137,14 +148,25 @@
 							try {
 								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
-								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new(
+                                    (Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference),
+                                    $changeEntry.Configuration.ActiveDirectoryRights,
+                                    $changeEntry.Configuration.AccessControlType,
+                                    $changeEntry.Configuration.ObjectType,
+                                    $changeEntry.Configuration.InheritanceType,
+                                    $changeEntry.Configuration.InheritedObjectType
+                                )
 							}
 							catch {
 								$failedCount = $failedCount + 1
 								Stop-PSFFunction -String 'Invoke-DMAccessRule.AccessRule.Creation.Failed' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -EnableException $EnableException -Target $changeEntry -Continue -ErrorRecord $_
 							}
-							$null = $aclObject.AddAccessRule($accessRule)
-							#TODO: Validation and remediation of success. Adding can succeed but not do anything, when accessrules are redundant. Potentially flag it for full replacement?
+                            $null = $aclObject.AddAccessRule($accessRule)
+                            # Validation and remediation of success. Adding can succeed but not do anything, when accessrules are redundant. Potentially flag it for full replacement?
+                            if(-not ($aclObject.Access | Where-Object { $_ -in $accessRule })) {
+                                $failedCount = $failedCount + 1
+                                Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Creation.NotApplied' -StringValues $testItem.Identity, $changeEntry.Configuration.IdentityReference -Target $changeEntry
+                            }
 							continue
 						}
 						#endregion Restore Default Access Rules
