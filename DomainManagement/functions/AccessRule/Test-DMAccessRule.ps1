@@ -2,7 +2,7 @@
 	<#
 	.SYNOPSIS
 		Validates the targeted domain's Access Rule configuration.
-	
+
 	.DESCRIPTION
 		Validates the targeted domain's Access Rule configuration.
 		This is done by comparing each relevant object's non-inherited permissions with the Schema-given default permissions for its object type.
@@ -19,13 +19,13 @@
 		- Have at least one path based rule.
 		- Are considered as "under management", as defined using Set-DMContentMode
 		It uses a definitive approach - any access rule not defined will be flagged for deletion!
-	
+
 	.PARAMETER Server
 		The server / domain to work with.
-	
+
 	.PARAMETER Credential
 		The credentials to use for this operation.
-	
+
 	.EXAMPLE
 		PS C:\> Test-DMAccessRule -Server fabrikam.com
 
@@ -39,11 +39,11 @@
 	param (
 		[PSFComputer]
 		$Server,
-		
+
 		[PSCredential]
 		$Credential
 	)
-	
+
 	begin {
 		#region Utility Functions
 		function Convert-AccessRule {
@@ -95,6 +95,7 @@
 						ObjectTypeName          = $objectTypeName
 						PropagationFlags        = $ruleObject.PropagationFlags
 						Present                 = $ruleObject.Present
+                        NoFixConfig             = $ruleObject.NoFixConfig
 					}
 				}
 			}
@@ -150,7 +151,7 @@
 			}
 
 			$adObject = Get-ADObject @parameters -Identity $resolvedPath -Properties adminCount
-			
+
 			if ($adObject.adminCount) {
 				$defaultPermissions = @()
 				$desiredPermissions = Get-AdminSDHolderRules @parameters
@@ -173,30 +174,30 @@
 		#region Process Non-Configured AD Objects - Serial
 		if (-not $doParallelize) {
 			$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
-	
+
 			$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
 				Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties adminCount
 			}
-	
+
 			$resultDefaults = @{
 				Server     = $Server
 				ObjectType = 'AccessRule'
 			}
-	
+
 			$convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
 			$convertCmdName.Begin($true)
 			$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
 			$convertCmdGuid.Begin($true)
-	
+
 			$processed = @{ }
 			foreach ($foundADObject in $foundADObjects) {
 				# Prevent duplicate processing
 				if ($processed[$foundADObject.DistinguishedName]) { continue }
 				$processed[$foundADObject.DistinguishedName] = $true
-	
+
 				# Skip items that were defined in configuration, they were already processed
 				if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }
-	
+
 				$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
 				$compareParam = @{
 					ADRules         = $adAclObject.Access | Convert-AccessRuleIdentity @parameters
@@ -204,22 +205,22 @@
 					ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
 					ADObject        = $foundADObject
 				}
-	
+
 				# Protected Objects
 				if ($foundADObject.AdminCount) {
 					$compareParam.DefaultRules = @()
 					$compareParam.ConfiguredRules = Get-AdminSDHolderRules @parameters
 				}
-	
+
 				$compareParam += $parameters
 				$delta = Compare-AccessRules @compareParam
-	
+
 				if ($delta) {
 					New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject -Identity $foundADObject.DistinguishedName
 					continue
 				}
 			}
-	
+
 			$convertCmdName.End()
 			$convertCmdGuid.End()
 
@@ -345,7 +346,7 @@
 		$null = $workflow | Add-PSFRunspaceWorker @param
 
 		$resolvedConfiguredObjects = $script:accessRules.Keys | Resolve-String
-	
+
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
 			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties adminCount
 		}
@@ -370,7 +371,7 @@
 			foreach ($fail in $fails) {
 				Write-PSFMessage -Level Warning -String 'Test-DMAccessRule.Parallel.Error' -StringValues $fail.ADObject -ErrorRecord $fail.Error -Target $fail
 			}
-			
+
 			$results = Read-PSFRunspaceQueue -InputObject $workflow -Name results -All
 			# Fix String Presentation for objects from a background runspace
 			$results | Add-Member -MemberType ScriptMethod -Name ToString -Value { $this.Identity } -Force
