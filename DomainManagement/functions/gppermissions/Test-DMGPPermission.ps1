@@ -177,6 +177,13 @@
 		if (Test-PSFFunctionInterrupt) { return }
 		
 		try {
+			#region Prepare Remoting Session
+			Invoke-Command -Session $session -ScriptBlock {
+				Update-TypeData -TypeName Microsoft.GroupPolicy.GPPermission -SerializationDepth 4
+				Import-Module GroupPolicy
+			}
+			#endregion Prepare Remoting Session
+
 			#region Data Preparation
 			$allFilters = @{ }
 			foreach ($filterObject in (Get-DMGPPermissionFilter)) {
@@ -256,18 +263,11 @@
 
 			#region Process GPO Permissions
 			$domainObject = Get-Domain2 @parameters
-			$permissionObjects = Invoke-Command -Session $session -ScriptBlock {
-				Update-TypeData -TypeName Microsoft.GroupPolicy.GPPermission -SerializationDepth 4
-				foreach ($policyObject in $using:allGpos) {
-					$resultObject = [PSCustomObject]@{
-						Name        = $policyObject.DisplayName
-						Permissions = @()
-						Error       = $null
-					}
-
-					try { $resultObject.Permissions = Get-GPPermission -All -Name $resultObject.Name -Server localhost -Domain $using:domainObject.DNSRoot -ErrorAction Stop }
-					catch { $resultObject.Error = $_ }
-					$resultObject
+			$permissionObjects = foreach ($policyObject in $allGpos) {
+				[PSCustomObject]@{
+					Name        = $policyObject.DisplayName
+					Permissions = @()
+					Error       = $null
 				}
 			}
 
@@ -285,15 +285,38 @@
 				$adObject = $allGpos | Where-Object DisplayName -eq $permissionObject.Name
 				Add-Member -InputObject $permissionObject -MemberType ScriptMethod -Name ToString -Value { $this.Name } -Force
 
+				# Skip GPOs not in scope
+				$shouldManage = $applicableSettings.Managed -contains $true
+				if (
+					-not ($applicableSettings | Where-Object Identity) -and
+					-not $shouldManage
+				) { continue }
+
+				# Retrieve Permissions where needed
+				$permissionData = Invoke-Command -Session $session -ScriptBlock {
+					param ($PolicyName)
+					$resultObject = [PSCustomObject]@{
+						Name        = $PolicyName
+						Permissions = @()
+						Error       = $null
+					}
+
+					try { $resultObject.Permissions = Get-GPPermission -All -Name $resultObject.Name -Server localhost -Domain $using:domainObject.DNSRoot -ErrorAction Stop }
+					catch { $resultObject.Error = $_ }
+					$resultObject
+				} -ArgumentList $permissionObject.Name
+
+				$permissionObject.Permissions = $permissionData.Permissions
+				$permissionObject.Error = $permissionData.Error
+
 				if ($permissionObject.Error) {
 					New-TestResult @resultDefaults -Type AccessError -Identity $permissionObject -Configuration $applicableSettings -ADObject $adObject -Changed $permissionObject
 					continue
 				}
 
-				$shouldManage = $applicableSettings.Managed -contains $true
 				try {
 					$compareParameter = @{
-						ADRules = ($permissionObject.Permissions | Convert-GPAccessRuleIdentity @parameters -ADObject $adObject)
+						ADRules = ($permissionData.Permissions | Convert-GPAccessRuleIdentity @parameters -ADObject $adObject)
 						ConfiguredRules = ($applicableSettings | Where-Object Identity | Convert-GPAccessRuleIdentity @parameters -ADObject $adObject)
 						Managed = $shouldManage
 					}
