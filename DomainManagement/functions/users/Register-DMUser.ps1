@@ -2,7 +2,7 @@
 	<#
 	.SYNOPSIS
 		Registers a user definition into the configuration domains are compared to.
-	
+
 	.DESCRIPTION
 		Registers a user definition into the configuration domains are compared to.
 		This configuration is then compared to the configuration in AD when using Test-ADUser.
@@ -12,7 +12,7 @@
 		Use Register-DMNameMapping to add additional values and the placeholder they will be inserted into.
 		Use Get-DMNameMapping to retrieve a list of available mappings.
 		This can be used to use the same content configuration across multiple environments, accounting for local naming differences.
-	
+
 	.PARAMETER SamAccountName
 		SamAccountName of the user to manage.
 		Subject to string insertion.
@@ -20,28 +20,28 @@
 	.PARAMETER Name
 		Name of the user to manage.
 		Subject to string insertion.
-	
+
 	.PARAMETER GivenName
 		Given Name of the user to manage.
 		Subject to string insertion.
-	
+
 	.PARAMETER Surname
 		Surname (Family Name) of the user to manage.
 		Subject to string insertion.
-	
+
 	.PARAMETER Description
 		Description of the user account.
 		This is required and should describe the purpose / use of the account.
 		Subject to string insertion.
-	
+
 	.PARAMETER PasswordNeverExpires
 		Whether the password should never expire.
 		By default it WILL expire.
-	
+
 	.PARAMETER UserPrincipalName
 		The user principal name the account should have.
 		Subject to string insertion.
-	
+
 	.PARAMETER Path
 		The organizational unit the user should be placed in.
 		Subject to string insertion.
@@ -53,12 +53,12 @@
 	.PARAMETER Optional
 		By default, all defined user accounts must exist.
 		By setting a user account optional, it will be tolerated if it exists, but not created if it does not.
-	
+
 	.PARAMETER OldNames
 		Previous names the user object had.
 		Will trigger a rename if a user is found under one of the old names but not the current one.
 		Subject to string insertion.
-	
+
 	.PARAMETER Present
 		Whether the user should be present.
 		This can be used to trigger deletion of a managed account.
@@ -68,7 +68,7 @@
 		The name of the context defining the setting.
 		This allows determining the configuration set that provided this setting.
 		Used by the ADMF, available to any other configuration management solution.
-	
+
 	.EXAMPLE
 		PS C:\> Get-Content .\users.json | ConvertFrom-Json | Write-Output | Register-DMUser
 
@@ -79,35 +79,36 @@
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$SamAccountName,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Name,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$GivenName,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Surname,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Description,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[switch]
 		$PasswordNeverExpires,
-		
+
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [AllowEmptyString()]
 		[string]
 		$UserPrincipalName,
-		
+
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Path,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
 		[DomainManagement.TriBool]
@@ -116,22 +117,22 @@
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[bool]
 		$Optional,
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[string[]]
 		$OldNames = @(),
-		
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
 		[DomainManagement.TriBool]
 		$Present = 'true',
-		
+
 		[string]
 		$ContextName = '<Undefined>'
 	)
-	
+
 	process {
-		
+
 		$userHash = @{
 			PSTypeName           = 'DomainManagement.User'
 			SamAccountName       = $SamAccountName
