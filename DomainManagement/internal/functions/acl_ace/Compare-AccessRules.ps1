@@ -2,31 +2,31 @@
 	<#
 	.SYNOPSIS
 		Compare actual access rules to the system default and configured rules.
-	
+
 	.DESCRIPTION
 		Compare actual access rules to the system default and configured rules.
-	
+
 	.PARAMETER ADRules
 		The Access Rules actually deployed on the AD Object
-	
+
 	.PARAMETER ConfiguredRules
 		The Access Rules configured for the AD Object
-	
+
 	.PARAMETER DefaultRules
 		The default Access Rules for objects of this type
-	
+
 	.PARAMETER ADObject
 		The AD Object for which Access Rules are being compared
-	
+
 	.PARAMETER Server
 		The server / domain to work with.
-	
+
 	.PARAMETER Credential
 		The credentials to use for this operation.
-	
+
 	.EXAMPLE
 		PS C:\> Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
-		
+
 		Compare actual access rules on the specified AD Object to the system default and configured rules.
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
@@ -45,7 +45,7 @@
 
 		[PSFComputer]
 		$Server,
-		
+
 		[PSCredential]
 		$Credential
 	)
@@ -142,10 +142,11 @@
 	:outer foreach ($configuredRule in $ConfiguredRules) {
 		foreach ($defaultRule in $DefaultRules) {
 			if ('True' -ne $configuredRule.Present) { break }
-			if ($configuredRule.NoFixConfig) { break }
 			if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
-				Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
-				continue outer
+                if (-not $configuredRule.NoFixConfig) {
+                    Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
+                }
+                continue outer
 			}
 		}
 		foreach ($relevantADRule in $relevantADRules) {
