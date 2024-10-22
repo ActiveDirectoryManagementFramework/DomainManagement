@@ -250,10 +250,10 @@ else { $_.Category }
                                 <PropertyName>Property</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>Previous</PropertyName>
+                                <PropertyName>Old</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>NewValue</PropertyName>
+                                <PropertyName>New</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

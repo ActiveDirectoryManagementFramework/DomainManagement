@@ -117,6 +117,17 @@
 			if (-not $result.Success) {
 				throw "Error applying exchange update: $($result.Message)"
 			}
+
+			# Test Message validation (Text parsing is bad, but the method below is less reliable)
+			if ($result.Message -match 'The Exchange Server setup operation completed successfully') { return }
+
+			# Exchange's setup.exe is not always reliable in its exit codes, thus we need to retest
+			# This is not guaranteed to work 100%, as replication delay may lead to false errors
+			$testResult = Test-DMExchange @Parameters
+			if (-not $testResult) { return }
+			if ($testResult.Type -contains $Mode) {
+				throw "Exchange Update probably failed! Success could not be verified, but replication delays might lead to a wrong alert here. This was the return from the exchange installer:`n$($result.Message)"
+			}
 		}
 		#endregion Utility Functions
 	}
