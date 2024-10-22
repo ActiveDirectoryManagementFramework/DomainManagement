@@ -75,7 +75,7 @@
 					continue
 				}
 				$change = New-Change -Property Query -OldValue $adFilter.Query -NewValue $Configuration.Query -Identity $Configuration.name -Type WmiFilter
-				$changes.Add($change)
+				$null = $changes.Add($change)
 				break
 			}
 			#endregion Verify whether all intended queries are already applied
@@ -87,7 +87,7 @@
 						continue
 					}
 					$change = New-Change -Property Query -OldValue $adFilter.Query -NewValue $Configuration.Query -Identity $Configuration.name -Type WmiFilter
-					$changes.Add($change)
+					$null = $changes.Add($change)
 					break
 				}
 			}
