@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 1.8.205 (2024-10-22)
+
+- Upd: Exchange - added extra validation to successful deployment runs
+- Fix: WmiFilter - number in output of test results, failing a full invoke
+- Fix: ServiceAccount - fails to update existing gMSA that are misconfigured
+
 ## 1.8.202 (2024-01-12)
 
 - Upd: Access Rules - added option to parallelize tests (experimental)

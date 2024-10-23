@@ -165,11 +165,11 @@
 			$properties = @{ }
 			$clear = @()
 			foreach ($change in $testItem.Changed) {
-				if (-not $change.NewValue -and 0 -ne $change.NewValue) { $clear += $change.Property }
+				if (-not $change.New -and 0 -ne $change.New) { $clear += $change.Property }
 				elseif ($change.Property -eq 'KerberosEncryptionType') {
-					$setParam.KerberosEncryptionType = $change.NewValue
+					$setParam.KerberosEncryptionType = $change.New
 				}
-				else { $properties[$change.Property] = $change.NewValue }
+				else { $properties[$change.Property] = $change.New }
 			}
 			if ($properties.Count -gt 0) { $setParam.Replace = $properties }
 			if ($clear) { $setParam.Clear = $clear }
@@ -225,20 +225,20 @@
 				'PrincipalUpdate'
 				{
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.UpdatingPrincipal' -ActionStringValues $testItem.Identity -Target $testItem.Identity -ScriptBlock {
-						$principals = ($testItem.Changed | Where-Object Type -EQ Update).NewValue
+						$principals = ($testItem.Changed | Where-Object Type -EQ Update).New
 						Set-ADServiceAccount @parameters -Identity $testItem.ADObject.ObjectGuid -PrincipalsAllowedToRetrieveManagedPassword $principals
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet
 				}
 				'Move'
 				{
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Moving' -ActionStringValues $testItem.Identity, $testItem.Changed.NewValue -Target $testItem.Identity -ScriptBlock {
-						Move-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -TargetPath $testItem.Changed.NewValue -Confirm:$false
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Moving' -ActionStringValues $testItem.Identity, $testItem.Changed.New -Target $testItem.Identity -ScriptBlock {
+						Move-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -TargetPath $testItem.Changed.New -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet
 				}
 				'Rename'
 				{
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Renaming' -ActionStringValues $testItem.Identity, $testItem.Changed.NewValue -Target $testItem.Identity -ScriptBlock {
-						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -NewName $testItem.Changed.NewValue -Confirm:$false
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMServiceAccount.Renaming' -ActionStringValues $testItem.Identity, $testItem.Changed.New -Target $testItem.Identity -ScriptBlock {
+						Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGuid -NewName $testItem.Changed.New -Confirm:$false
 					} -EnableException $EnableException -PSCmdlet $PSCmdlet
 				}
                 'RenameSam'
