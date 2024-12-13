@@ -68,6 +68,7 @@
 		}
 
 		function New-MemberRemovalResult {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]
 			param (
 				$ADObject,
