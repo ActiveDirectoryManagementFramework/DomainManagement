@@ -190,6 +190,7 @@
 	'Resolve-PolicyRevision.Result.Result.SuccessNotYetManaged'         = 'Policy found: {0}. Has not yet been managed, will need to be overwritten.' # $Policy.DisplayName
 	'Resolve-PolicyRevision.Result.Success'                             = 'Found GPO: {0}. Last export ID: {1}. Last updated on {2}' # $Policy.DisplayName, $result.ExportID, $result.Timestamp
 	
+	'Set-DMContentMode.Error.UnknownExcludedComponent'                  = 'Error excluding a Component from the Domain Content Mode. Unexpected Component: {0}. Ensure the Component specified not only exists, but also supports being excluded from Domain Content Mode.' # $pair.Key
 	'Set-DMRedForestContext.Connection.Failed'                          = 'Failed to connect to {0}' # $Server
 	
 	'Test-DMAccessRule.DefaultPermission.Failed'                        = 'Failed to retrieve default permissions from Schema when connecting to {0}' # $Server

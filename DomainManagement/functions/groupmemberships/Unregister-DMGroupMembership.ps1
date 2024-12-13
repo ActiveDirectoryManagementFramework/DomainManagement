@@ -15,6 +15,9 @@
 	
 	.PARAMETER Group
 		The group being granted membership in.
+
+	.PARAMETER ProcessingMode
+		The processing mode to apply for the group's membership management.
 	
 	.EXAMPLE
 		PS C:\> Get-DMGroupMembership | Unregister-DMGroupMembership
@@ -23,23 +26,35 @@
 	#>
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Identity')]
 		[string]
 		$Name,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Identity')]
 		[ValidateSet('User', 'Group', 'foreignSecurityPrincipal', 'Computer', '<Empty>')]
 		[string]
 		$ItemType,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Processing')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Identity')]
 		[string]
-		$Group
+		$Group,
+
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Processing')]
+		[string]
+		$ProcessingMode
 	)
 	
 	process
 	{
 		if (-not $script:groupMemberShips[$Group]) { return }
+		if ($ProcessingMode) {
+			$null = $script:groupMemberShips[$Group].Remove('__Configuration')
+			if (-not $script:groupMemberShips[$Group].Count) {
+				$null = $script:groupMemberShips.Remove($Group)
+			}
+			return
+		}
 		if ($Name -eq '<empty>') {
 			$null = $script:groupMemberShips.Remove($Group)
 			return

@@ -40,18 +40,84 @@
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupMemberShips -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
+
+		$resultDefaults = @{
+			Server     = $Server
+			ObjectType = 'GroupMembership'
+		}
+
+		#region Functions
+		function Get-GroupMember {
+			[CmdletBinding()]
+			param (
+				$ADObject,
+
+				[hashtable]
+				$Parameters
+			)
+
+			$ADObject.Members | ForEach-Object {
+				$distinguishedName = $_
+				try { Get-ADObject @parameters -Identity $_ -ErrorAction Stop -Properties SamAccountName, objectSid }
+				catch {
+					$objectDomainName = $distinguishedName.Split(",").Where{ $_ -like "DC=*" } -replace '^DC=' -join "."
+					$cred = $Parameters | ConvertTo-PSFHashtable -Include Credential
+					Get-ADObject -Server $objectDomainName @cred -Identity $distinguishedName -ErrorAction Stop -Properties SamAccountName, objectSid
+				}
+			}
+		}
+
+		function New-MemberRemovalResult {
+			[CmdletBinding()]
+			param (
+				$ADObject,
+
+				$ADMember,
+
+				[switch]
+				$AssignmentsUnresolved,
+
+				$ResultDefaults
+			)
+
+			$configObject = [PSCustomObject]@{
+				Assignment = $null
+				ADMember   = $adMember
+			}
+
+			$identifier = $ADMember.SamAccountName
+			if (-not $identifier) {
+				try { $identifier = Resolve-Principal -Name $ADMember.ObjectSid -OutputType SamAccountName -ErrorAction Stop }
+				catch { $identifier = $ADMember.ObjectSid }
+			}
+			if (-not $identifier) { $identifier = $ADMember.ObjectSid }
+			if ($AssignmentsUnresolved -and ($ADMember.ObjectClass -eq 'foreignSecurityPrincipal')) {
+				# Currently a member, is foreignSecurityPrincipal and we cannot be sure we resolved everything that should be member
+				New-TestResult @resultDefaults -Type Unidentified -Identity "$($ADObject.Name) þ $($ADMember.ObjectClass) þ $($identifier)" -Configuration $configObject -ADObject $ADObject
+			}
+			else {
+				$change = [PSCustomObject]@{
+					PSTypeName = 'DomainManagement.GroupMember.Change'
+					Action     = 'Remove'
+					Group      = $ADObject.Name
+					Member     = $identifier
+					Type       = $ADMember.ObjectClass
+				}
+				Add-Member -InputObject $change -MemberType ScriptMethod -Name ToString -Value { 'Remove: {0} -> {1}' -f $this.Member, $this.Group } -Force
+				New-TestResult @resultDefaults -Type Delete -Identity "$($ADObject.Name) þ $($ADMember.ObjectClass) þ $($identifier)" -Configuration $configObject -ADObject $ADObject -Changed $change
+			}
+		}
+		#endregion Functions
 	}
 	process {
+		#region Configured Memberships
+		$groupsProcessed = [System.Collections.ArrayList]@()
+
 		:main foreach ($groupMembershipName in $script:groupMemberShips.Keys) {
 			$resolvedGroupName = Resolve-String -Text $groupMembershipName
 			$processingMode = 'Constrained'
 			if ($script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode) {
 				$processingMode = $script:groupMemberShips[$groupMembershipName].__Configuration.ProcessingMode
-			}
-
-			$resultDefaults = @{
-				Server     = $Server
-				ObjectType = 'GroupMembership'
 			}
 
 			#region Resolve Assignments
@@ -124,15 +190,8 @@
 			#region Check Current AD State
 			try {
 				$adObject = Get-ADGroup @parameters -Identity $resolvedGroupName -Properties Members -ErrorAction Stop
-				$adMembers = $adObject.Members | ForEach-Object {
-					$distinguishedName = $_
-					try { Get-ADObject @parameters -Identity $_ -ErrorAction Stop -Properties SamAccountName, objectSid }
-					catch {
-						$objectDomainName = $distinguishedName.Split(",").Where{ $_ -like "DC=*" } -replace '^DC=' -join "."
-						$cred = $PSBoundParameters | ConvertTo-PSFHashtable -Include Credential
-						Get-ADObject -Server $objectDomainName @cred -Identity $distinguishedName -ErrorAction Stop -Properties SamAccountName, objectSid
-					}
-				}
+				$null = $groupsProcessed.Add($adObject.SamAccountName)
+				$adMembers = Get-GroupMember -ADObject $adObject -Parameters $parameters
 			}
 			catch { Stop-PSFFunction -String 'Test-DMGroupMembership.Group.Access.Failed' -StringValues $resolvedGroupName -ErrorRecord $_ -EnableException $EnableException -Continue }
 			#endregion Check Current AD State
@@ -158,7 +217,7 @@
 					Member     = Resolve-String -Text $assignment.ADMember.SamAccountName
 					Type       = $assignment.ADMember.ObjectClass
 				}
-				Add-Member -InputObject $change -MemberType ScriptMethod -Name ToString -Value { 'Add: {0} -> {1}' -f $this.Member, $this.Group } -Force
+				[PSFramework.Object.ObjectHost]::AddScriptMethod($change, 'ToString', { 'Add: {0} -> {1}' -f $this.Member, $this.Group })
 				New-TestResult @resultDefaults -Type Add -Identity "$(Resolve-String -Text $assignment.Assignment.Group) þ $($assignment.ADMember.ObjectClass) þ $(Resolve-String -Text $assignment.ADMember.SamAccountName)" -Configuration $assignment -ADObject $adObject -Changed $change
 			}
 			#endregion Compare Assignments to existing state
@@ -170,34 +229,29 @@
 				if ("$($adMember.ObjectSID)" -in ($assignments.ADMember.ObjectSID | ForEach-Object { "$_" })) {
 					continue
 				}
-				$configObject = [PSCustomObject]@{
-					Assignment = $null
-					ADMember   = $adMember
-				}
-
-				$identifier = $adMember.SamAccountName
-				if (-not $identifier) {
-					try { $identifier = Resolve-Principal -Name $adMember.ObjectSid -OutputType SamAccountName -ErrorAction Stop }
-					catch { $identifier = $adMember.ObjectSid }
-				}
-				if (-not $identifier) { $identifier = $adMember.ObjectSid }
-				if ($failedResolveAssignment -and ($adMember.ObjectClass -eq 'foreignSecurityPrincipal')) {
-					# Currently a member, is foreignSecurityPrincipal and we cannot be sure we resolved everything that should be member
-					New-TestResult @resultDefaults -Type Unidentified -Identity "$($adObject.Name) þ $($adMember.ObjectClass) þ $($identifier)" -Configuration $configObject -ADObject $adObject
-				}
-				else {
-					$change = [PSCustomObject]@{
-						PSTypeName = 'DomainManagement.GroupMember.Change'
-						Action     = 'Remove'
-						Group      = $adObject.Name
-						Member     = $identifier
-						Type       = $adMember.ObjectClass
-					}
-					Add-Member -InputObject $change -MemberType ScriptMethod -Name ToString -Value { 'Remove: {0} -> {1}' -f $this.Member, $this.Group } -Force
-					New-TestResult @resultDefaults -Type Delete -Identity "$($adObject.Name) þ $($adMember.ObjectClass) þ $($identifier)" -Configuration $configObject -ADObject $adObject -Changed $change
-				}
+				New-MemberRemovalResult -ADObject $adObject -ADMember $adMember -AssignmentsUnresolved:$failedResolveAssignment -ResultDefaults $resultDefaults
 			}
 			#endregion Compare existing state to assignments
 		}
+		#endregion Configured Memberships
+	
+		#region Groups without configured Memberships
+		if ($script:contentMode.ExcludeComponents.GroupMembership) { return }
+
+		$foundGroups = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
+			Get-ADGroup @parameters -LDAPFilter '(name=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties Members | Where-Object {
+				$_.SamAccountName -NotIn $groupsProcessed -and
+				@($_.Members).Count -gt 0
+			}
+		}
+
+		foreach ($adObject in $foundGroups) {
+			$adMembers = Get-GroupMember -ADObject $adObject -Parameters $parameters
+
+			foreach ($adMember in $adMembers) {
+				New-MemberRemovalResult -ADObject $adObject -ADMember $adMember -ResultDefaults $resultDefaults
+			}
+		}
+		#endregion Groups without configured Memberships
 	}
 }

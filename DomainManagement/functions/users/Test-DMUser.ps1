@@ -110,8 +110,8 @@
 				AsUpdate = $true
 				Type = 'User'
 			}
-			Compare-Property @compare -Property GivenName -Resolve
-			Compare-Property @compare -Property Surname -Resolve
+			Compare-Property @compare -Property GivenName -Resolve -AsString
+			Compare-Property @compare -Property Surname -Resolve -AsString
 			if ($null -ne $userDefinition.Description) { Compare-Property @compare -Property Description -Resolve }
 			Compare-Property @compare -Property PasswordNeverExpires
 			Compare-Property @compare -Property UserPrincipalName -Resolve

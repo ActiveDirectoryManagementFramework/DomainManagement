@@ -131,6 +131,7 @@
             $script:groupMemberShips[$Group]['__Configuration'] = [PSCustomObject]@{
                 PSTypeName     = 'DomainManagement.GroupMembership.Configuration'
                 ProcessingMode = $GroupProcessingMode
+				Group = $Group
             }
         }
     }

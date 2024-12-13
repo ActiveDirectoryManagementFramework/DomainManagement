@@ -238,6 +238,8 @@
 		}
 		#endregion Process Configured Objects
 		
+		if ($script:contentMode.ExcludeComponents.ServiceAccounts) { return }
+
 		#region Process Non-Configuted AD-Objects
 		$foundServiceAccounts = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
 			Get-ADServiceAccount @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope

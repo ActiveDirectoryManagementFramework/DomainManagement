@@ -124,6 +124,8 @@
 			#endregion Existing Groups, might need updates
 		}
 
+		if ($script:contentMode.ExcludeComponents.Groups) { return }
+
 		$foundGroups = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
 			Get-ADGroup @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
 		}
