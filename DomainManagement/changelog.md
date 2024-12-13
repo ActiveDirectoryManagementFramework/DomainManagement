@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## 1.9.210 (2024-12-13)
+
+- Upd: Content Mode - added ability to exclude individual Components from constrained Content Mode
+- Upd: GroupMembers - extended membership scan for all groups under management, not just those with an explicit configuration entry
+- Fix: Users - stopped update results when not defining GivenName and Surname
+- Fix: Get-DMGroupMembership - ignores `-Name` parameter
+- Fix: Unregister-DMGroupMembership - fails to unregister processing modes
+
 ## 1.8.205 (2024-10-22)
 
 - Upd: Exchange - added extra validation to successful deployment runs

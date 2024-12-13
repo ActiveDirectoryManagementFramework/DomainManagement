@@ -25,7 +25,7 @@
 		$Group = '*',
 
 		[string]
-		$Name = '*'
+		$Name
 	)
 	
 	process
@@ -35,6 +35,7 @@
 
 			if ($script:groupMemberShips[$key].Count -gt 0) {
 				foreach ($innerKey in $script:groupMemberShips[$key].Keys) {
+					if ($Name -and $innerKey -notlike $Name) { continue }
 					$script:groupMemberShips[$key][$innerKey]
 				}
 			}

@@ -105,6 +105,8 @@
 		}
 		#endregion Process Configured OUs
 
+		if ($script:contentMode.ExcludeComponents.OrganizationalUnits) { return }
+
 		#region Process Managed Containers
 		$foundOUs = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -IgnoreMissingSearchbase)) {
 			Get-ADOrganizationalUnit @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties nTSecurityDescriptor | Where-Object DistinguishedName -Ne $searchBase.SearchBase

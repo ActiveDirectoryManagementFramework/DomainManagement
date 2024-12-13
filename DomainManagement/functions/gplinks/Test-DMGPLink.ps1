@@ -59,7 +59,7 @@
 					$ous[$resolvedOU].ProcessingMode = 'Constrained'
 				}
 			}
-			#region Explicit OUs
+			#endregion Explicit OUs
 			
 			#region Filter-Based OUs
 			foreach ($filter in $script:groupPolicyLinksDynamic.Keys) {
@@ -315,6 +315,9 @@
 				New-TestResult @resultDefaults -Type 'Update' -Changed $updates
 			}
 		}
+		#endregion Process Configuration
+
+		if ($script:contentMode.ExcludeComponents.GPLinks) { return }
 
 		#region Process Managed Estate
 		# OneLevel needs to be converted to base, as searching for OUs with "OneLevel" would return unmanaged OUs.

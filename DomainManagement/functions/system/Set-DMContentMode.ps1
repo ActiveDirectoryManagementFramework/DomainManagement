@@ -44,6 +44,23 @@
 		Whether to remove unknown, undefined WMI Filters.
 		Only relevant when defining the WMI Filter component.
 		By default, WMI filters defined outside of the configuration will not be deleted if found.
+
+	.PARAMETER ExcludeComponents
+		Components to exclude from the Domain Content Mode.
+		By including them here, non-configured objects of that type will no longer get deleted.
+		(Details may vary, depending on the specific Component. See their respective documentation.)
+
+		Each entry should use the Component name as Key and a boolean as Value in the hashtable.
+		If the value is considered $true, the Component is excluded.
+		Settings from multiple configuration sets will be merged, rather than fully replacing the old hashtable with a new one.
+
+		Supported Components:
+		- ACLs: Excluding them will not test only configured values for ownership and inheritance.
+		- GPLinks: Excluding them will have it ignore all GPLinks on OUs that have no GP Links configured. OUs with any GP Links defined will be managed as per applicable processing mode.
+		- GroupMembership: Excluding them will cause groups that have no membership configuration to be fundamentally ignored.
+		- Groups: Excluding them will stop all group deletions other than explicit "Delete" configurations.
+		- OrganizationalUnits: Excluding them will stop all OU deletions other than explicit "Delete" configurations.
+		- ServiceAccounts: Excluding them will stop all Service Account deletions other than explicit "Delete" configurations.
 	
 	.EXAMPLE
 		PS C:\> Set-DMContentMode -Mode 'Constrained' -Include 'OU=Administration,%DomainDN%'
@@ -70,7 +87,10 @@
 		$UserExcludePattern,
 
 		[bool]
-		$RemoveUnknownWmiFilter
+		$RemoveUnknownWmiFilter,
+
+		[hashtable]
+		$ExcludeComponents
 	)
 	
 	process
@@ -80,5 +100,14 @@
 		if (Test-PSFParameterBinding -ParameterName Exclude) { $script:contentMode.Exclude = $Exclude }
 		if (Test-PSFParameterBinding -ParameterName UserExcludePattern) { $script:contentMode.UserExcludePattern = $UserExcludePattern }
 		if (Test-PSFParameterBinding -ParameterName RemoveUnknownWmiFilter) { $script:contentMode.RemoveUnknownWmiFilter = $RemoveUnknownWmiFilter }
+		if ($ExcludeComponents) {
+			foreach ($pair in $ExcludeComponents.GetEnumerator()) {
+				if ($script:contentMode.ExcludeComponents.Keys -notcontains $pair.Key) {
+					Write-PSFMessage -Level Warning -String 'Set-DMContentMode.Error.UnknownExcludedComponent' -StringValues $pair.Key
+					continue
+				}
+				$script:contentMode.ExcludeComponents[$pair.Key] = $pair.Value -as [bool]
+			}
+		}
 	}
 }

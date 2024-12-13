@@ -111,6 +111,16 @@ $script:contentMode = [PSCustomObject]@{
     Exclude = @()
     UserExcludePattern = @()
 	RemoveUnknownWmiFilter = $false
+
+	# Note: Also update the help on Set-DMContentMode and on the website Content Mode documentation, when adding new entries here.
+	ExcludeComponents = @{
+		ACLs = $false
+		GPLinks = $false
+		GroupMembership = $false
+		Groups = $false
+		OrganizationalUnits = $false
+		ServiceAccounts = $false
+	}
 }
 $script:contentSearchBases = [PSCustomObject]@{
     Include = @()

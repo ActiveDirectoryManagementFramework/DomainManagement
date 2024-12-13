@@ -139,6 +139,8 @@
 		}
 		#endregion processing configuration
 
+		if ($script:contentMode.ExcludeComponents.ACLs) { return }
+
 		#region check if all ADObjects are managed
 		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
 			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties AdminCount
