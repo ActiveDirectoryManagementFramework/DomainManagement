@@ -89,6 +89,10 @@
 					}
 					$accessRule
 				}
+				
+				# Workaround to prevent serialization issue. The $null of a loop return converts into an empty PSCustomObject, rather than actually being null, when serialized and deserialized.
+				if (-not $access) { $access = $null }
+
 				[PSCustomObject]@{
 					Class = $class.lDAPDisplayName
 					Access = $access

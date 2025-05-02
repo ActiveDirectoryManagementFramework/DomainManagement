@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: AccessRules - added configuration property showing what context it comes from.
+- Upd: AccessRules - will ignore Group Policy AD Objects - they are governed by the GP Permissions component
+- Fix: AccessRules - objects that have no default permission generate an empty restore result
+
 ## 1.9.210 (2024-12-13)
 
 - Upd: Content Mode - added ability to exclude individual Components from constrained Content Mode
