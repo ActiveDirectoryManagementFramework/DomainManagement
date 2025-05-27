@@ -61,11 +61,14 @@
 			#endregion User that needs to be removed
 
 			#region Users that don't exist but should | Users that need to be renamed
-			try { $adObject = Get-ADUser @parameters -Identity $resolvedSamAccName -Properties Description, PasswordNeverExpires -ErrorAction Stop }
+			$propertiesNeeded = @('Description', 'PasswordNeverExpires')
+			if ($userDefinition.Attributes) { $propertiesNeeded += $userDefinition.Attributes.Keys }
+			if ($userDefinition.AttributesResolved) { $propertiesNeeded += $userDefinition.AttributesResolved.Keys }
+			try { $adObject = Get-ADUser @parameters -Identity $resolvedSamAccName -Properties $propertiesNeeded -ErrorAction Stop }
 			catch
 			{
 				$oldUsers = foreach ($oldName in ($userDefinition.OldNames | Resolve-String)) {
-					try { Get-ADUser @parameters -Identity $oldName -Properties Description, PasswordNeverExpires -ErrorAction Stop }
+					try { Get-ADUser @parameters -Identity $oldName -Properties $propertiesNeeded -ErrorAction Stop }
 					catch { }
 				}
 
@@ -123,6 +126,16 @@
 			if ($userDefinition.Enabled -ne "Undefined") {
 				Compare-Property @compare -Property Enabled
 			}
+			
+			$compare.Configuration = $userDefinition.Attributes
+			foreach ($attribute in $userDefinition.Attributes.Keys) {
+				Compare-Property @compare -Property $attribute
+			}
+			$compare.Configuration = $userDefinition.AttributesResolved
+			foreach ($attribute in $userDefinition.AttributesResolved.Keys) {
+				Compare-Property @compare -Property $attribute -Resolve
+			}
+
 			if ($changes.Count) {
 				New-TestResult @resultDefaults -Type Changed -Changed $changes.ToArray() -ADObject $adObject
 			}

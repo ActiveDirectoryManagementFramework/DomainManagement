@@ -90,6 +90,13 @@
 						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
 						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }
 						if ($testItem.Configuration.Surname) { $newParameters['Surname'] = Resolve-String -Text $testItem.Configuration.Surname }
+
+						# Other Attributes
+						$otherAttributes = @{}
+						foreach ($attribute in $testItem.Configuration.Attributes.Keys) { $otherAttributes[$attribute] = $testItem.Configuration.Attributes.$attribute }
+						foreach ($attribute in $testItem.Configuration.AttributesResolved.Keys) { $otherAttributes[$attribute] = Resolve-String -Text $testItem.Configuration.AttributesResolved.$attribute }
+						if ($otherAttributes.Count -gt 0) { $newParameters.OtherAttributes = $otherAttributes }
+
 						New-ADUser @newParameters
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
@@ -116,7 +123,7 @@
 					}
 					$changes = @{ }
 					foreach ($change in $testItem.Changed) {
-						if ($change.Property -notin 'GivenName','Surname','Description','UserPrincipalName') { continue }
+						if ($change.Property -in 'Enabled','Name','PasswordNeverExpires', 'Path') { continue }
 						switch ($change.Property) {
 							Surname { $changes['sn'] = $change.New }
 							default { $changes[$change.Property] = $change.New }

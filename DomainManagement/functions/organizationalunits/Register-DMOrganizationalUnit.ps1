@@ -21,6 +21,10 @@
 	.PARAMETER Optional
 		By default, organizational units must exist if defined.
 		Setting this to true makes them optional instead - they will not be created but are tolerated if they exist.
+
+	.PARAMETER BlockGPInheritance
+		Whether GP Inheritance should be blocked on this OU.
+		By default, Group Policy Inheritance is enabled.
 	
 	.PARAMETER OldNames
 		Previous names the OU had.
@@ -54,6 +58,10 @@
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[bool]
 		$Optional,
+		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[bool]
+		$BlockGPInheritance,
 
 		[string[]]
 		$OldNames = @(),
@@ -65,14 +73,15 @@
 	process {
 		$distinguishedName = 'OU={0},{1}' -f $Name, $Path
 		$script:organizationalUnits[$distinguishedName] = [PSCustomObject]@{
-			PSTypeName        = 'DomainManagement.OrganizationalUnit'
-			DistinguishedName = $distinguishedName
-			Name              = $Name
-			Description       = $Description
-			Path              = $Path
-			Optional          = $Optional
-			OldNames          = $OldNames
-			Present           = $Present
+			PSTypeName         = 'DomainManagement.OrganizationalUnit'
+			DistinguishedName  = $distinguishedName
+			Name               = $Name
+			Description        = $Description
+			Path               = $Path
+			Optional           = $Optional
+			BlockGPInheritance = $BlockGPInheritance
+			OldNames           = $OldNames
+			Present            = $Present
 		}
 	}
 }

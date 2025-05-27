@@ -35,8 +35,13 @@
 		[string]
 		$ItemType,
 
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+		[string]
+		$Category,
+
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Processing')]
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Identity')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
 		[string]
 		$Group,
 
@@ -57,6 +62,10 @@
 		}
 		if ($Name -eq '<empty>') {
 			$null = $script:groupMemberShips.Remove($Group)
+			return
+		}
+		if ($Category) {
+			$null = $script:groupMemberShips.Remove("ObjectCategory:$Category")
 			return
 		}
 		if (-not $script:groupMemberShips[$Group]["$($ItemType):$($Name)"]) { return }

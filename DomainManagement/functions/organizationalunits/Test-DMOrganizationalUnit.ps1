@@ -94,10 +94,17 @@
 			}
 			#endregion Case: Does not exist
 
-			$adObject = Get-ADOrganizationalUnit @parameters -Identity $resolvedDN -Properties Description, nTSecurityDescriptor
+			$adObject = Get-ADOrganizationalUnit @parameters -Identity $resolvedDN -Properties Description, nTSecurityDescriptor, gpOptions
 			
 			[System.Collections.ArrayList]$changes = @()
-			Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve -AsUpdate -Type OrganizationalUnit
+			Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve -AsString -AsUpdate -Type OrganizationalUnit
+			$gpInheritIntended = $null
+			if ($ouDefinition.BlockGPInheritance) { $gpInheritIntended = 1 }
+			if ($gpInheritIntended -ne $adObject.gpOptions) {
+				$null = $changes.Add(
+					(New-Change -Property 'GPBlocked' -Identity $adObject.DistinguishedName -Type OrganizationalUnit -NewValue $ouDefinition.BlockGPInheritance -OldValue (-not $ouDefinition.BlockGPInheritance))
+				)
+			}
 
 			if ($changes.Count) {
 				New-TestResult @resultDefaults -Type Update -Changed $changes.ToArray() -ADObject $adObject

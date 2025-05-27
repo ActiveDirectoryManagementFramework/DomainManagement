@@ -46,6 +46,16 @@
 		The organizational unit the user should be placed in.
 		Subject to string insertion.
 
+	.PARAMETER Attributes
+		Additional attributes that should be applied to the user.
+		Can be any attribute available to users, but some data types may not work out as intended.
+		NOT Subject to string insertion.
+
+	.PARAMETER AttributesResolved
+		Additional attributes that should be applied to the user.
+		Can be any attribute available to users, but some data types may not work out as intended.
+		Subject to string insertion.
+
 	.PARAMETER Enabled
 		Whether the user object should be enabled or disabled.
 		Defaults to: Undefined
@@ -107,7 +117,15 @@
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
 		[string]
 		$Path,
+
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[hashtable]
+		$Attributes,
 		
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[hashtable]
+		$AttributesResolved,
+
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[PSFramework.Utility.TypeTransformationAttribute([string])]
 		[DomainManagement.TriBool]
@@ -142,6 +160,8 @@
 			PasswordNeverExpires = $PasswordNeverExpires.ToBool()
 			UserPrincipalName    = $UserPrincipalName
 			Path                 = $Path
+			Attributes           = $Attributes
+			AttributesResolved   = $AttributesResolved
 			Enabled              = $Enabled
 			Optional             = $Optional
 			OldNames             = $OldNames
