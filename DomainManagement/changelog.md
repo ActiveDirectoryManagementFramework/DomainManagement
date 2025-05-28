@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 1.9.218 (2025-05-28)
 
 - Upd: Organizational Units - added ability to define GP inheritance blocking. Defaults to NOT block.
 - Upd: Users - added ability to specify custom attributes/properties for users.
