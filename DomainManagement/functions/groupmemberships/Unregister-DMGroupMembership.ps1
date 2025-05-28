@@ -12,6 +12,9 @@
 	
 	.PARAMETER ItemType
 		The type of object the identity being granted group membership is.
+
+	.PARAMETER Category
+		The Object Category that defines the members.
 	
 	.PARAMETER Group
 		The group being granted membership in.
@@ -35,8 +38,13 @@
 		[string]
 		$ItemType,
 
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+		[string]
+		$Category,
+
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Processing')]
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Identity')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
 		[string]
 		$Group,
 
@@ -57,6 +65,10 @@
 		}
 		if ($Name -eq '<empty>') {
 			$null = $script:groupMemberShips.Remove($Group)
+			return
+		}
+		if ($Category) {
+			$null = $script:groupMemberShips.Remove("ObjectCategory:$Category")
 			return
 		}
 		if (-not $script:groupMemberShips[$Group]["$($ItemType):$($Name)"]) { return }

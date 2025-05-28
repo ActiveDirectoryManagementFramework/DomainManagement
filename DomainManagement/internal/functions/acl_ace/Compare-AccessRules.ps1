@@ -140,21 +140,23 @@
 
 	#region Foreach configured rule: Check whether it exists as defined or make it so
 	:outer foreach ($configuredRule in $ConfiguredRules) {
+		# Do not generate Create rules for any rule not configured for creation
+		if ('True' -ne $configuredRule.Present) { continue }
+
 		foreach ($defaultRule in $DefaultRules) {
-			if ('True' -ne $configuredRule.Present) { break }
 			if ($configuredRule.NoFixConfig) { break }
 			if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $defaultRule -Rule2 $configuredRule) {
 				Write-Result -Type FixConfig -Identity $defaultRule.IdentityReference -ADObject $defaultRule -Configuration $configuredRule -DistinguishedName $ADObject
 				continue outer
 			}
 		}
+
 		foreach ($relevantADRule in $relevantADRules) {
 			if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $relevantADRule -Rule2 $configuredRule) {
 				continue outer
 			}
 		}
-		# Do not generate Create rules for any rule not configured for creation
-		if ('True' -ne $configuredRule.Present) { continue }
+		
 		Write-Result -Type Create -Identity $configuredRule.IdentityReference -Configuration $configuredRule -DistinguishedName $ADObject
 	}
 	#endregion Foreach configured rule: Check whether it exists as defined or make it so
@@ -162,6 +164,8 @@
 	#region Foreach non-existent default rule: Create unless configured otherwise
 	$domainControllersOUFilter = '*{0}' -f ('OU=Domain Controllers,%DomainDN%' | Resolve-String)
 	:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray() }) {
+		if (-not $DefaultRule) { continue }
+
 		# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
 		if ($ADObject -like $domainControllersOUFilter) { break }
 
