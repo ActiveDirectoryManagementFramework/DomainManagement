@@ -12,6 +12,9 @@
 	
 	.PARAMETER ItemType
 		The type of object the identity being granted group membership is.
+
+	.PARAMETER Category
+		The Object Category that defines the members.
 	
 	.PARAMETER Group
 		The group being granted membership in.
