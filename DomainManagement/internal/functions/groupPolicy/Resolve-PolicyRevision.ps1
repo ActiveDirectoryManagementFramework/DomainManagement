@@ -1,5 +1,4 @@
-﻿function Resolve-PolicyRevision
-{
+﻿function Resolve-PolicyRevision {
 	<#
 	.SYNOPSIS
 		Checks the management state information of the specified policy object.
@@ -32,8 +31,7 @@
 		$Session
 	)
 	
-	process
-	{
+	process {
 		#region Remote Call - Resolve GPO data => $result
 		$result = Invoke-Command -Session $Session -ArgumentList $Policy.Path -ScriptBlock {
 			param (
@@ -45,45 +43,49 @@
 
 			if (-not (Test-Path $testPath)) {
 				[pscustomobject]@{
-					Success = $false
-					Exists = $null
-					ExportID = $null
+					Success   = $false
+					Exists    = $false
+					ExportID  = $null
 					Timestamp = $null
-					Version = -1
-					Error = $null
+					Version   = -1
+					Error     = $null
+					Path      = $Path
 				}
 				return
 			}
 			if (-not (Test-Path $configPath)) {
 				[pscustomobject]@{
-					Success = $true
-					Exists = $false
-					ExportID = $null
+					Success   = $true
+					Exists    = $false
+					ExportID  = $null
 					Timestamp = $null
 					Version   = -1
-					Error = $null
+					Error     = $null
+					Path      = $Path
 				}
 				return
 			}
 			try { $data = Import-Clixml -Path $configPath -ErrorAction Stop }
 			catch {
 				[pscustomobject]@{
-					Success = $false
-					Exists = $true
-					ExportID = $null
+					Success   = $false
+					Exists    = $true
+					ExportID  = $null
 					Timestamp = $null
 					Version   = -1
-					Error = $_
+					Error     = $_
+					Path      = $Path
 				}
 				return
 			}
 			[pscustomobject]@{
-				Success = $true
-				Exists = $true
-				ExportID = $data.ExportID
+				Success   = $true
+				Exists    = $true
+				ExportID  = $data.ExportID
 				Timestamp = $data.Timestamp
-				Version  = $data.Version
-				Error = $null
+				Version   = $data.Version
+				Error     = $null
+				Path      = $Path
 			}
 		}
 		#endregion Remote Call - Resolve GPO data => $result
@@ -96,21 +98,23 @@
 		if (-not $result.Success) {
 			if ($result.Exists) {
 				$Policy.State = 'ConfigError'
-				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.ErrorOnConfigImport' -StringValues $Policy.DisplayName, $result.Error.Exception.Message -Target $Policy }
+				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.ErrorOnConfigImport' -StringValues $Policy.DisplayName, $result.Error.Exception.Message -Target $Policy -Data @{ Result = $result }
 				throw $result.Error
+			}
 			else {
 				$Policy.State = 'CriticalError'
-				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.PolicyError' -StringValues $Policy.DisplayName -Target $Policy
+				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.PolicyError' -StringValues $Policy.DisplayName -Target $Policy -Data @{ Result = $result }
 				throw "Policy object not found in filesystem. Check existence and permissions! $($Policy.DisplayName) ($($Policy.ObjectGUID))"
 			}
 		}
 		else {
 			if ($result.Exists) {
-				$Policy.State  = 'Healthy'
-				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.Success' -StringValues $Policy.DisplayName, $result.ExportID, $result.Timestamp -Target $Policy }
+				$Policy.State = 'Healthy'
+				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.Success' -StringValues $Policy.DisplayName, $result.ExportID, $result.Timestamp -Target $Policy -Data @{ Result = $result }
+			}
 			else {
 				$Policy.State = 'Unmanaged'
-				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.Result.SuccessNotYetManaged' -StringValues $Policy.DisplayName -Target $Policy
+				Write-PSFMessage -Level Debug -String 'Resolve-PolicyRevision.Result.Result.SuccessNotYetManaged' -StringValues $Policy.DisplayName -Target $Policy -Data @{ Result = $result }
 			}
 		}
 		#endregion Process results

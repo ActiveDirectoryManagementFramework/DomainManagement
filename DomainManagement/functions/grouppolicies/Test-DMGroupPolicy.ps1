@@ -81,7 +81,7 @@
 			}
 			# Resolve-PolicyRevision updates the content of $groupPolicy without producing output
 			try { Resolve-PolicyRevision -Policy $groupPolicy -Session $session }
-			catch { Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.PolicyRevision.Lookup.Failed' -StringValues $allPolicies.DisplayName -ErrorRecord $_ -EnableException $EnableException.ToBool() }
+			catch { Write-PSFMessage -Level Warning -String 'Test-DMGroupPolicy.PolicyRevision.Lookup.Failed' -StringValues $groupPolicy.DisplayName -ErrorRecord $_ -EnableException $EnableException.ToBool() }
 		}
 		$desiredHash = @{ }
 		$policyHash = @{ }

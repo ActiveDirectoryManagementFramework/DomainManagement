@@ -193,6 +193,9 @@
 				# Prevent duplicate processing
 				if ($processed[$foundADObject.DistinguishedName]) { continue }
 				$processed[$foundADObject.DistinguishedName] = $true
+
+				# Skip GPOs, as those are handled within the GP Permissions Component
+				if ($foundADObject.DistinguishedName -match 'CN={[^,]+},CN=Policies,CN=System,') { continue }
 	
 				# Skip items that were defined in configuration, they were already processed
 				if ($foundADObject.DistinguishedName -in $resolvedConfiguredObjects) { continue }

@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## 1.9.218 (2025-05-28)
+
+- Upd: Organizational Units - added ability to define GP inheritance blocking. Defaults to NOT block.
+- Upd: Users - added ability to specify custom attributes/properties for users.
+- Upd: AccessRules - added configuration property showing what context it comes from.
+- Upd: AccessRules - will ignore Group Policy AD Objects - they are governed by the GP Permissions component
+- Fix: AccessRules - objects that have no default permission generate an empty restore result
+- Fix: GroupPolicy - Reports wrong Policyname when failing to read GPO tracking file
+- Fix: GroupPolicy - Fails with the wrong error when the GPO no longer has a matching directory in SYSVOL.
+- Fix: GroupMemberships - Cannot unregister group memberships assigned based on categories.
+
 ## 1.9.210 (2024-12-13)
 
 - Upd: Content Mode - added ability to exclude individual Components from constrained Content Mode

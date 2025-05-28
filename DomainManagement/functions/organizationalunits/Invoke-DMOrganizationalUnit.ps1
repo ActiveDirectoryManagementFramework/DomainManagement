@@ -1,5 +1,4 @@
-﻿function Invoke-DMOrganizationalUnit
-{
+﻿function Invoke-DMOrganizationalUnit {
 	<#
 	.SYNOPSIS
 		Updates the organizational units of a domain to be compliant with the desired state.
@@ -59,8 +58,7 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -69,8 +67,7 @@
 		$everyone = ([System.Security.Principal.SecurityIdentifier]'S-1-1-0').Translate([System.Security.Principal.NTAccount])
 		Set-DMDomainContext @parameters
 	}
-	process
-	{
+	process {
 		#region Sort Script
 		$sortScript = {
 			if ($_.Type -eq 'ShouldDelete') { $_.ADObject.DistinguishedName.Split(",").Count }
@@ -95,13 +92,12 @@
 					}
 					$childObjects = Get-ADObject @parameters -SearchBase $testItem.ADObject.DistinguishedName -LDAPFilter '(!(objectCategory=OrganizationalUnit))'
 					if ($childObjects) {
-						Write-PSFMessage -Level Warning -String 'Invoke-DMOrganizationalUnit.OU.Delete.HasChildren' -StringValues $testItem.ADObject.DistinguishedName, ($childObjects | Measure-Object).Count -Target $testItem -Tag 'ou','critical','panic'
+						Write-PSFMessage -Level Warning -String 'Invoke-DMOrganizationalUnit.OU.Delete.HasChildren' -StringValues $testItem.ADObject.DistinguishedName, ($childObjects | Measure-Object).Count -Target $testItem -Tag 'ou', 'critical', 'panic'
 						continue main
 					}
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Delete' -Target $testItem -ScriptBlock {
 						# Remove "Protect from accidental deletion" if neccessary
-						if ($accidentProtectionRule = ($testItem.ADObject.nTSecurityDescriptor.Access | Where-Object { ($_.IdentityReference -eq $everyone) -and ($_.AccessControlType -eq 'Deny') }))
-						{
+						if ($accidentProtectionRule = ($testItem.ADObject.nTSecurityDescriptor.Access | Where-Object { ($_.IdentityReference -eq $everyone) -and ($_.AccessControlType -eq 'Deny') })) {
 							$null = $testItem.ADObject.nTSecurityDescriptor.RemoveAccessRule($accidentProtectionRule)
 							Set-ADObject @parameters -Identity $testItem.ADObject.DistinguishedName -Replace @{ nTSecurityDescriptor = $testItem.ADObject.nTSecurityDescriptor } -ErrorAction Stop -Confirm:$false
 						}
@@ -115,16 +111,17 @@
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Create' -Target $testItem -ScriptBlock {
 						$newParameters = $parameters.Clone()
 						$newParameters += @{
-							Name = (Resolve-String -Text $testItem.Configuration.Name)
+							Name        = (Resolve-String -Text $testItem.Configuration.Name)
 							Description = (Resolve-String -Text $testItem.Configuration.Description)
-							Path = $targetOU
-							Confirm = $false
+							Path        = $targetOU
+							Confirm     = $false
 						}
+						if ($testItem.Configuration.BlockGPInheritance) { $newParameters.OtherAttributes = @{ gpOptions = 1 } }
 						New-ADOrganizationalUnit @newParameters -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'MultipleOldOUs' {
-					Stop-PSFFunction -String 'Invoke-DMOrganizationalUnit.OU.MultipleOldOUs' -StringValues $testItem.Identity, ($testItem.ADObject.Name -join ', ') -Target $testItem -EnableException $EnableException -Continue -Tag 'ou','critical','panic'
+					Stop-PSFFunction -String 'Invoke-DMOrganizationalUnit.OU.MultipleOldOUs' -StringValues $testItem.Identity, ($testItem.ADObject.Name -join ', ') -Target $testItem -EnableException $EnableException -Continue -Tag 'ou', 'critical', 'panic'
 				}
 				'Rename' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
@@ -132,29 +129,35 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update' {
-					$changes = @{ }
-					if ($change = $testItem.Changed | Where-Object Property -eq 'Description') {
-						$changes['Description'] = $change.New
+					$updateParam = @{
+						Replace = @{ }
+						Clear   = @()
 					}
+					if ($change = $testItem.Changed | Where-Object Property -EQ 'Description') {
+						$updateParam.Replace['Description'] = $change.New
+					}
+					if ($change = $testItem.Changed | Where-Object Property -EQ 'GPBlocked') {
+						if ($change.New) { $updateParam.Replace['gpOptions'] = 1 }
+						else { $updateParam.Clear += 'gpOptions' }
+					}
+
+					if ($updateParam.Replace.Count -lt 1) {$updateParam.Remove('Replace') }
+					if ($updateParam.Clear.Count -lt 1) {$updateParam.Remove('Clear') }
 					
-					if ($changes.Keys.Count -gt 0)
-					{
-						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
-							$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop -Replace $changes -Confirm:$false
-						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
-					}
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMOrganizationalUnit.OU.Update' -ActionStringValues ($changes.Keys -join ", ") -Target $testItem -ScriptBlock {
+						$null = Set-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -ErrorAction Stop @updateParam -Confirm:$false
+					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 			}
 		}
 	}
-	end
-	{
+	end {
 		# Reset Content Searchbases
 		$script:contentSearchBases = [PSCustomObject]@{
 			Include = @()
 			Exclude = @()
 			Bases   = @()
-			Server = ''
+			Server  = ''
 		}
 	}
 }

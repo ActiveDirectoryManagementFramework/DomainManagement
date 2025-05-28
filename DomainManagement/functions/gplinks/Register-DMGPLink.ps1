@@ -50,6 +50,11 @@
 	.PARAMETER Present
 		Whether the link should be present at all.
 		Relevant in additive mode, to retain the capability to delete undesired links.
+
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
 	
 	.EXAMPLE
 		PS C:\> Get-Content $configPath | ConvertFrom-Json | Write-Output | Register-DMGPLink
@@ -91,7 +96,10 @@
 
 		[Parameter(ValueFromPipelineByPropertyName = $true)]
 		[bool]
-		$Present = $true
+		$Present = $true,
+		
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process {
@@ -109,6 +117,7 @@
 					State              = $State
 					ProcessingMode     = $ProcessingMode
 					Present            = $Present
+					ContextName        = $ContextName
 				}
 			}
 			'Filter' {
@@ -124,6 +133,7 @@
 					State          = $State
 					ProcessingMode = $ProcessingMode
 					Present        = $Present
+					ContextName    = $ContextName
 				}
 			}
 		}

@@ -62,6 +62,11 @@
 		By default, Test-DMAccessRule will generate a "FixConfig" result for accessrules that have been explicitly defined but are also part of the Schema Default permissions.
 		If this setting is enabled, this result object is suppressed.
 
+	.PARAMETER ContextName
+		The name of the context defining the setting.
+		This allows determining the configuration set that provided this setting.
+		Used by the ADMF, available to any other configuration management solution.
+
 	.EXAMPLE
 		PS C:\> Register-DMAccessRule -ObjectCategory DomainControllers -Identity '%DomainName%\Domain Admins' -ActiveDirectoryRights GenericAll
 
@@ -111,7 +116,10 @@
 		$Present = 'true',
 
 		[bool]
-		$NoFixConfig = $false
+		$NoFixConfig = $false,
+
+		[string]
+		$ContextName = '<Undefined>'
 	)
 	
 	process {
@@ -130,6 +138,7 @@
 					Optional              = $Optional
 					Present               = $Present
 					NoFixConfig           = $NoFixConfig
+					ContextName           = $ContextName
 				}
 			}
 			'Category' {
@@ -146,6 +155,7 @@
 					Optional              = $Optional
 					Present               = $Present
 					NoFixConfig           = $NoFixConfig
+					ContextName           = $ContextName
 				}
 			}
 		}
