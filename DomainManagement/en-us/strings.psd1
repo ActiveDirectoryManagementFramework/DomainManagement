@@ -76,7 +76,7 @@
 	'Invoke-DMGPLink.Delete.AllEnabled'                                 = 'Removing all ({0}) policy links (all of which are enabled)' # $countActual
 	'Invoke-DMGPLink.GpoMissing'                                        = 'Skipping GP Link application for {0} - cannot resolve Group Policies "{1}"' # $testItem.ADObject, (($testItem.Changed | Where-Object Action -eq 'GpoMissing').Policy -join ", ")
 	'Invoke-DMGPLink.New'                                               = 'Linking {0} group policies (all new links)' # $countConfigured
-	# 'Invoke-DMGPLink.New.GpoNotFound'                                   = 'Unable to find Group Policy Object: {0}' # (Resolve-String -Text $_.PolicyName)
+	'Invoke-DMGPLink.New.GpoNotFound'                                   = 'Unable to find Group Policy Object: {0}' # (Resolve-String -Text $_.PolicyName)
 	'Invoke-DMGPLink.New.NewGPLinkString'                               = 'Finished gPLink string being applied to {0}: {1}' # $ADObject.DistinguishedName, $gpLinkString
 	'Invoke-DMGPLink.Update.AllEnabled'                                 = 'Updating GPLink - {0} links configured, {1} links present, {2} links present that are not in configuration (All present and undesired links are enabled)' # $countConfigured, $countActual, $countNotInConfig
 	'Invoke-DMGPLink.Update.Change'                                     = '  Link update: {0} - {1} ({2})' # $change.Action, $change.Policy, $ADObject.DistinguishedName
