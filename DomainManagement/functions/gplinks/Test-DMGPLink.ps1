@@ -52,7 +52,6 @@
 					Include            = @()
 					Exclude            = @()
 					ExtendedInclude    = @()
-					Definition         = @()
 				}
 				$ous[$resolvedOU].Include = $script:groupPolicyLinks[$organizationalUnit].Values | Where-Object Present
 				$ous[$resolvedOU].Exclude = $script:groupPolicyLinks[$organizationalUnit].Values | Where-Object Present -EQ $false
@@ -75,7 +74,6 @@
 							Include            = @()
 							Exclude            = @()
 							ExtendedInclude    = @()
-							Definition         = @()
 						}
 					}
 					$container = $ous[$adObject.DistinguishedName]
@@ -107,65 +105,6 @@
 				Policy     = $PolicyName
 				Status     = $Status
 				Identity   = $Identity
-			}
-			Add-Member -InputObject $update -MemberType ScriptMethod -Name ToString -Value {
-				'{0}: {1}' -f $this.Action, $this.Policy
-			} -Force -PassThru
-		}
-		function New-LinkUpdate {
-			[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
-			[CmdletBinding()]
-			param (
-				[string]
-				$PolicyName,
-
-				[string]
-				$PolicyDN,
-
-				# The OU DN to which the link applies
-				[string]
-				$Identity,
-
-				[int]
-				$OriginalPosition,
-
-				[int]
-				$Tier,
-
-				[int]
-				$Precedence,
-
-				[string]
-				$Status,
-
-				[string]
-				$OriginalStatus,
-
-				[string]
-				$Action
-			)
-
-			$update = [PSCustomObject]@{
-				PSTypeName       = 'DomainManagement.GPLink.Update'
-				Policy           = $PolicyName
-				PolicyDN         = $PolicyDN
-				Identity         = $Identity
-				OriginalPosition = $OriginalPosition
-				Tier             = $Tier
-				Precedence       = $Precedence
-				Status           = $Status
-				OriginalStatus   = $OriginalStatus
-				Action           = $Action
-			}
-			Add-Member -InputObject $update -MemberType ScriptMethod -Name ToLink -Value {
-				param ($NewStatus)
-				if (-not $this.PolicyDN) { throw "Cannot generate Link for unknown GPO: $($this.Policy)" }
-				# [LDAP://cn={F4A6ADB1-BEDE-497D-901F-F24B19394951},cn=policies,cn=system,DC=contoso,DC=com;0][LDAP://cn={2036B9B6-D5C1-4756-B7AB-8291A9B26521},cn=policies,cn=system,DC=contoso,DC=com;0]
-				$status = '0'
-				if ($this.Status -eq 'Disabled') { $status = '1' }
-				if ($this.Status -eq 'Enforced') { $status = '2' }
-				if ($NewStatus -and $NewStatus -in '0','1','2') { $status = $NewStatus }
-				'[LDAP://{0};{1}]' -f $this.PolicyDN, $status
 			}
 			Add-Member -InputObject $update -MemberType ScriptMethod -Name ToString -Value {
 				'{0}: {1}' -f $this.Action, $this.Policy
@@ -291,49 +230,31 @@
 
 			$index = 0
 			foreach ($desired in $newDesiredState) {
-				$updateCommon = @{
-					PolicyName       = $desired.PolicyName
-					PolicyDN         = $desired.DistinguishedName
-					Status           = $desired.State
-					OriginalStatus   = $desired.State
-					OriginalPosition = -1
-					Tier             = $desired.Tier
-					Precedence       = $desired.Precedence
-					Identity         = $ADObject.DistinguishedName
-				}
 				if ($currentSorted.DisplayName -notcontains $desired.PolicyName) {
 					if ($desired.DistinguishedName) {
-						$updateCommon.OriginalStatus = ''
-						New-LinkUpdate @updateCommon -Action Add
-						#New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+						New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 						$index = $index + 1
 					}
 					else {
-						New-LinkUpdate @updateCommon -Action GpoMissing
-						#New-Update -Action GpoMissing -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+						New-Update -Action GpoMissing -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					}
 					continue
 				}
-				$updateCommon.OriginalPosition = ($currentSorted | Where-Object DisplayName -EQ $desired.PolicyName).Precedence
 				if ($index -gt @($currentSorted).Count -or $desired.PolicyName -ne $currentSorted[$index].DisplayName) {
-					New-LinkUpdate @updateCommon -Action Reorder
-					#New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+					New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
 				if (-not $desired.StateValid) {
-					New-LinkUpdate @updateCommon -Action State
-					#New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State -Identity $ADObject.DistinguishedName
+					New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
-				New-LinkUpdate @updateCommon -Action None
 				$index = $index + 1
 			}
 			foreach ($current in $currentSorted) {
 				if ($current.DisplayName -notin $newDesiredState.PolicyName) {
-					New-LinkUpdate -Action Delete -PolicyName $current.DisplayName -PolicyDN $current.DistinguishedName -Tier 0 -Precedence $current.Precedence -OriginalPosition $current.Precedence -Identity $ADObject.DistinguishedName
-					# New-Update -Action Delete -PolicyName $current.DisplayName -Status $current.Status -Identity $ADObject.DistinguishedName
+					New-Update -Action Delete -PolicyName $current.DisplayName -Status $current.Status -Identity $ADObject.DistinguishedName
 				}
 			}
 		}
@@ -365,7 +286,7 @@
 			catch {
 				Write-PSFMessage -String 'Test-DMGPLink.OUNotFound' -StringValues $ouDatum.OrganizationalUnit -ErrorRecord $_ -Tag 'panic', 'failed'
 				New-TestResult @resultDefaults -Type 'MissingParent'
-				continue
+				Continue
 			}
 			#endregion Handle AD Object doesn't exist
 
@@ -374,10 +295,9 @@
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value $currentState -Force
 			if (-not $currentState) {
 				$updates = foreach ($includedLink in $ouDatum.Include) {
-					New-LinkUpdate -Action Add -PolicyName $includedLink.PolicyName -PolicyDN $gpoDisplayToDN[$includedLink.PolicyName] -Status $includedLink.State -Tier $includedLink.Tier -Precedence $includedLink.Precedence -Identity $ouDatum.OrganizationalUnit
-					# New-Update -Action Create -PolicyName $includedLink.PolicyName -Status $includedLink.State -Identity $ouDatum.OrganizationalUnit
+					New-Update -Action Create -PolicyName $includedLink.PolicyName -Status $includedLink.State -Identity $ouDatum.OrganizationalUnit
 				}
-				New-TestResult @resultDefaults -Type 'Create' -Changed ($updates | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending)
+				New-TestResult @resultDefaults -Type 'Create' -Changed $updates
 				continue
 			}
 			#endregion Handle AD Object does not contain any links
@@ -388,13 +308,11 @@
 				else { 2 }
 			}
 			if ($updates.Action -contains 'GpoMissing') {
-				New-TestResult @resultDefaults -Type 'GpoMissing' -Changed ($updates | Where-Object Action -NE 'None')
+				New-TestResult @resultDefaults -Type 'GpoMissing' -Changed $updates
 				continue
 			}
-			if ($updates | Where-Object Action -NE 'None') {
-				$test = New-TestResult @resultDefaults -Type 'Update' -Changed ($updates | Where-Object Action -NE 'None')
-				$test.Configuration.Definition = $updates
-				$test
+			if ($updates) {
+				New-TestResult @resultDefaults -Type 'Update' -Changed $updates
 			}
 		}
 		#endregion Process Configuration
@@ -422,10 +340,9 @@
 			Add-Member -InputObject $adObject -MemberType NoteProperty -Name LinkedGroupPolicyObjects -Value $linkObjects -Force
 
 			$changes = foreach ($linkedObject in $linkObjects) {
-				New-LinkUpdate -Action Delete -PolicyName $linkedObject.DisplayName -PolicyDN $linkedObject.DistinguishedName -Status $linkedObject.Status -OriginalStatus $linkedObject.Status -Identity $adObject.DistinguishedName
+				New-Update -PolicyName $linkedObject.DisplayName -Status $linkedObject.Status -Action Delete -Identity $adObject.DistinguishedName
 			}
-			$configProxy = [PSCustomObject]@{ Definition = $changes }
-			New-TestResult -ObjectType GPLink -Type 'Delete' -Identity $adObject.DistinguishedName -Server $Server -ADObject $adObject -Configuration $configProxy -Changed $changes
+			New-TestResult -ObjectType GPLink -Type 'Delete' -Identity $adObject.DistinguishedName -Server $Server -ADObject $adObject -Changed $changes
 		}
 		#endregion Process Managed Estate
 	}
