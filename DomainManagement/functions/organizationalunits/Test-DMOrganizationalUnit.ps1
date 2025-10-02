@@ -35,11 +35,18 @@
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type OrganizationalUnits -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
+
+		#region Sort Script
+		$sortScript = {
+			if ($_.Type -eq 'ShouldDelete') { $_.ADObject.DistinguishedName.Split(",").Count }
+			else { 1000 - $_.Identity.Split(",").Count }
+		}
+		#endregion Sort Script
 	}
 	process
 	{
 		#region Process Configured OUs
-		:main foreach ($ouDefinition in $script:organizationalUnits.Values) {
+		$results = :main foreach ($ouDefinition in $script:organizationalUnits.Values) {
 			$resolvedDN = Resolve-String -Text $ouDefinition.DistinguishedName
 
 			$resultDefaults = @{
@@ -98,9 +105,9 @@
 			
 			[System.Collections.ArrayList]$changes = @()
 			Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve -AsString -AsUpdate -Type OrganizationalUnit
-			$gpInheritIntended = $null
+			$gpInheritIntended = $null, 0
 			if ($ouDefinition.BlockGPInheritance) { $gpInheritIntended = 1 }
-			if ($gpInheritIntended -ne $adObject.gpOptions) {
+			if ($adObject.gpOptions -notin $gpInheritIntended) {
 				$null = $changes.Add(
 					(New-Change -Property 'GPBlocked' -Identity $adObject.DistinguishedName -Type OrganizationalUnit -NewValue $ouDefinition.BlockGPInheritance -OldValue (-not $ouDefinition.BlockGPInheritance))
 				)
@@ -112,7 +119,10 @@
 		}
 		#endregion Process Configured OUs
 
-		if ($script:contentMode.ExcludeComponents.OrganizationalUnits) { return }
+		if ($script:contentMode.ExcludeComponents.OrganizationalUnits) {
+			$results | Sort-Object $sortScript
+			return
+		}
 
 		#region Process Managed Containers
 		$foundOUs = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -IgnoreMissingSearchbase)) {
@@ -126,11 +136,13 @@
 			ObjectType = 'OrganizationalUnit'
 		}
 
-		foreach ($existingOU in $foundOUs) {
+		$resultsDelete = foreach ($existingOU in $foundOUs) {
 			if ($existingOU.DistinguishedName -in $resolvedConfiguredNames) { continue } # Ignore configured OUs - they were previously configured for moving them, if they should not be in these containers
 			
 			New-TestResult @resultDefaults -Type Delete -ADObject $existingOU -Identity $existingOU.DistinguishedName
 		}
+
+		$results, $resultsDelete | Remove-PSFNull -Enumerate | Sort-Object $sortScript
 		#endregion Process Managed Containers
 	}
 }

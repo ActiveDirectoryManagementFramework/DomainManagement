@@ -110,7 +110,8 @@
 		[switch]
 		$PasswordNeverExpires,
 		
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[AllowEmptyString()]
 		[string]
 		$UserPrincipalName,
 		

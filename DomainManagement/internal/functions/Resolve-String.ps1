@@ -49,6 +49,7 @@
 			if ($Match -like "%!*%") {
 				try { (Invoke-DMDomainData -Name $Match.Trim('%!') @parameters -EnableException).Data }
 				catch { throw }
+				return
 			}
 			if ($script:nameReplacementTable[$Match]) { $script:nameReplacementTable[$Match] }
 			else { $Match }

@@ -72,29 +72,29 @@
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Create' {
-					$targetOU = Resolve-String -Text $testItem.Configuration.Path
+					$targetOU = Resolve-String -Text $testItem.Configuration.Path @parameters
 					try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
 					catch { Stop-PSFFunction -String 'Invoke-DMUser.User.Create.OUExistsNot' -StringValues $targetOU, $testItem.Identity -Target $testItem -EnableException $EnableException -Continue -ContinueLabel main }
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Create' -Target $testItem -ScriptBlock {
 						$newParameters = $parameters.Clone()
 						$newParameters += @{
-							Name = (Resolve-String -Text $testItem.Configuration.SamAccountName)
-							SamAccountName = (Resolve-String -Text $testItem.Configuration.SamAccountName)
-							UserPrincipalName = (Resolve-String -Text $testItem.Configuration.UserPrincipalName)
+							Name = (Resolve-String -Text $testItem.Configuration.SamAccountName @parameters)
+							SamAccountName = (Resolve-String -Text $testItem.Configuration.SamAccountName @parameters)
+							UserPrincipalName = (Resolve-String -Text $testItem.Configuration.UserPrincipalName @parameters)
 							PasswordNeverExpires = $testItem.Configuration.PasswordNeverExpires
 							Path = $targetOU
 							AccountPassword = (New-Password -Length 128 -AsSecureString)
 							Enabled = $testItem.Configuration.Enabled # Both True and Undefined will result in $true
 							Confirm = $false
 						}
-						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description }
-						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName }
-						if ($testItem.Configuration.Surname) { $newParameters['Surname'] = Resolve-String -Text $testItem.Configuration.Surname }
+						if ($testItem.Configuration.Description) { $newParameters['Description'] = Resolve-String -Text $testItem.Configuration.Description @parameters }
+						if ($testItem.Configuration.GivenName) { $newParameters['GivenName'] = Resolve-String -Text $testItem.Configuration.GivenName @parameters }
+						if ($testItem.Configuration.Surname) { $newParameters['Surname'] = Resolve-String -Text $testItem.Configuration.Surname @parameters }
 
 						# Other Attributes
 						$otherAttributes = @{}
 						foreach ($attribute in $testItem.Configuration.Attributes.Keys) { $otherAttributes[$attribute] = $testItem.Configuration.Attributes.$attribute }
-						foreach ($attribute in $testItem.Configuration.AttributesResolved.Keys) { $otherAttributes[$attribute] = Resolve-String -Text $testItem.Configuration.AttributesResolved.$attribute }
+						foreach ($attribute in $testItem.Configuration.AttributesResolved.Keys) { $otherAttributes[$attribute] = Resolve-String -Text $testItem.Configuration.AttributesResolved.$attribute @parameters }
 						if ($otherAttributes.Count -gt 0) { $newParameters.OtherAttributes = $otherAttributes }
 
 						New-ADUser @newParameters
@@ -104,16 +104,16 @@
 					Stop-PSFFunction -String 'Invoke-DMUser.User.MultipleOldUsers' -StringValues $testItem.Identity, ($testItem.ADObject.Name -join ', ') -Target $testItem -EnableException $EnableException -Continue -Tag 'user', 'critical', 'panic'
 				}
 				'Rename' {
-					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SamAccountName) -Target $testItem -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Rename' -ActionStringValues (Resolve-String -Text $testItem.Configuration.SamAccountName @parameters) -Target $testItem -ScriptBlock {
 						Set-ADUser @parameters -Identity $testItem.ADObject.ObjectGUID -SamAccountName $testItem.Configuration.SamAccountName -ErrorAction Stop
-						if ($testItem.ADObject.Name -ne (Resolve-String -Text $testItem.Configuration.Name)) {
-							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop
+						if ($testItem.ADObject.Name -ne (Resolve-String -Text $testItem.Configuration.Name @parameters)) {
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name @parameters) -ErrorAction Stop
 						}
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Changed' {
 					if ($testItem.Changed.Property -contains 'Path') {
-						$targetOU = Resolve-String -Text $testItem.Configuration.Path
+						$targetOU = Resolve-String -Text $testItem.Configuration.Path @parameters
 						try { $null = Get-ADObject @parameters -Identity $targetOU -ErrorAction Stop }
 						catch { Stop-PSFFunction -String 'Invoke-DMUser.User.Update.OUExistsNot' -StringValues $testItem.Identity, $targetOU -Target $testItem -EnableException $EnableException -Continue -ContinueLabel main }
 						
@@ -141,8 +141,8 @@
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed.Property -contains 'Name') {
-						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name) -Target $testItem -ScriptBlock {
-							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name) -ErrorAction Stop -Confirm:$false
+						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMUser.User.Update.Name' -ActionStringValues (Resolve-String -Text $testItem.Configuration.Name @parameters) -Target $testItem -ScriptBlock {
+							Rename-ADObject @parameters -Identity $testItem.ADObject.ObjectGUID -NewName (Resolve-String -Text $testItem.Configuration.Name @parameters) -ErrorAction Stop -Confirm:$false
 						} -EnableException $EnableException -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed.Property -contains 'PasswordNeverExpires') {
