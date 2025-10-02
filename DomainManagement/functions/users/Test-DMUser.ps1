@@ -41,7 +41,7 @@
 	{
 		#region Process Configured Users
 		:main foreach ($userDefinition in $script:users.Values) {
-			$resolvedSamAccName = Resolve-String -Text $userDefinition.SamAccountName
+			$resolvedSamAccName = Resolve-String @parameters -Text $userDefinition.SamAccountName
 
 			$resultDefaults = @{
 				Server = $Server
@@ -67,7 +67,7 @@
 			try { $adObject = Get-ADUser @parameters -Identity $resolvedSamAccName -Properties $propertiesNeeded -ErrorAction Stop }
 			catch
 			{
-				$oldUsers = foreach ($oldName in ($userDefinition.OldNames | Resolve-String)) {
+				$oldUsers = foreach ($oldName in ($userDefinition.OldNames | Resolve-String @parameters)) {
 					try { Get-ADUser @parameters -Identity $oldName -Properties $propertiesNeeded -ErrorAction Stop }
 					catch { }
 				}
@@ -112,16 +112,17 @@
 				Changes = $changes
 				AsUpdate = $true
 				Type = 'User'
+				Parameters = $parameters
 			}
 			Compare-Property @compare -Property GivenName -Resolve -AsString
 			Compare-Property @compare -Property Surname -Resolve -AsString
 			if ($null -ne $userDefinition.Description) { Compare-Property @compare -Property Description -Resolve }
-			Compare-Property @compare -Property PasswordNeverExpires
-			Compare-Property @compare -Property UserPrincipalName -Resolve
+			Compare-Property @compare -Property PasswordNeverExpires -NullValue $false
+			Compare-Property @compare -Property UserPrincipalName -Resolve -AsString
 			Compare-Property @compare -Property Name -Resolve
 			$ouPath = ($adObject.DistinguishedName -split ",",2)[1]
-			if ($ouPath -ne (Resolve-String -Text $userDefinition.Path)) {
-				$null = $changes.Add((New-Change -Property Path -OldValue $ouPath -NewValue (Resolve-String -Text $userDefinition.Path) -Identity $adObject -Type User))
+			if ($ouPath -ne (Resolve-String @parameters -Text $userDefinition.Path)) {
+				$null = $changes.Add((New-Change -Property Path -OldValue $ouPath -NewValue (Resolve-String @parameters -Text $userDefinition.Path) -Identity $adObject -Type User))
 			}
 			if ($userDefinition.Enabled -ne "Undefined") {
 				Compare-Property @compare -Property Enabled
@@ -148,7 +149,7 @@
 			Get-ADUser @parameters -LDAPFilter '(!(isCriticalSystemObject=TRUE))' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope
 		}
 
-		$resolvedConfiguredNames = $script:users.Values.SamAccountName | Resolve-String
+		$resolvedConfiguredNames = $script:users.Values.SamAccountName | Resolve-String @parameters
 		$exclusionPattern = $script:contentMode.UserExcludePattern -join "|"
 
 		$resultDefaults = @{

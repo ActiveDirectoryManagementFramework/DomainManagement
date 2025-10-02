@@ -123,8 +123,10 @@
 
 			#region Resolve Assignments
 			$failedResolveAssignment = $false
+			$groupNeedsNotExist = $true
 			$assignments = foreach ($assignment in $script:groupMemberShips[$groupMembershipName].Values) {
 				if ($assignment.PSObject.TypeNames -contains 'DomainManagement.GroupMembership.Configuration') { continue }
+				if (-not $assignment.GroupOptional) { $groupNeedsNotExist = $false }
 				
 				#region Explicit Entity
 				if ($assignment.Name) {
@@ -194,7 +196,13 @@
 				$null = $groupsProcessed.Add($adObject.SamAccountName)
 				$adMembers = Get-GroupMember -ADObject $adObject -Parameters $parameters
 			}
-			catch { Stop-PSFFunction -String 'Test-DMGroupMembership.Group.Access.Failed' -StringValues $resolvedGroupName -ErrorRecord $_ -EnableException $EnableException -Continue }
+			catch {
+				if ($groupNeedsNotExist) {
+					Write-PSFMessage -Level Debug -String 'Test-DMGroupMembership.Group.Access.Failed' -StringValues $resolvedGroupName -ErrorRecord $_
+					continue
+				}
+				Stop-PSFFunction -String 'Test-DMGroupMembership.Group.Access.Failed' -StringValues $resolvedGroupName -ErrorRecord $_ -EnableException $EnableException -Continue
+			}
 			#endregion Check Current AD State
 
 			#region Compare Assignments to existing state

@@ -1,5 +1,4 @@
-﻿function Compare-Property
-{
+﻿function Compare-Property {
 <#
 	.SYNOPSIS
 		Helper function simplifying the changes processing.
@@ -40,6 +39,10 @@
 	.PARAMETER Type
 		What kind of component is the compared object part of.
 		Used together with the -AsUpdate parameter to name the resulting object.
+
+	.PARAMETER NullValue
+		In case the AD Object is of value $null, what value should be used for the comparison?
+		This enables simple comparisons where a $null value maps to a default value.
 	
 	.EXAMPLE
 		PS C:\> Compare-Property -Property Description -Configuration $ouDefinition -ADObject $adObject -Changes $changes -Resolve
@@ -82,15 +85,16 @@
 		$AsUpdate,
 
 		[string]
-		$Type = 'Unknown'
+		$Type = 'Unknown',
+
+		[object]
+		$NullValue = $null
 	)
 	
-	begin
-	{
+	begin {
 		if (-not $ADProperty) { $ADProperty = $Property }
 	}
-	process
-	{
+	process {
 		$param = @{
 			Property = $Property
 			Identity = $ADObject.DistinguishedName
@@ -99,20 +103,23 @@
 		$propValue = $Configuration.$Property
 		if ($Resolve) { $propValue = $propValue | Resolve-String @parameters }
 
-		if (($propValue -is [System.Collections.ICollection]) -and ($ADObject.$ADProperty -is [System.Collections.ICollection])) {
-			if (Compare-Object $propValue $ADObject.$ADProperty) {
-				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $ADObject.$ADProperty)) }
+		$adValue = $ADObject.$ADProperty
+		if ($null -eq $adValue) { $adValue = $NullValue }
+
+		if (($propValue -is [System.Collections.ICollection]) -and ($adValue -is [System.Collections.ICollection])) {
+			if (Compare-Object $propValue $adValue) {
+				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $adValue)) }
 				else { $null = $Changes.Add($Property) }
 			}
 		}
 		elseif ($AsString) {
-			if ("$propValue" -ne "$($ADObject.$ADProperty)") {
-				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue "$propValue" -OldValue "$($ADObject.$ADProperty)")) }
+			if ("$propValue" -ne "$adValue") {
+				if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue "$propValue" -OldValue "$($adValue)")) }
 				else { $null = $Changes.Add($Property) }
 			}
 		}
-		elseif ($propValue -ne $ADObject.$ADProperty) {
-			if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $ADObject.$ADProperty)) }
+		elseif ($propValue -ne $adValue) {
+			if ($AsUpdate) { $null = $Changes.Add((New-Change @param -NewValue $propValue -OldValue $adValue)) }
 			else { $null = $Changes.Add($Property) }
 		}
 	}
