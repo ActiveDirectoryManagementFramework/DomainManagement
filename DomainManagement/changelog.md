@@ -1,5 +1,18 @@
 ﻿# Changelog
 
+## 1.9.228 (2025-10-02)
+
+- Upd: Group Memberships - added option "ConfigOnly", allowing to define the group processing mode, without specifying any actual memberships.
+- Upd: Group Memberships - added option "GroupOptional", disabling the warning message if the group does not exist
+- Upd: Organizational Units - test results sorted correctly for invocation already during test, to help with Invoke-AdmfItem execution.
+- Upd: Users - UserPrincipalName made optional, $null and empty string are now considered equal.
+- Upd: Users - Added support for DomainData in name resolution
+- Fix: Access Rules - in additive mode, Restore changes should not be generated
+- Fix: Organizational Units - test results not sorted correctly during invocation, when specifying explicit results to invoke (#101)
+- Fix: Organizational Units - Group Policy Inheritance fails to correctly detect its state, when gpOptions are set to 0 instead of $null
+- Fix: Users - A user without a UserAccountControl property will fail all PasswordNeverExpires comparissons, no matter the configuration
+- Fix: Wmi Filter - fails to apply filters with a single query correctly on Windows PowerShell
+
 ## 1.9.218 (2025-05-28)
 
 - Upd: Organizational Units - added ability to define GP inheritance blocking. Defaults to NOT block.

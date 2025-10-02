@@ -103,7 +103,7 @@
 		}
 
 		Add-Member -InputObject $script:wmifilter[$Name] -MemberType ScriptMethod -Name GetQueryString -Value {
-			'{0};{1}' -f $this.Query.Count, ($this.Query | ForEach-Object ToQuery | Join-String "")
+			'{0};{1}' -f @($this.Query).Count, ($this.Query | ForEach-Object ToQuery | Join-String "")
 		}
 	}
 }

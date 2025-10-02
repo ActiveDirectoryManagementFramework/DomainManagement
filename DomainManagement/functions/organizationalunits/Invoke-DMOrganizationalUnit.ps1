@@ -75,10 +75,10 @@
 		}
 		#endregion Sort Script
 		if (-not $InputObject) {
-			$InputObject = Test-DMOrganizationalUnit @parameters | Sort-Object $sortScript -Descending
+			$InputObject = Test-DMOrganizationalUnit @parameters
 		}
 		
-		:main foreach ($testItem in $InputObject) {
+		:main foreach ($testItem in $InputObject | Sort-Object $sortScript -Descending) {
 			# Catch invalid input - can only process test results
 			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.OrganizationalUnit.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMOrganizationalUnit', $testItem -Target $testItem -Continue -EnableException $EnableException

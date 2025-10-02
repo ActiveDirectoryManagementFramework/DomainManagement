@@ -33,6 +33,11 @@
 	
 	.PARAMETER InheritanceType
 		How the Access Rule is being inherited.
+		None: Indicates no inheritance. The ACE information is only used on the object on which the ACE is set. ACE information is not inherited by any descendents of the object.
+		All: Indicates inheritance that includes the object to which the ACE is applied, the object's immediate children, and the descendents of the object's children.
+		Descendents: Indicates inheritance that includes the object's immediate children and the descendants of the object's children, but not the object itself.
+		SelfAndChildren: Indicates inheritance that includes the object itself and its immediate children. It does not include the descendents of its children.
+		Children: Indicates inheritance that includes the object's immediate children only, not the object itself or the descendents of its children.
 	
 	.PARAMETER InheritedObjectType
 		Name or Guid of property or right affected by this rule.
