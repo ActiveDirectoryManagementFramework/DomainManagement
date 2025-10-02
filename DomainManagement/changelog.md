@@ -1,8 +1,9 @@
 ﻿# Changelog
 
-## 1.9.227 (2025-10-02)
+## 1.9.228 (2025-10-02)
 
 - Upd: Group Memberships - added option "ConfigOnly", allowing to define the group processing mode, without specifying any actual memberships.
+- Upd: Group Memberships - added option "GroupOptional", disabling the warning message if the group does not exist
 - Upd: Organizational Units - test results sorted correctly for invocation already during test, to help with Invoke-AdmfItem execution.
 - Upd: Users - UserPrincipalName made optional, $null and empty string are now considered equal.
 - Upd: Users - Added support for DomainData in name resolution

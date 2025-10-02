@@ -25,6 +25,11 @@
 	
 	.PARAMETER Group
 		The group to define members for.
+
+	.PARAMETER GroupOptional
+		Group needs not exist.
+		If this is set to true for all assignments to a group, the group need not actually exist, disabling the corresponding error message.
+		This also always applies to groups with no assignments.
 	
 	.PARAMETER Empty
 		Whether the specified group should be empty.
@@ -58,7 +63,7 @@
 		
 		Imports all defined groupmemberships from the targeted json configuration file.
 #>
-	
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding(DefaultParameterSetName = 'Entry')]
 	param (
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
@@ -84,6 +89,9 @@
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Config')]
 		[string]
 		$Group,
+
+		[bool]
+		$GroupOptional,
 		
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
 		[bool]
@@ -116,22 +124,24 @@
 		}
 		if ($Name) {
 			$script:groupMemberShips[$Group]["$($ItemType):$($Name)"] = [PSCustomObject]@{
-				PSTypeName  = 'DomainManagement.GroupMembership'
-				Name        = $Name
-				Domain      = $Domain
-				ItemType    = $ItemType
-				Group       = $Group
-				Mode        = $Mode
-				ContextName = $ContextName
+				PSTypeName    = 'DomainManagement.GroupMembership'
+				Name          = $Name
+				Domain        = $Domain
+				ItemType      = $ItemType
+				Group         = $Group
+				GroupOptional = $GroupOptional
+				Mode          = $Mode
+				ContextName   = $ContextName
 			}
 		}
 		elseif ($ObjectCategory) {
 			$script:groupMemberShips[$Group]["ObjectCategory:$($ObjectCategory)"] = [PSCustomObject]@{
-				PSTypeName  = 'DomainManagement.GroupMembership'
-				Category    = $ObjectCategory
-				Group       = $Group
-				Mode        = $Mode
-				ContextName = $ContextName
+				PSTypeName    = 'DomainManagement.GroupMembership'
+				Category      = $ObjectCategory
+				Group         = $Group
+				GroupOptional = $GroupOptional
+				Mode          = $Mode
+				ContextName   = $ContextName
 			}
 		}
 		elseif ($Empty) {
