@@ -166,6 +166,9 @@
 	:outer foreach ($defaultRule in $DefaultRules | Where-Object { $_ -notin $defaultRulesPresent.ToArray() }) {
 		if (-not $DefaultRule) { continue }
 
+		# In Additive Mode, do not restore to schema default
+		if ($processingMode -eq 'Additive') { break }
+
 		# Do not apply restore to Domain Controllers OU, as it is already deployed intentionally diverging from the OU defaults
 		if ($ADObject -like $domainControllersOUFilter) { break }
 

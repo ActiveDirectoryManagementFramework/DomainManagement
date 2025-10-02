@@ -44,6 +44,9 @@
 		- Constrained: Existing Group Memberships not defined will be removed
 		- Additive: Group Memberships defined will be applied, but non-configured memberships will be ignored.
 		If no setting is defined, it will default to 'Constrained'
+
+	.PARAMETER ConfigOnly
+		Define only the Group Processing Mode, without making any statement about actual memberships.
 	
 	.PARAMETER ContextName
 		The name of the context defining the setting.
@@ -78,6 +81,7 @@
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
 		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Config')]
 		[string]
 		$Group,
 		
@@ -90,10 +94,17 @@
 		[string]
 		$Mode = 'Default',
 		
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
+		[Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Entry')]
+		[Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Category')]
+		[Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Empty')]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Config')]
 		[ValidateSet('Constrained', 'Additive')]
 		[string]
 		$GroupProcessingMode,
+
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Config')]
+		[switch]
+		$ConfigOnly,
 		
 		[string]
 		$ContextName = '<Undefined>'
