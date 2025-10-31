@@ -165,6 +165,7 @@
 				if ($this.Status -eq 'Disabled') { $status = '1' }
 				if ($this.Status -eq 'Enforced') { $status = '2' }
 				if ($NewStatus -and $NewStatus -in '0','1','2') { $status = $NewStatus }
+
 				'[LDAP://{0};{1}]' -f $this.PolicyDN, $status
 			}
 			Add-Member -InputObject $update -MemberType ScriptMethod -Name ToString -Value {
@@ -305,25 +306,25 @@
 					if ($desired.DistinguishedName) {
 						$updateCommon.OriginalStatus = ''
 						New-LinkUpdate @updateCommon -Action Add
-						#New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+						# New-Update -Action Add -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 						$index = $index + 1
 					}
 					else {
 						New-LinkUpdate @updateCommon -Action GpoMissing
-						#New-Update -Action GpoMissing -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+						# New-Update -Action GpoMissing -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					}
 					continue
 				}
 				$updateCommon.OriginalPosition = ($currentSorted | Where-Object DisplayName -EQ $desired.PolicyName).Precedence
 				if ($index -gt @($currentSorted).Count -or $desired.PolicyName -ne $currentSorted[$index].DisplayName) {
 					New-LinkUpdate @updateCommon -Action Reorder
-					#New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
+					# New-Update -Action Reorder -PolicyName $desired.PolicyName -Status 'Enabled' -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}
 				if (-not $desired.StateValid) {
 					New-LinkUpdate @updateCommon -Action State
-					#New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State -Identity $ADObject.DistinguishedName
+					# New-Update -Action State -PolicyName $desired.PolicyName -Status $desired.State -Identity $ADObject.DistinguishedName
 					$index = $index + 1
 					continue
 				}

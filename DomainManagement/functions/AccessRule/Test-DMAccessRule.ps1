@@ -160,7 +160,7 @@
 				$desiredPermissions = $script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject
 			}
 
-			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
+			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters -Target $adAclObject.DistinguishedName) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
 
 			if ($delta) {
 				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject

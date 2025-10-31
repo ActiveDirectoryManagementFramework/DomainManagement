@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: Access Rules - Use the shared managed remoting feature, allowing configuring session options.
+- Upd: AccessRules - when failing to resolve the identity of a principal on an existing access rule, the warning now reports the DN of the object
+- Upd: Exchange - accepts test results as input for invoke
+- Fix: GPOwner - Prints red error messages on screen when failing to resovle the owner
+- Fix: Groups - Ignores SamAccountName during creation of new groups
+
 ## 1.9.228 (2025-10-02)
 
 - Upd: Group Memberships - added option "ConfigOnly", allowing to define the group processing mode, without specifying any actual memberships.

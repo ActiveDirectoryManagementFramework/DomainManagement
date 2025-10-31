@@ -21,6 +21,7 @@
 	'Get-PermissionGuidMapping.Processing'                              = 'Processing Permission Guids for domain: {0} (This may take a while)' # $identity
 	
 	'Get-Principal.Resolution.Failed'                                   = 'Failed to resolve principal: SID {0} | Name {1} | ObjectClass {2} | Domain {3}' # $Sid, $Name, $ObjectClass, $Domain
+	'Get-Principal.Resolution.FailedWithTarget'                         = 'Failed to resolve principal: SID {0} | Name {1} | ObjectClass {2} | Domain {3} | Target {4}' # $Sid, $Name, $ObjectClass, $Domain, $Target
 	
 	'Get-SchemaGuidMapping.Processing'                                  = 'Processing Schema Guids for domain: {0} (This may take a while)' # $identity
 	

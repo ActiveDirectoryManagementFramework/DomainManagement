@@ -146,25 +146,53 @@
 				[Hashtable]
 				$GpoNameMapping,
 
+
+				[AllowNull()]
 				$Changes
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
 			$allItems = $Configuration.Definition | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending
-
-
-			$gpLinkString = ''
-			if ($Disable) {
-				$desiredDNs = $Configuration.ExtendedInclude.PolicyName | Resolve-String | ForEach-Object { $GpoNameMapping[$_] }
-				$gpLinkString += ($ADobject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn $desiredDNs | Sort-Object -Property Precedence -Descending | ForEach-Object {
-						"[LDAP://$($_.DistinguishedName);1]"
-					}) -join ""
+			$itemsToInclude = $allItems | Where-Object {
+				($_.Action -in 'None', 'State', 'Reorder') -or
+				(
+					($_.Action -eq 'Add') -and
+					($_.Policy -in $Changes.Policy)
+				) -or
+				(
+					($_.Action -eq 'Delete') -and
+					($_.Policy -notin $Changes.Policy) -and
+					(-not $Disable)
+				)
 			}
-			
-			$gpLinkString += ($Configuration.ExtendedInclude | Where-Object DistinguishedName | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-					$_.ToLink()
-				}) -Join ""
-			#>
+
+			$dontReorder = $allItems | Where-Object {
+				($_.Action -eq 'Reorder') -and
+				($_.Policy -notin $Changes.Policy)
+			}
+			foreach ($noReorderItem in $dontReorder | Sort-Object OriginalPosition) {
+				$below = $null
+				$above = $null
+				if ($noReorderItem.OriginalPosition -gt 1) { $below = $allItems | Where-Object OriginalPosition -eq ($noReorderItem.OriginalPosition - 1) }
+				else { $above = $allItems | Where-Object OriginalPosition -eq ($noReorderItem.OriginalPosition + 1) }
+
+				$allOtherItems = $itemsToInclude | Where-Object { $_ -ne $noReorderItem }
+				if ($above) {
+					$index = $allOtherItems.IndexOf($above)
+					$itemsAbove = @()
+					if ($index -gt 0) { $itemsAbove = @($allOtherItems[0..($index-1)]) }
+					$itemsBelow = @($allOtherItems[$index..(@($allOtherItems).Count - 1)])
+				}
+				else {
+					$index = $allOtherItems.IndexOf($below)
+					$itemsAbove = @($allOtherItems[0..($index-1)])
+					$itemsBelow = @()
+					if ($index -lt ($allOtherItems.Count - 1)) { $itemsBelow = @($allOtherItems[($index)..($allOtherItems.Count - 1)])}
+				}
+				$itemsToInclude = $itemsAbove + $noReorderItem + $itemsBelow
+			}
+
+			$gpLinkString = @($itemsToInclude).ForEach{ $_.ToLink() } -join ""
 
 			$msgParam = @{
 				Level        = 'SomewhatVerbose'

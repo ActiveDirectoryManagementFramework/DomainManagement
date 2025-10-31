@@ -32,6 +32,10 @@
 	.PARAMETER Refresh
 		Do not use cached data, reload fresh data.
 
+	.PARAMETER Target
+		The target AD object this access rule applies to.
+		Used for logging only.
+
 	.PARAMETER Server
 		The server / domain to work with.
 	
@@ -69,6 +73,10 @@
 
 		[switch]
 		$Refresh,
+
+		[AllowEmptyString()]
+		[string]
+		$Target,
 
 		[PSFComputer]
 		$Server,
@@ -125,7 +133,8 @@
 			try { $adObject = Get-ADObject @parametersAD -LDAPFilter $filter -ErrorAction Stop -Properties * | Select-Object -First 1 }
 			catch { }
 			if (-not $adObject) {
-				Write-PSFMessage -Level Warning -String 'Get-Principal.Resolution.Failed' -StringValues $Sid, $Name, $ObjectClass, $Domain -Target $PSBoundParameters
+				if ($Target) { Write-PSFMessage -Level Warning -String 'Get-Principal.Resolution.FailedWithTarget' -StringValues $Sid, $Name, $ObjectClass, $Domain, $Target -Target $PSBoundParameters }
+				else { Write-PSFMessage -Level Warning -String 'Get-Principal.Resolution.Failed' -StringValues $Sid, $Name, $ObjectClass, $Domain -Target $PSBoundParameters }
 				throw
 			}
 		}
