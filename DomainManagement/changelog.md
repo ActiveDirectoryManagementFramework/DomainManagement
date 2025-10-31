@@ -1,10 +1,11 @@
 ﻿# Changelog
 
-## ???
+## 1.9.234 (2025-10-31)
 
-- Upd: Access Rules - Use the shared managed remoting feature, allowing configuring session options.
+- Upd: General - Use the shared managed remoting feature, allowing configuring session options.
 - Upd: AccessRules - when failing to resolve the identity of a principal on an existing access rule, the warning now reports the DN of the object
 - Upd: Exchange - accepts test results as input for invoke
+- Upd: GPLink - Supports cherry-picking results within a single OU.
 - Fix: GPOwner - Prints red error messages on screen when failing to resovle the owner
 - Fix: Groups - Ignores SamAccountName during creation of new groups
 
