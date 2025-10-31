@@ -96,7 +96,7 @@
 			$actualOwner = $actualAcl.GetOwner([System.Security.Principal.SecurityIdentifier])
 			if ("$actualOwner" -eq "$($desiredOwner.ObjectSID)") { continue }
 
-			try { $actualOwnerAD = Resolve-Principal @parameters -Name $actualOwner -OutputType ADObject }
+			try { $actualOwnerAD = Resolve-Principal @parameters -Name $actualOwner -OutputType ADObject -ErrorAction Stop }
 			catch { $actualOwnerAD = $null }
 
 			$change = [PSCustomObject]@{
