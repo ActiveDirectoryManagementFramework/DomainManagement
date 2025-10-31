@@ -93,7 +93,7 @@
 			$pdcParameter = $parameters.Clone()
 			$pdcParameter.ComputerName = (Get-Domain2 @parameters).PDCEmulator
 			$pdcParameter.Remove('Server')
-			try { $session = New-PSSession @pdcParameter -ErrorAction Stop }
+			try { $session = New-AdcPSSession @pdcParameter -ErrorAction Stop }
 			catch {
 				Stop-PSFFunction -String 'Test-DMGPRegistrySetting.WinRM.Failed' -StringValues $parameters.Server -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $parameters.Server
 				return

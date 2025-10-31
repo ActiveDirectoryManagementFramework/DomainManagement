@@ -7,6 +7,10 @@
 	.DESCRIPTION
 		Apply the desired exchange domain content update.
 		Use Register-DMExchange to define the exchange update.
+
+	.PARAMETER InputObject
+		Test results provided by the associated test command.
+		Only the provided changes will be executed, unless none were specified, in which ALL pending changes will be executed.
 	
 	.PARAMETER Server
 		The server / domain to work with.
@@ -32,6 +36,9 @@
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '')]
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
+		[Parameter(ValueFromPipeline = $true)]
+		$InputObject,
+		
 		[Parameter(Mandatory = $true)]
 		[PSFComputer]
 		$Server,
@@ -133,14 +140,17 @@
 	}
 	process
 	{
-		$testResult = Test-DMExchange @parameters
+		if (-not $InputObject) {
+			$testResult = Test-DMExchange @parameters
+		}
+		else { $testResult = $InputObject }
 		
 		if (-not $testResult) { return }
 		
 		#region PS Remoting
 		$psParameter = $PSBoundParameters | ConvertTo-PSFHashtable -Include Credential
 		$psParameter.ComputerName = $Server
-		try { $session = New-PSSession @psParameter -ErrorAction Stop }
+		try { $session = New-AdcPSSession @psParameter -ErrorAction Stop }
 		catch {
 			Stop-PSFFunction -String 'Invoke-DMExchange.WinRM.Failed' -StringValues $Server -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $Server
 			return

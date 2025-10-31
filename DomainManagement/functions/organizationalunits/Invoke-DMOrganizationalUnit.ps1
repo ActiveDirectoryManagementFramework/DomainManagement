@@ -70,15 +70,15 @@
 	process {
 		#region Sort Script
 		$sortScript = {
-			if ($_.Type -eq 'ShouldDelete') { $_.ADObject.DistinguishedName.Split(",").Count }
-			else { 1000 - $_.Identity.Split(",").Count }
+			if ($_.Type -eq 'ShouldDelete') { 100 - $_.ADObject.DistinguishedName.Split(",").Count }
+			else { 1000 + $_.Identity.Split(",").Count }
 		}
 		#endregion Sort Script
 		if (-not $InputObject) {
 			$InputObject = Test-DMOrganizationalUnit @parameters
 		}
 		
-		:main foreach ($testItem in $InputObject | Sort-Object $sortScript -Descending) {
+		:main foreach ($testItem in $InputObject | Sort-Object $sortScript) {
 			# Catch invalid input - can only process test results
 			if ($testItem.PSObject.TypeNames -notcontains 'DomainManagement.OrganizationalUnit.TestResult') {
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMOrganizationalUnit', $testItem -Target $testItem -Continue -EnableException $EnableException

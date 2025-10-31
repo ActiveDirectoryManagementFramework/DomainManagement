@@ -80,15 +80,29 @@
 				$ADObject,
 
 				[bool]
-				$Disable
+				$Disable,
+
+				$Changes,
+
+				$Definition
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
-			if (-not $Disable) {
+			$newChanges = foreach ($change in $Definition) {
+				if ($change.Policy -notin $Changes.Policy) {
+					$change.ToLink()
+					continue
+				}
+				if (-not $Disable) { continue }
+
+				'[LDAP://{0};1]' -f $change.PolicyDN
+			}
+
+			if (-not $newChanges) {
 				Set-ADObject @parameters -Identity $ADObject -Clear gPLink -ErrorAction Stop
 				return
 			}
-			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = ($ADObject.gPLink -replace ";\d\]", ";1]") } -ErrorAction Stop -Confirm:$false
+			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $newChanges -join '' } -ErrorAction Stop -Confirm:$false
 		}
 
 		function New-Link {
@@ -103,24 +117,11 @@
 
 				$ADObject,
 
-				$Configuration,
-
-				[Hashtable]
-				$GpoNameMapping
+				$Changes
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
-			$gpLinkString = ($Configuration.Include | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-					$gpoDN = $GpoNameMapping[(Resolve-String -Text $_.PolicyName)]
-					if (-not $gpoDN) {
-						Write-PSFMessage -Level Warning -String 'Invoke-DMGPLink.New.GpoNotFound' -StringValues (Resolve-String -Text $_.PolicyName) -Target $ADObject -FunctionName Invoke-DMGPLink
-						return
-					}
-					$stateID = "0"
-					if ($_.State -eq 'Enforced') { $stateID = "2" }
-					if ($_.State -eq 'Disabled') { $stateID = "1" }
-					"[LDAP://$gpoDN;$stateID]"
-				}) -Join ""
+			$gpLinkString = @($Changes | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending).ForEach{ $_.ToLink() } -Join ""
 			Write-PSFMessage -Level Debug -String 'Invoke-DMGPLink.New.NewGPLinkString' -StringValues $ADObject.DistinguishedName, $gpLinkString -Target $ADObject -FunctionName Invoke-DMGPLink
 			Set-ADObject @parameters -Identity $ADObject -Replace @{ gPLink = $gpLinkString } -ErrorAction Stop -Confirm:$false
 		}
@@ -145,21 +146,54 @@
 				[Hashtable]
 				$GpoNameMapping,
 
+
+				[AllowNull()]
 				$Changes
 			)
 			$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 
-			$gpLinkString = ''
-			if ($Disable) {
-				$desiredDNs = $Configuration.ExtendedInclude.PolicyName | Resolve-String | ForEach-Object { $GpoNameMapping[$_] }
-				$gpLinkString += ($ADobject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn $desiredDNs | Sort-Object -Property Precedence -Descending | ForEach-Object {
-						"[LDAP://$($_.DistinguishedName);1]"
-					}) -join ""
+			$allItems = $Configuration.Definition | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending
+			$itemsToInclude = $allItems | Where-Object {
+				($_.Action -in 'None', 'State', 'Reorder') -or
+				(
+					($_.Action -eq 'Add') -and
+					($_.Policy -in $Changes.Policy)
+				) -or
+				(
+					($_.Action -eq 'Delete') -and
+					($_.Policy -notin $Changes.Policy) -and
+					(-not $Disable)
+				)
 			}
-			
-			$gpLinkString += ($Configuration.ExtendedInclude | Where-Object DistinguishedName | Sort-Object -Property @{ Expression = { $_.Tier }; Descending = $false }, Precedence -Descending | ForEach-Object {
-					$_.ToLink()
-				}) -Join ""
+
+			$dontReorder = $allItems | Where-Object {
+				($_.Action -eq 'Reorder') -and
+				($_.Policy -notin $Changes.Policy)
+			}
+			foreach ($noReorderItem in $dontReorder | Sort-Object OriginalPosition) {
+				$below = $null
+				$above = $null
+				if ($noReorderItem.OriginalPosition -gt 1) { $below = $allItems | Where-Object OriginalPosition -eq ($noReorderItem.OriginalPosition - 1) }
+				else { $above = $allItems | Where-Object OriginalPosition -eq ($noReorderItem.OriginalPosition + 1) }
+
+				$allOtherItems = $itemsToInclude | Where-Object { $_ -ne $noReorderItem }
+				if ($above) {
+					$index = $allOtherItems.IndexOf($above)
+					$itemsAbove = @()
+					if ($index -gt 0) { $itemsAbove = @($allOtherItems[0..($index-1)]) }
+					$itemsBelow = @($allOtherItems[$index..(@($allOtherItems).Count - 1)])
+				}
+				else {
+					$index = $allOtherItems.IndexOf($below)
+					$itemsAbove = @($allOtherItems[0..($index-1)])
+					$itemsBelow = @()
+					if ($index -lt ($allOtherItems.Count - 1)) { $itemsBelow = @($allOtherItems[($index)..($allOtherItems.Count - 1)])}
+				}
+				$itemsToInclude = $itemsAbove + $noReorderItem + $itemsBelow
+			}
+
+			$gpLinkString = @($itemsToInclude).ForEach{ $_.ToLink() } -join ""
+
 			$msgParam = @{
 				Level        = 'SomewhatVerbose'
 				Tag          = 'change'
@@ -200,19 +234,19 @@
 				Stop-PSFFunction -String 'General.Invalid.Input' -StringValues 'Test-DMGPLink', $testItem -Target $testItem -Continue -EnableException $EnableException
 			}
 			
-			$countConfigured = ($testItem.Configuration | Measure-Object).Count
+			$countConfigured = ($testItem.Changed | Measure-Object).Count
 			$countActual = ($testItem.ADObject.LinkedGroupPolicyObjects | Measure-Object).Count
 			$countNotInConfig = ($testItem.ADObject.LinkedGroupPolicyObjects | Where-Object DistinguishedName -NotIn ($testItem.Configuration.PolicyName | Remove-PSFNull | Resolve-String | ForEach-Object { $gpoDisplayToDN[$_] }) | Measure-Object).Count
 
 			switch ($testItem.Type) {
 				'Delete' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.Delete.AllEnabled' -ActionStringValues $countActual -Target $testItem -ScriptBlock {
-						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -ErrorAction Stop
+						Clear-Link @parameters -ADObject $testItem.ADObject -Disable $Disable -Changes $testItem.Changed -Definition $testItem.Configuration.Definition -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Create' {
 					Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPLink.New' -ActionStringValues $countConfigured -Target $testItem -ScriptBlock {
-						New-Link @parameters -ADObject $testItem.ADObject -Configuration $testItem.Configuration -GpoNameMapping $gpoDisplayToDN -ErrorAction Stop
+						New-Link @parameters -ADObject $testItem.ADObject -Changes $testItem.Changed -ErrorAction Stop
 					} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 				}
 				'Update' {

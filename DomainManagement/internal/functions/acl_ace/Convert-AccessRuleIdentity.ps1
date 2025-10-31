@@ -14,6 +14,10 @@
 	
 	.PARAMETER Credential
 		The credentials to use for this operation.
+
+	.PARAMETER Target
+		The target AD object this access rule applies to.
+		Used for logging only.
 	
 	.EXAMPLE
 		PS C:\> $adAclObject.Access | Convert-AccessRuleIdentity @parameters
@@ -31,7 +35,10 @@
 		$Server,
 
 		[PSCredential]
-		$Credential
+		$Credential,
+
+		[string]
+		$Target
 	)
 	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
@@ -45,13 +52,13 @@
 			}
 			
 			if (-not $accessRule.IdentityReference.AccountDomainSid) {
-				try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount }
+				try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $domainObject.DNSRoot -OutputType NTAccount -Target $Target }
 				catch {
 					# Empty Catch is OK here, warning happens in command
 				}
 			}
 			else {
-				try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount }
+				try { $identity = Get-Principal @parameters -Sid $accessRule.IdentityReference -Domain $accessRule.IdentityReference -OutputType NTAccount -Target $Target}
 				catch {
 					# Empty Catch is OK here, warning happens in command
 				}
