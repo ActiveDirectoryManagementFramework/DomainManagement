@@ -37,7 +37,7 @@
 	)
 	
 	begin {
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = Resolve-GPTargetServer -Server $Server -Credential $Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
@@ -88,7 +88,7 @@
 			try { $desiredOwner = Resolve-Principal @parameters -Name (Resolve-String -Text $ownerCfg.Identity) -OutputType ADObject -ErrorAction Stop }
 			catch {
 				Write-PSFMessage -Level Warning -String 'Test-DMGPOwner.Identity.NotFound' -StringValues $ownerCfg.Identity, $gpoADObject.DisplayName -Target $ownerCfg
-				New-TestResult -ObjectType GPOwner -Type IdentityNotFound -Identity $gpoADObject.DisplayName -Server $Server -Configuration $ownerCfg -ADObject $gpoADObject
+				New-TestResult -ObjectType GPOwner -Type IdentityNotFound -Identity $gpoADObject.DisplayName -Server $parameters.Server -Configuration $ownerCfg -ADObject $gpoADObject
 				continue
 			}
 			$actualAcl = Get-AdsAcl @parameters -Path $gpoADObject
@@ -112,7 +112,7 @@
 				'{0} -> {1}' -f $this.Old, $this.New
 			} -Force
 
-			New-TestResult -ObjectType GPOwner -Type Update -Identity $gpoADObject.DisplayName -Changed $change -Server $Server -Configuration $ownerCfg -ADObject $gpoADObject
+			New-TestResult -ObjectType GPOwner -Type Update -Identity $gpoADObject.DisplayName -Changed $change -Server $parameters.Server -Configuration $ownerCfg -ADObject $gpoADObject
 		}
 	}
 }

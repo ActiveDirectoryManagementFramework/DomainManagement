@@ -38,27 +38,26 @@
 	)
 	
 	begin {
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = Resolve-GPTargetServer -Server $Server -Credential $Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupPolicyObjects -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
-		$computerName = (Get-ADDomain @parameters).PDCEmulator
 
 		# DomainData retrieval
 		$domainDataNames = ((Get-DMGroupPolicy).DisplayName | Get-DMGPRegistrySetting | Where-Object DomainData).DomainData | Select-Object -Unique
 		try { $null = $domainDataNames | Invoke-DMDomainData @parameters -EnableException }
 		catch {
-			Stop-PSFFunction -String 'Test-DMGroupPolicy.DomainData.Failed' -StringValues ($domainDataNames -join ",") -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $computerName
+			Stop-PSFFunction -String 'Test-DMGroupPolicy.DomainData.Failed' -StringValues ($domainDataNames -join ",") -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $parameters.Server
 			return
 		}
 
 		# PS Remoting
-		$psParameter = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential -Inherit
+		$psParameter = Resolve-GPTargetServer -Server $Server -Credential $Credential -ForRemoting
 		try { $session = New-AdcPSSession @psParameter -ErrorAction Stop }
 		catch {
-			Stop-PSFFunction -String 'Test-DMGroupPolicy.WinRM.Failed' -StringValues $computerName -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $computerName
+			Stop-PSFFunction -String 'Test-DMGroupPolicy.WinRM.Failed' -StringValues $parameters.Server -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $parameters.Server
 			return
 		}
 	}
@@ -66,7 +65,7 @@
 		if (Test-PSFFunctionInterrupt) { return }
 
 		$resultDefaults = @{
-			Server     = $Server
+			Server     = $parameters.Server
 			ObjectType = 'GroupPolicy'
 		}
 

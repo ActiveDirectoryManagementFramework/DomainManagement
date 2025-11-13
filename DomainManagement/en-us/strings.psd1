@@ -183,6 +183,8 @@
 	
 	'Resolve-GPFilterMapping.Filter.Path.DoesNotExist.SilentlyContinue' = 'Issue resolving filter condition {0}: The specified path {1} could not be found, skipping.' # $Condition.Name, $searchBase
 	
+	'Resolve-GPTargetServer.Info.ChangingToPDC'                         = 'Changing target server from "{0}" to the PDC Emulator: "{1}". Group Policy components default to working against the PDC, as most GPO tools (including the default GPMC console) do the same. This behavior can be disabled in the module configuration settings.' # $Server, $domainObject.PDCEmulator
+
 	'Resolve-Identity.ParentObject.NoSecurityPrincipal'                 = 'Error processing parent of {0} : {1} of type {2} is no legal security principal and cannot be assigned permissions!' # $ADObject, $parentObject.Name, $parentObject.ObjectClass
 	
 	'Resolve-PolicyRevision.Result.ErrorOnConfigImport'                 = 'Failed to read configuration for {0}: {1}' # $Policy.DisplayName, $result.Error.Exception.Message

@@ -16,6 +16,7 @@ Set-PSFConfig -Module 'DomainManagement' -Name 'Import.IndividualFiles' -Value $
 
 Set-PSFConfig -Module 'DomainManagement' -Name 'ServiceAccount.SkipKdsCheck' -Value $false -Initialize -Validation bool -Description 'Whether the check for a KDS Root Key should be skipped. By default, Invoke-DMServiceAccount will validate the necessary key exists before creating gMSA. However, reading the key requires Domain Admin privileges, which may not always be available. Skipping the check will cause gMSA creation to fail with an error, if the KDSRootKey does not yet exist.'
 Set-PSFConfig -Module 'DomainManagement' -Name 'AccessRules.Remove.Option2' -Value $false -Initialize -Validation bool -Description 'In some environments, the default way of removing access rules have proved to not work out. Using this option enables a second way for removing access rules.'
+Set-PSFConfig -Module 'DomainManagement' -Name 'GroupPolicy.AlwaysUsePDC' -Value $true -Initialize -Validation bool -Description 'All Group Policy Consoles use by default the PDC Emulator. To make operations and visual verification match, Group Policy Components also use the PDC. This setting allows overriding that behavior.'
 
 #$coreCount = $env:NUMBER_OF_PROCESSORS
 #if (-not $coreCount) { $coreCount = 4 }

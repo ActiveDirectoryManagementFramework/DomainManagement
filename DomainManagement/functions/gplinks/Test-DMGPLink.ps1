@@ -28,7 +28,7 @@
 	)
 	
 	begin {
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = Resolve-GPTargetServer -Server $Server -Credential $Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
@@ -352,7 +352,7 @@
 		$ouData = Get-OUData -Parameters $parameters
 		foreach ($ouDatum in $ouData) {
 			$resultDefaults = @{
-				Server        = $Server
+				Server        = $parameters.Server
 				ObjectType    = 'GPLink'
 				Identity      = $ouDatum.OrganizationalUnit
 				Configuration = $ouDatum
@@ -426,7 +426,7 @@
 				New-LinkUpdate -Action Delete -PolicyName $linkedObject.DisplayName -PolicyDN $linkedObject.DistinguishedName -Status $linkedObject.Status -OriginalStatus $linkedObject.Status -Identity $adObject.DistinguishedName
 			}
 			$configProxy = [PSCustomObject]@{ Definition = $changes }
-			New-TestResult -ObjectType GPLink -Type 'Delete' -Identity $adObject.DistinguishedName -Server $Server -ADObject $adObject -Configuration $configProxy -Changed $changes
+			New-TestResult -ObjectType GPLink -Type 'Delete' -Identity $adObject.DistinguishedName -Server $parameters.Server -ADObject $adObject -Configuration $configProxy -Changed $changes
 		}
 		#endregion Process Managed Estate
 	}
