@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## 1.9.239 (2025-11-13)
+
+- New: Configuration "DomainManagement.GroupPolicy.AlwaysUsePDC" - can be used to disable the Group Policy commands to prefer the PDC over the specified DC
+- Upd: Group Policy Permissions - will now by default consistently use the PDC Emulator, instead of the targeted server.
+- Upd: Group Policy - will now by default consistently use the PDC Emulator, instead of the targeted server.
+- Upd: Group Policy Link - will now by default consistently use the PDC Emulator.
+- Upd: Group Policy Owner - will now by default consistently use the PDC Emulator.
+
 ## 1.9.234 (2025-10-31)
 
 - Upd: General - Use the shared managed remoting feature, allowing configuring session options.

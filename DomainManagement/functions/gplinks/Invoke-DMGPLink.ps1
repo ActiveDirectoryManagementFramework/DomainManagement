@@ -48,6 +48,7 @@
 
 		Configures the current domain's group policy links as desired.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		[Parameter(ValueFromPipeline = $true)]
@@ -209,7 +210,7 @@
 		}
 		#endregion Utility Functions
 
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = Resolve-GPTargetServer -Server $Server -Credential $Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet

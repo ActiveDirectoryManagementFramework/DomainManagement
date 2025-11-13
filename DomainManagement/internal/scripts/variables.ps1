@@ -1,9 +1,9 @@
 ﻿# NOTE: All variables in this file will be cleared when using Clear-DMConfiguration
 # That generally happens when switching between sets of configuration
 
- #----------------------------------------------------------------------------#
- #                               Configuration                                #
- #----------------------------------------------------------------------------#
+#----------------------------------------------------------------------------#
+#                               Configuration                                #
+#----------------------------------------------------------------------------#
 
 # Mapping table of values to insert
 $script:nameReplacementTable = @{ }
@@ -79,8 +79,8 @@ $script:wmifilter = @{ }
 
 
 #----------------------------------------------------------------------------#
- #                                Cached Data                                 #
- #----------------------------------------------------------------------------#
+#                                Cached Data                                 #
+#----------------------------------------------------------------------------#
 
 # Cached security principals, used by Get-Principal. Mapping to AD Objects
 $script:resolvedPrincipals = @{ }
@@ -98,49 +98,52 @@ $script:DNStoDomain = @{ }
 $script:DNStoDomainName = @{ }
 $script:NetBiostoDomain = @{ }
 
+# Domain Cache for GPO Target Server Calculation
+$script:cache_GPDomainTarget = @{}
 
- #----------------------------------------------------------------------------#
- #                                Context Data                                #
- #----------------------------------------------------------------------------#
+
+#----------------------------------------------------------------------------#
+#                                Context Data                                #
+#----------------------------------------------------------------------------#
 
 # Content Mode
 $script:contentMode = [PSCustomObject]@{
-    PSTypeName = 'DomainManagement.Content.Mode'
-    Mode    = 'Additive'
-    Include = @()
-    Exclude = @()
-    UserExcludePattern = @()
+	PSTypeName             = 'DomainManagement.Content.Mode'
+	Mode                   = 'Additive'
+	Include                = @()
+	Exclude                = @()
+	UserExcludePattern     = @()
 	RemoveUnknownWmiFilter = $false
 
 	# Note: Also update the help on Set-DMContentMode and on the website Content Mode documentation, when adding new entries here.
-	ExcludeComponents = @{
-		ACLs = $false
-		GPLinks = $false
-		GroupMembership = $false
-		Groups = $false
+	ExcludeComponents      = @{
+		ACLs                = $false
+		GPLinks             = $false
+		GroupMembership     = $false
+		Groups              = $false
 		OrganizationalUnits = $false
-		ServiceAccounts = $false
+		ServiceAccounts     = $false
 	}
 }
 $script:contentSearchBases = [PSCustomObject]@{
-    Include = @()
-    Exclude = @()
-    Bases   = @()
-    Server = ''
+	Include = @()
+	Exclude = @()
+	Bases   = @()
+	Server  = ''
 }
 
 # Domain Context
 $script:domainContext = [PSCustomObject]@{
-    Name = ''
-    Fqdn = ''
-    DN   = ''
-    ForestFqdn = ''
+	Name       = ''
+	Fqdn       = ''
+	DN         = ''
+	ForestFqdn = ''
 }
 
 #  Red Forest Context
 $script:redForestContext = [PSCustomObject]@{
-    Name = ''
-    Fqdn = ''
-    RootDomainFqdn = ''
-    RootDomainName = ''
+	Name           = ''
+	Fqdn           = ''
+	RootDomainFqdn = ''
+	RootDomainName = ''
 }

@@ -66,16 +66,15 @@
 	
 	begin
 	{
-		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
+		$parameters = Resolve-GPTargetServer -Server $Server -Credential $Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
 		Invoke-Callback @parameters -Cmdlet $PSCmdlet
 		Assert-Configuration -Type GroupPolicyObjects -Cmdlet $PSCmdlet
-		$computerName = (Get-ADDomain @parameters).PDCEmulator
-		$psParameter = $PSBoundParameters | ConvertTo-PSFHashtable -Include ComputerName, Credential -Inherit
+		$psParameter = Resolve-GPTargetServer -Server $Server -Credential $Credential -ForRemoting
 		try { $session = New-AdcPSSession @psParameter -ErrorAction Stop }
 		catch {
-			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.WinRM.Failed' -StringValues $computerName -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $computerName
+			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.WinRM.Failed' -StringValues $parameters.Server -ErrorRecord $_ -EnableException $EnableException -Cmdlet $PSCmdlet -Target $parameters.Server
 			return
 		}
 		Set-DMDomainContext @parameters
@@ -83,7 +82,7 @@
 		try { $gpoRemotePath = New-GpoWorkingDirectory -Session $session -ErrorAction Stop }
 		catch {
 			Remove-PSSession -Session $session -WhatIf:$false -Confirm:$false -ErrorAction SilentlyContinue
-			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.Remote.WorkingDirectory.Failed' -StringValues $computerName -Target $computerName -ErrorRecord $_ -EnableException $EnableException
+			Stop-PSFFunction -String 'Invoke-DMGroupPolicy.Remote.WorkingDirectory.Failed' -StringValues $parameters.Server -Target $parameters.Server -ErrorRecord $_ -EnableException $EnableException
 			return
 		}
 	}
