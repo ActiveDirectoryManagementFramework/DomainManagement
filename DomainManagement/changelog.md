@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 1.9.249 (2026-02-12)
+
+- Fix: ServiceAccounts - fixed typo.
+
 ## 1.9.248 (2026-02-12)
 
 - Upd: AccessRules - stopped removing "Protect from Accidental deletion" from containers
