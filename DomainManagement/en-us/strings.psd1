@@ -49,6 +49,7 @@
 	'Invoke-DMAccessRule.AccessRule.Create'                             = 'Adding access rule for {0}, granting {1} ({2})' # $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType
 	'Invoke-DMAccessRule.AccessRule.Creation.Failed'                    = 'Failed to create accessrule at {0} for {1}' # $testItem.Identity, $changeEntry.Configuration.IdentityReference
 	'Invoke-DMAccessRule.AccessRule.Remove'                             = 'Removing access rule for {0}, granting {1} ({2}) from {3}' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName
+	'Invoke-DMAccessRule.AccessRule.Remove.Error.Consistency'           = 'Failed to remove access rule from {0}! This may be due to a consistency error. Investigate the object, it may be resolvable via the dsa GUI in the security tab' # $testItem.Identity
 	'Invoke-DMAccessRule.AccessRule.Remove.Failed'                      = 'Failed to removing access rule for {0}, granting {1} ({2}) from {3} for unknown reasons (sorry). If this persists, consider enabling the alternative deletion mode through the "Domainmanagement.AccessRules.Remove.Option2" configuration setting.' # $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName
 	'Invoke-DMAccessRule.AccessRule.Restore'                            = 'Restoring access rule from schema default for {0}, granting {1} ({2})' # $changeEntry.Configuration.IdentityReference, $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType
 	'Invoke-DMAccessRule.ADObject.Missing'                              = 'Cannot process access rules, due to missing AD object: {0}. Please ensure the domain object is created before trying to apply rules to it!' # $testItem.Identity
@@ -235,8 +236,11 @@
 	
 	'Test-DMServiceAccount.Computer.NotFound'                           = 'Error processing service account {1}: Cannot find computer {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	'Test-DMServiceAccount.Computer.Optional.NotFound'                  = 'Error processing service account {1}: Cannot find computer {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
+	'Test-DMServiceAccount.Error.PrincipalNotFound'                     = 'Error resolving principals allowed to access the password of gMSA {0}: {1} cannot be resolved. This might be a previously deleted principal. Invoking principal changes against this gMSA will likely remove this assignment.' # $adObject.SamAccountName, $fail.TargetObject
 	'Test-DMServiceAccount.Group.NotFound'                              = 'Error processing service account {1}: Cannot find group {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	
+	'Test-GPPermissionFilter.Error.BadAdGpoConfiguration.DisplayName'   = 'Bad Configuration state in Active Directory: A corrupt Group Policy object was found that contains no displayname. You can search for the object with this command: "Get-ADObject -LdapFilter ''(&(objectCategory=groupPolicyContainer)(!(DisplayName=*)))''"' #
+
 	'Test-KdsRootKey.Adding'                                            = 'Adding KDS Root Key. It is backdated by 10 hours and thus instantly available. Until this has fully replicated however, you may still be unable to reliably use any created group Managed Service Accounts. This is purely to facilitate gMSA creation.' # 
 	'Test-KdsRootKey.Failed'                                            = 'Failed to add a KDS Root Key. Make sure you have sufficient permissions to complete the task.' # 
 	

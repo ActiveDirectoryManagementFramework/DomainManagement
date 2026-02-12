@@ -86,7 +86,7 @@
 					#region Case: One old version present
 					1
 					{
-						New-TestResult @resultDefaults -Type Rename -ADObject $oldUsers
+						New-TestResult @resultDefaults -Type Rename -ADObject $oldUsers -Changed (New-AdcChange -Identity $oldUsers -Property Name -OldValue $oldUsers.Name -NewValue $resolvedSamAccName)
 						continue main
 					}
 					#endregion Case: One old version present

@@ -30,6 +30,7 @@
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
+		[AllowEmptyString()]
 		[string]
 		$GpoName,
 
@@ -49,6 +50,11 @@
 		[hashtable]
 		$FilterHash
 	)
+
+	if (-not $GpoName) {
+		Write-PSFMessage -Level Warning -String 'Test-GPPermissionFilter.Error.BadAdGpoConfiguration.DisplayName'
+		return
+	}
 
 	if (-not $Filter.Trim()) { return $false }
 
