@@ -95,7 +95,7 @@
 	$relevantADRules = :outer foreach ($adRule in $ADRules) {
 		if ($adRule.OriginalRule.IsInherited) { continue }
 		#region Skip OUs' "Protect from Accidential Deletion" ACE
-		if (($adRule.AccessControlType -eq 'Deny') -and ($ADObject.ObjectClass -eq 'organizationalUnit')) {
+		if (($adRule.AccessControlType -eq 'Deny') -and ($ADObject.ObjectClass -in 'organizationalUnit','container')) {
 			if ($adRule.IdentityReference -eq 'everyone') { continue }
 			$eSid = [System.Security.Principal.SecurityIdentifier]'S-1-1-0'
 			$eName = $eSid.Translate([System.Security.Principal.NTAccount])

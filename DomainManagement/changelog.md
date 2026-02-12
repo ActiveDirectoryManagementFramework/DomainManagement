@@ -1,5 +1,15 @@
 ﻿# Changelog
 
+## 1.9.248 (2026-02-12)
+
+- Upd: AccessRules - stopped removing "Protect from Accidental deletion" from containers
+- Fix: AccessRules - invocation fails when access rule ordering is inconsistent. Now reports an error and skips the broken entry.
+- Fix: AccessRules - fails some identity resolution scenarios for the builtin administrators group, when it is in a domain originally setup in German
+- Fix: Groups - when renaming a group, the change details will include the wrong Identity
+- Fix: GPPermission - when removing access for an identity that cannot be resolved, the change shows only a `\`.
+- Fix: GPOwner - fails if a GPO exists in AD that does not contain a DisplayName (e.g. a highly corrupted GPO)
+- Fix: Service Accounts - tests generate an error for gMSA whose principals cannot be resolved.
+
 ## 1.9.239 (2025-11-13)
 
 - New: Configuration "DomainManagement.GroupPolicy.AlwaysUsePDC" - can be used to disable the Group Policy commands to prefer the PDC over the specified DC

@@ -1,6 +1,7 @@
 ﻿# File for variables that should NOT be reset on context changes
 $script:builtInSidMapping = @{
 	# English
+	'BUILTIN\Administrators'                                            = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-544'
 	'BUILTIN\Account Operators'                                         = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-548'
 	'BUILTIN\Server Operators'                                          = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-549'
 	'BUILTIN\Print Operators'                                           = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-550'
@@ -15,6 +16,7 @@ $script:builtInSidMapping = @{
 	'BUILTIN\Storage Replica Administrators'                            = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-582'
 
 	# Deutsch
+	'BUILTIN\Administratoren'                                           = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-544'
 	'BUILTIN\Konten-Operatoren'                                         = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-548'
 	'BUILTIN\Server-Operatoren'                                         = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-549'
 	'BUILTIN\Druck-Operatoren'                                          = [System.Security.Principal.SecurityIdentifier]'S-1-5-32-550'

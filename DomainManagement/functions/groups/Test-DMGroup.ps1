@@ -79,7 +79,7 @@
 
 					#region Case: One old version present
 					1 {
-						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups -Changed (New-AdcChange -Identity $adObject -Property Name -OldValue $oldGroups.Name -NewValue $resolvedName)
+						New-TestResult @resultDefaults -Type Rename -ADObject $oldGroups -Changed (New-AdcChange -Identity $oldGroups -Property Name -OldValue $oldGroups.Name -NewValue $resolvedName)
 						$oldNamesFound += $oldGroups.Name
 						$noNameUpdate = $true
 						$adObject = $oldGroups
