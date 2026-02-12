@@ -239,6 +239,8 @@
 	'Test-DMServiceAccount.Error.PrincipalNotFound'                     = 'Error resolving principals allowed to access the password of gMSA {0}: {1} cannot be resolved. This might be a previously deleted principal. Invoking principal changes against this gMSA will likely remove this assignment.' # $adObject.SamAccountName, $fail.TargetObject
 	'Test-DMServiceAccount.Group.NotFound'                              = 'Error processing service account {1}: Cannot find group {0}, will be unable to assign this access permission to the service account.' # $name, $resolvedName
 	
+	'Test-GPPermissionFilter.Error.BadAdGpoConfiguration.DisplayName'   = 'Bad Configuration state in Active Directory: A corrupt Group Policy object was found that contains no displayname. You can search for the object with this command: "Get-ADObject -LdapFilter ''(&(objectCategory=groupPolicyContainer)(!(DisplayName=*)))''"' #
+
 	'Test-KdsRootKey.Adding'                                            = 'Adding KDS Root Key. It is backdated by 10 hours and thus instantly available. Until this has fully replicated however, you may still be unable to reliably use any created group Managed Service Accounts. This is purely to facilitate gMSA creation.' # 
 	'Test-KdsRootKey.Failed'                                            = 'Failed to add a KDS Root Key. Make sure you have sufficient permissions to complete the task.' # 
 	
