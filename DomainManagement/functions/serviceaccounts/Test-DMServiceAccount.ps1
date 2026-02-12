@@ -173,7 +173,7 @@
 			
 			#region PrincipalsAllowedToRetrieveManagedPassword
 			# Use SamAccountName rather than DistinguishedName as accounts may not yet have been moved to their correct container so DN might fail
-			$currentPrincipals = ($adObject.PrincipalsAllowedToRetrieveManagedPassword | Get-ADObject @parameters -Properties SamAccountName -ErrorAction SilentlzContinue -ErrorVariable failed).SamAccountName
+			$currentPrincipals = ($adObject.PrincipalsAllowedToRetrieveManagedPassword | Get-ADObject @parameters -Properties SamAccountName -ErrorAction SilentlyContinue -ErrorVariable failed).SamAccountName
 			foreach ($fail in $failed) {
 				Write-PSFMessage -Level Warning -String 'Test-DMServiceAccount.Error.PrincipalNotFound' -StringValues $adObject.SamAccountName, $fail.TargetObject -Target $adObject
 			}
