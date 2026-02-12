@@ -115,6 +115,7 @@
 							Action = $null
 							ADObject = $ADObject
 						}
+						if ($result.DisplayName -eq '\') { $result.DisplayName = $inputItem.Trustee.Sid -as [string] }
 						$result | Add-Member -MemberType ScriptMethod -Name ToString -Force -PassThru -Value {
 							'{0}: {1}' -f $this.Action, $this.DisplayName
 						}

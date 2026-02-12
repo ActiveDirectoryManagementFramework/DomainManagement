@@ -80,7 +80,11 @@
 						#region Remove Access Rules
 						if ($changeEntry.Type -eq 'Delete') {
 							Write-PSFMessage -Level InternalComment -String 'Invoke-DMAccessRule.AccessRule.Remove' -StringValues $changeEntry.ADObject.IdentityReference, $changeEntry.ADObject.ActiveDirectoryRights, $changeEntry.ADObject.AccessControlType, $changeEntry.DistinguishedName -Target $changeEntry
-							$aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule)
+							try { $aclObject.RemoveAccessRuleSpecific($changeEntry.ADObject.OriginalRule) }
+							catch {
+								Write-PSFMessage -Level Warning -String 'Invoke-DMAccessRule.AccessRule.Remove.Error.Consistency' -StringValues $testItem.Identity -Target $changeEntry
+								continue
+							}
 							Remove-RedundantAce -AccessControlList $aclObject -IdentityReference $changeEntry.ADObject.OriginalRule.IdentityReference
 							
 							$stillThere = $false
