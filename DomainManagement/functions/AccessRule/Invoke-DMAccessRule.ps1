@@ -89,7 +89,7 @@
 							
 							$stillThere = $false
 							foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
-								if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
+								if (Test-AdcAccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
 									$stillThere = $true
 									$failedCount = $failedCount + 1
 									break
@@ -102,7 +102,7 @@
 							
 								$stillThere = $false
 								foreach ($rule in $aclObject.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])) {
-									if (Test-AccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
+									if (Test-AdcAccessRuleEquality -Parameters $parameters -Rule1 $rule -Rule2 $changeEntry.ADObject.OriginalRule) {
 										$stillThere = $true
 										$failedCount = $failedCount + 1
 										break
@@ -123,7 +123,7 @@
 							try {
 								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
-								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-AdcPrincipal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
 							}
 							catch {
 								$failedCount = $failedCount + 1
@@ -141,7 +141,7 @@
 							try {
 								if (-not $changeEntry.Configuration.ObjectType) { throw "Unknown ObjectType! Unable to translate $($changeEntry.Configuration.ObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
 								if (-not $changeEntry.Configuration.InheritedObjectType) { throw "Unknown InheritedObjectType! Unable to translate $($changeEntry.Configuration.InheritedObjectTypeName). Validate the configuration and ensure pending schema updates (e.g. Exchange, Skype, etc.) have been applied." }
-								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-Principal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
+								$accessRule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new((Convert-AdcPrincipal @parameters -Name $changeEntry.Configuration.IdentityReference), $changeEntry.Configuration.ActiveDirectoryRights, $changeEntry.Configuration.AccessControlType, $changeEntry.Configuration.ObjectType, $changeEntry.Configuration.InheritanceType, $changeEntry.Configuration.InheritedObjectType)
 							}
 							catch {
 								$failedCount = $failedCount + 1

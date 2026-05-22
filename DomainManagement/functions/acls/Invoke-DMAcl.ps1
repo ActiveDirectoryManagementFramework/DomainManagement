@@ -1,5 +1,4 @@
-﻿function Invoke-DMAcl
-{
+﻿function Invoke-DMAcl {
 	<#
 	.SYNOPSIS
 		Applies the desired ACL configuration.
@@ -52,8 +51,7 @@
 		$EnableException
 	)
 	
-	begin
-	{
+	begin {
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -61,7 +59,7 @@
 		Assert-Configuration -Type Acls, AclByCategory, AclDefaultOwner -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
 	}
-	process{
+	process {
 		if (-not $InputObject) {
 			$InputObject = Test-DMAcl @parameters
 		}
@@ -73,26 +71,22 @@
 			}
 			
 			switch ($testItem.Type) {
-				'MissingADObject'
-				{
+				'MissingADObject' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAcl.MissingADObject' -StringValues $testItem.Identity -Target $testItem
 					continue
 				}
-				'NoAccess'
-				{
+				'NoAccess' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAcl.NoAccess' -StringValues $testItem.Identity -Target $testItem
 					continue
 				}
-				'OwnerNotResolved'
-				{
+				'OwnerNotResolved' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAcl.OwnerNotResolved' -StringValues $testItem.Identity, $testItem.ADObject.GetOwner([System.Security.Principal.SecurityIdentifier]) -Target $testItem
 					continue
 				}
-				'Update'
-				{
+				'Update' {
 					if ($testItem.Changed.Type -contains 'Owner') {
 						Invoke-PSFProtectedCommand -ActionString 'Invoke-DMAcl.UpdatingOwner' -ActionStringValues ($testItem.Configuration.Owner | Resolve-String) -Target $testItem -ScriptBlock {
-							Set-AdsOwner @parameters -Path $testItem.Identity -Identity (Convert-Principal @parameters -Name ($testItem.Configuration.Owner | Resolve-String)) -EnableException -Confirm:$false
+							Set-AdsOwner @parameters -Path $testItem.Identity -Identity (Convert-AdcPrincipal @parameters -Name ($testItem.Configuration.Owner | Resolve-String)) -EnableException -Confirm:$false
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 					if ($testItem.Changed.Type -contains 'NoInheritance') {
@@ -104,8 +98,7 @@
 						} -EnableException $EnableException.ToBool() -PSCmdlet $PSCmdlet -Continue
 					}
 				}
-				'ShouldManage'
-				{
+				'ShouldManage' {
 					Write-PSFMessage -Level Warning -String 'Invoke-DMAcl.ShouldManage' -StringValues $testItem.Identity -Target $testItem
 					continue
 				}

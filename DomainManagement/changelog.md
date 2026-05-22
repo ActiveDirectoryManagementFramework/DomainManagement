@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## ???
+
+- Upd: ACLs - removed exclusion from considering Containers.
+- Upd: Get-DMObjectDefaultPermission - removed the command, as part of the AccessRule switch-over to Admf.Core
+- Fix: GPLink - deleting links for GPOs that are not accessible will show with an empty name in the test results
+- Fix: GPPermission - fixed error message when using a path-based GPPermission filter and the path does not exist
+
 ## 1.9.249 (2026-02-12)
 
 - Fix: ServiceAccounts - fixed typo.
@@ -255,7 +262,7 @@
 
 ## 1.3.76 (2020-07-31)
 
-- New: Reset-DMDomainCredential - Resets cached credentials for contacting domains.
+- New: Reset-AdcDomainCredential - Resets cached credentials for contacting domains.
 - Upd: Component Group Membership - now can define Group Processing Mode, introducing Constrained and Additive Modes to a group's memberships.
 - Upd: Component Group Membership - configured names may now include SIDs, such as the SIDs of built-in accounts or groups.
 - Fix: Register-DMGroupMembership - explicitly registering empty as $false no longer clears configured settings.

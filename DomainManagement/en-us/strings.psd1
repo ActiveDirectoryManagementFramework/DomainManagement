@@ -5,25 +5,7 @@
 
 	'Assert-Configuration.NotConfigured'                                = 'No configuration data provided for: {0}' # ($Type -join ", ")
 	
-	'Convert-AccessRule.Identity.ResolutionError'                       = 'Failed to convert identity. This generally means a configuration error, especially when referencing the parent as identity.' # 
-	
-	'Convert-Principal.Processing'                                      = 'Converting principal: {0}' # $Name
-	'Convert-Principal.Processing.InputNT'                              = 'Input detected as NT: {0}' # $Name
-	'Convert-Principal.Processing.InputSID'                             = 'Input detected as SID: {0}' # $Name
-	'Convert-Principal.Processing.NT.LdapFilter'                        = 'Resolving NT identity via AD using the following filter: {0}' # "(samAccountName=$namePart)"
-	'Convert-Principal.Processing.NTDetails'                            = 'Resolved NT identity: Domain = {0} | Name = {1}' # $domainPart, $namePart
-	
-	'Find-DMObjectCategoryItem.ADError'                                 = 'Error retrieving AD Objects for object category {0}' # $Name
-	'Find-DMObjectCategoryItem.Category.NotFound'                       = 'No such object category defined: {0}' # $Name
-	
 	'General.Invalid.Input'                                             = 'Invalid input: {1}! This command only accepts output objects from {0}' # 'Test-DMAccessRule', $testItem
-	
-	'Get-PermissionGuidMapping.Processing'                              = 'Processing Permission Guids for domain: {0} (This may take a while)' # $identity
-	
-	'Get-Principal.Resolution.Failed'                                   = 'Failed to resolve principal: SID {0} | Name {1} | ObjectClass {2} | Domain {3}' # $Sid, $Name, $ObjectClass, $Domain
-	'Get-Principal.Resolution.FailedWithTarget'                         = 'Failed to resolve principal: SID {0} | Name {1} | ObjectClass {2} | Domain {3} | Target {4}' # $Sid, $Name, $ObjectClass, $Domain, $Target
-	
-	'Get-SchemaGuidMapping.Processing'                                  = 'Processing Schema Guids for domain: {0} (This may take a while)' # $identity
 	
 	'Install-GroupPolicy.CopyingFiles'                                  = 'Copying GPO files for "{0}"' # $Configuration.DisplayName
 	'Install-GroupPolicy.CopyingFiles.Failed'                           = 'Failed to copy the GPO files for "{0}"' # $Configuration.DisplayName
@@ -179,8 +161,6 @@
 	'Resolve-ContentSearchBase.Exclude.NotFound'                        = 'Failed to find excluded ou/container: {0}' # $item.Name
 	'Resolve-ContentSearchBase.Include.NotFound'                        = 'Failed to find included ou/container: {0}' # $item.Name
 	'Resolve-ContentSearchBase.Searchbase.Found'                        = 'Resolved searchbase in {2}: {0} | {1}' # $searchBase.SearchScope, $searchBase.SearchBase, $script:domainContext.Fqdn
-	
-	'Resolve-DMAccessRuleMode.PathResolution.Failed'                    = 'Unable to resolve path: {0}' # $mode.Path
 	
 	'Resolve-GPFilterMapping.Filter.Path.DoesNotExist.SilentlyContinue' = 'Issue resolving filter condition {0}: The specified path {1} could not be found, skipping.' # $Condition.Name, $searchBase
 	

@@ -1,5 +1,4 @@
-﻿function Unregister-DMAcl
-{
+﻿function Unregister-DMAcl {
 	<#
 	.SYNOPSIS
 		Removes a acl that had previously been registered.
@@ -30,8 +29,7 @@
 		$Category
 	)
 	
-	process
-	{
+	process {
 		foreach ($pathItem in $Path) {
 			if ($pathItem -eq '<default>') { $script:aclDefaultOwner = $null }
 			else { $script:acls.Remove($pathItem) }

@@ -75,7 +75,7 @@
 		$rawCategories = $script:serviceAccounts.Values.ObjectCategory | Remove-PSFNull -Enumerate | Sort-Object -Unique
 		$categories = @{ }
 		foreach ($rawCategory in $rawCategories) {
-			$categories[$rawCategory] = Find-DMObjectCategoryItem -Name $rawCategory @parameters -Property SamAccountName
+			$categories[$rawCategory] = Find-AdcObjectCategoryItem -Name $rawCategory @parameters -Property SamAccountName
 		}
 		$renameCurrentSAM = @()
 		#endregion Prepare Object Categories

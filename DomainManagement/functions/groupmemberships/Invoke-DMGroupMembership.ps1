@@ -6,7 +6,7 @@
 	.DESCRIPTION
 		Applies the desired group memberships to the target domain.
 		Use Register-DMGroupMembership to configure just what is considered desired.
-		Use Set-DMDomainCredential to prepare authentication as needed for remote domains, when principals from that domain must be resolved.
+		Use Set-AdcDomainCredential to prepare authentication as needed for remote domains, when principals from that domain must be resolved.
 	
 	.PARAMETER InputObject
 		Test results provided by the associated test command.

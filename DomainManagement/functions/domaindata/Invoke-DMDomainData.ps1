@@ -78,7 +78,7 @@
 		}
 		#endregion Script not found
 
-		$domainObject = Get-Domain2 @parameters
+		$domainObject = Get-AdcDomain @parameters
 		if (-not $script:cache_DomainData[$domainObject.DNSRoot]) { $script:cache_DomainData[$domainObject.DNSRoot] = @{ } }
 		if ($script:cache_DomainData[$domainObject.DNSRoot][$Name] -and -not $Reset) { return $script:cache_DomainData[$domainObject.DNSRoot][$Name] }
 		

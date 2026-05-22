@@ -150,7 +150,7 @@
 				try { $acl = Get-AdsAcl -Path $testResult.AdObject.DistinguishedName @parameters -ErrorAction Stop }
 				catch { Stop-PSFFunction -String 'Invoke-DMGPPermission.AD.Access.Error' -StringValues $testResult, $testResult.ADObject.DistinguishedName -ErrorRecord $_ -Continue -EnableException $EnableException }
 				
-				[string[]]$applicableIdentities = $acl.Access.Identity | Remove-PSFNull | Resolve-String | Convert-Principal @parameters
+				[string[]]$applicableIdentities = $acl.Access.Identity | Remove-PSFNull | Resolve-String | Convert-AdcPrincipal @parameters
 				
 				# Process Remove actions first, as they might interfere when processed last and replacing permissions.
 				foreach ($change in ($testResult.Changed | Sort-Object Action -Descending)) {
@@ -189,7 +189,7 @@
 					$acl | Set-AdsAcl @parameters -Confirm:$false -EnableException
 				} -Continue -EnableException $EnableException -PSCmdlet $PSCmdlet -Target $testResult
 				Invoke-PSFProtectedCommand -ActionString 'Invoke-DMGPPermission.Gpo.SyncingPermission' -ActionStringValues $testResult.Changed.Count -ScriptBlock {
-					$domainObject = Get-Domain2 @parameters
+					$domainObject = Get-AdcDomain @parameters
 					Invoke-Command -Session $session -ScriptBlock {
 						$gpoObject = Get-Gpo -Server localhost -DisplayName $using:testResult.Identity -Domain $using:domainObject.DNSRoot -ErrorAction Stop
 						$gpoObject.MakeAclConsistent()

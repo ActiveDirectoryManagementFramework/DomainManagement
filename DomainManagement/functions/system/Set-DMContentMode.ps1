@@ -55,7 +55,8 @@
 		Settings from multiple configuration sets will be merged, rather than fully replacing the old hashtable with a new one.
 
 		Supported Components:
-		- ACLs: Excluding them will not test only configured values for ownership and inheritance.
+		- AccessRules: Excluding them will test only configured paths for access control entries (ACE).
+		- ACLs: Excluding them will test only configured values for ownership and inheritance.
 		- GPLinks: Excluding them will have it ignore all GPLinks on OUs that have no GP Links configured. OUs with any GP Links defined will be managed as per applicable processing mode.
 		- GroupMembership: Excluding them will cause groups that have no membership configuration to be fundamentally ignored.
 		- Groups: Excluding them will stop all group deletions other than explicit "Delete" configurations.

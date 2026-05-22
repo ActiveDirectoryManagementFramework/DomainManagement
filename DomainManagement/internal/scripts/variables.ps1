@@ -50,14 +50,8 @@ $script:aclDefaultOwner = $null
 # Configured Access Rules - Based on OU / Path
 $script:accessRules = @{ }
 
-# Configured Access Rule processing Modes
-$script:accessRuleMode = @{ }
-
 # Configured Access Rules - Based on Object Category
 $script:accessCategoryRules = @{ }
-
-# Configured Object Categories
-$script:objectCategories = @{ }
 
 # Configured generic objects
 $script:objects = @{ }
@@ -81,13 +75,6 @@ $script:wmifilter = @{ }
 #----------------------------------------------------------------------------#
 #                                Cached Data                                 #
 #----------------------------------------------------------------------------#
-
-# Cached security principals, used by Get-Principal. Mapping to AD Objects
-$script:resolvedPrincipals = @{ }
-
-# More principal caching, used by Convert-Principal. Mapping to SID or NT Account
-$script:cache_PrincipalToSID = @{ }
-$script:cache_PrincipalToNT = @{ }
 
 # Cached domain data, used by Invoke-DMDomainData. Can be any script logic result
 $script:cache_DomainData = @{ }
@@ -117,6 +104,7 @@ $script:contentMode = [PSCustomObject]@{
 
 	# Note: Also update the help on Set-DMContentMode and on the website Content Mode documentation, when adding new entries here.
 	ExcludeComponents      = @{
+		AccessRules         = $false
 		ACLs                = $false
 		GPLinks             = $false
 		GroupMembership     = $false

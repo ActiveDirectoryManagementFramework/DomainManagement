@@ -138,7 +138,7 @@
 						$param['Name'] = Resolve-String -Text $assignment.Name
 						$param['ObjectClass'] = $assignment.ItemType
 					}
-					try { $adResult = Get-Principal @param }
+					try { $adResult = Get-AdcPrincipal @param }
 					catch {
 						# If it's a member that is allowed to NOT exist, simply skip the entry
 						if ($assignment.Mode -in 'MemberIfExists', 'MayBeMemberIfExists') { continue }
@@ -173,7 +173,7 @@
 
 				#region Object Category
 				elseif ($assignment.Category) {
-					try { $adObjects = Find-DMObjectCategoryItem @parameters -Name $assignment.Category -Property ObjectSID, SamAccountName -EnableException }
+					try { $adObjects = Find-AdcObjectCategoryItem @parameters -Name $assignment.Category -Property ObjectSID, SamAccountName -EnableException }
 					catch {
 						Stop-PSFFunction -String 'Test-DMGroupMembership.Category.Error' -StringValues $assignment.Category, $assignment.Group -ErrorRecord $_ -Continue -ContinueLabel main -EnableException $EnableException -Target $assignment
 					}
