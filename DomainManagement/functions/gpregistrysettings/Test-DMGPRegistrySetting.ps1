@@ -91,7 +91,7 @@
 		}
 		else {
 			$pdcParameter = $parameters.Clone()
-			$pdcParameter.ComputerName = (Get-Domain2 @parameters).PDCEmulator
+			$pdcParameter.ComputerName = (Get-AdcDomain @parameters).PDCEmulator
 			$pdcParameter.Remove('Server')
 			try { $session = New-AdcPSSession @pdcParameter -ErrorAction Stop }
 			catch {

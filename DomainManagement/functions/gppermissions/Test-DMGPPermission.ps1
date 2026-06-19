@@ -128,7 +128,7 @@
 						$identity = Resolve-Identity -IdentityReference $inputItem.Identity
 						if ($identity -is [System.Security.Principal.NTAccount]) {
 							$domainName, $identityName = $identity -replace '^(.+)@(.+)$','$2\$1' -split "\\"
-							try { $principal = Get-Principal @parameters -Name $identityName -Domain $domainName -ObjectClass $inputItem.ObjectClass }
+							try { $principal = Get-AdcPrincipal @parameters -Name $identityName -Domain $domainName -ObjectClass $inputItem.ObjectClass }
 							catch { throw }
 							$identity = $principal.ObjectSID
 						}
@@ -215,7 +215,7 @@
 								Write-PSFMessage -String 'Test-DMGPPermission.Filter.Path.DoesNotExist.SilentlyContinue' -StringValues $Condition.Name, $searchBase -Target $condition
 								continue conditions
 							}
-							Stop-PSFFunction -String 'Test-DMGPPermission.Filter.Path.DoesNotExist.Stop' -StringValues $searchBase -Target $Condition.Name, $condition -EnableException $EnableException -Tag Panic, Error
+							Stop-PSFFunction -String 'Test-DMGPPermission.Filter.Path.DoesNotExist.Stop' -StringValues $Condition.Name, $searchBase -Target $condition -EnableException $EnableException -Tag Panic, Error
 							return
 						}
 
@@ -255,7 +255,7 @@
 			#endregion Data Preparation
 
 			#region Process GPO Permissions
-			$domainObject = Get-Domain2 @parameters
+			$domainObject = Get-AdcDomain @parameters
 			$permissionObjects = Invoke-Command -Session $session -ScriptBlock {
 				Update-TypeData -TypeName Microsoft.GroupPolicy.GPPermission -SerializationDepth 4
 				foreach ($policyObject in $using:allGpos) {
