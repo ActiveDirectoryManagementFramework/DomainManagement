@@ -45,70 +45,6 @@
 	)
 	
 	begin {
-		#region Utility Functions
-		function Convert-AccessRule {
-			[CmdletBinding()]
-			param (
-				[Parameter(ValueFromPipeline = $true)]
-				$Rule,
-
-				[Parameter(Mandatory = $true)]
-				$ADObject,
-
-				[PSFComputer]
-				$Server,
-
-				[PSCredential]
-				$Credential
-			)
-			begin {
-				$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
-				$convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
-				$convertCmdName.Begin($true)
-				$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
-				$convertCmdGuid.Begin($true)
-			}
-			process {
-				foreach ($ruleObject in $Rule) {
-					$objectTypeGuid = $convertCmdGuid.Process($ruleObject.ObjectType)[0]
-					$objectTypeName = $convertCmdName.Process($ruleObject.ObjectType)[0]
-					$inheritedObjectTypeGuid = $convertCmdGuid.Process($ruleObject.InheritedObjectType)[0]
-					$inheritedObjectTypeName = $convertCmdName.Process($ruleObject.InheritedObjectType)[0]
-
-					try { $identity = Resolve-Identity @parameters -IdentityReference $ruleObject.IdentityReference -ADObject $ADObject }
-					catch {
-						if ('True' -ne $ruleObject.Present) { continue }
-						Stop-PSFFunction -String 'Convert-AccessRule.Identity.ResolutionError' -Target $ruleObject -ErrorRecord $_ -Continue
-					}
-
-					[PSCustomObject]@{
-						PSTypeName              = 'DomainManagement.AccessRule.Converted'
-						IdentityReference       = $identity
-						AccessControlType       = $ruleObject.AccessControlType
-						ActiveDirectoryRights   = $ruleObject.ActiveDirectoryRights
-						InheritanceFlags        = $ruleObject.InheritanceFlags
-						InheritanceType         = $ruleObject.InheritanceType
-						InheritedObjectType     = $inheritedObjectTypeGuid
-						InheritedObjectTypeName = $inheritedObjectTypeName
-						ObjectFlags             = $ruleObject.ObjectFlags
-						ObjectType              = $objectTypeGuid
-						ObjectTypeName          = $objectTypeName
-						PropagationFlags        = $ruleObject.PropagationFlags
-						Present                 = $ruleObject.Present
-					}
-				}
-			}
-			end {
-				#region Inject Category-Based rules
-				Get-CategoryBasedRules -ADObject $ADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
-				#endregion Inject Category-Based rules
-
-				$convertCmdName.End()
-				$convertCmdGuid.End()
-			}
-		}
-		#endregion Utility Functions
-
 		$parameters = $PSBoundParameters | ConvertTo-PSFHashtable -Include Server, Credential
 		$parameters['Debug'] = $false
 		Assert-ADConnection @parameters -Cmdlet $PSCmdlet
@@ -116,11 +52,14 @@
 		Assert-Configuration -Type accessRules -Cmdlet $PSCmdlet
 		Set-DMDomainContext @parameters
 
-		try { $null = Get-DMObjectDefaultPermission -ObjectClass top @parameters }
+		try { $null = Get-AdcObjectDefaultPermission -ObjectClass top @parameters }
 		catch {
 			Stop-PSFFunction -String 'Test-DMAccessRule.DefaultPermission.Failed' -StringValues $Server -Target $Server -EnableException $false -ErrorRecord $_
 			return
 		}
+
+		$systemContainer = (Get-ADDomain @parameters).SystemsContainer
+		$adminSDHolderRules = (Get-AdsAcl -Path "CN=AdminSDHolder,$systemContainer" @parameters).Access
 	}
 	process {
 		if (Test-PSFFunctionInterrupt) { return }
@@ -153,14 +92,14 @@
 			
 			if ($adObject.adminCount) {
 				$defaultPermissions = @()
-				$desiredPermissions = Get-AdminSDHolderRules @parameters
+				$desiredPermissions = $adminSDHolderRules
 			}
 			else {
-				$defaultPermissions = Get-DMObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
-				$desiredPermissions = $script:accessRules[$key] | Convert-AccessRule @parameters -ADObject $adObject
+				$defaultPermissions = Get-AdcObjectDefaultPermission @parameters -ObjectClass $adObject.ObjectClass
+				$desiredPermissions = $script:accessRules[$key] | ConvertFrom-AdcAccessRuleConfiguration @parameters -ADObject $adObject -IncludeCategory -CategoryRules $script:accessCategoryRules
 			}
 
-			$delta = Compare-AccessRules @parameters -ADRules ($adAclObject.Access | Convert-AccessRuleIdentity @parameters -Target $adAclObject.DistinguishedName) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
+			$delta = Compare-AdcAccessRules @parameters -ADRules ($adAclObject.Access | Convert-AdcAccessRuleIdentity @parameters -Target $adAclObject.DistinguishedName) -ConfiguredRules $desiredPermissions -DefaultRules $defaultPermissions -ADObject $adObject
 
 			if ($delta) {
 				New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject
@@ -168,6 +107,8 @@
 			}
 		}
 		#endregion Process Configured Objects
+
+		if ($script:contentMode.ExcludeComponents.AccessRules) { return }
 
 		$doParallelize = Get-PSFConfigValue -FullName 'DomainManagement.AccessRules.Parallelize'
 		#region Process Non-Configured AD Objects - Serial
@@ -183,9 +124,9 @@
 				ObjectType = 'AccessRule'
 			}
 	
-			$convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
+			$convertCmdName = { Convert-AdcSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
 			$convertCmdName.Begin($true)
-			$convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
+			$convertCmdGuid = { Convert-AdcSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
 			$convertCmdGuid.Begin($true)
 	
 			$processed = @{ }
@@ -202,20 +143,20 @@
 	
 				$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
 				$compareParam = @{
-					ADRules         = $adAclObject.Access | Convert-AccessRuleIdentity @parameters
-					DefaultRules    = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
-					ConfiguredRules = Get-CategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
+					ADRules         = $adAclObject.Access | Convert-AdcAccessRuleIdentity @parameters
+					DefaultRules    = Get-AdcObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
+					ConfiguredRules = Get-AdcCategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid -CategoryRules $script:accessCategoryRules
 					ADObject        = $foundADObject
 				}
 	
 				# Protected Objects
 				if ($foundADObject.AdminCount) {
 					$compareParam.DefaultRules = @()
-					$compareParam.ConfiguredRules = Get-AdminSDHolderRules @parameters
+					$compareParam.ConfiguredRules = $adminSDHolderRules
 				}
 	
 				$compareParam += $parameters
-				$delta = Compare-AccessRules @compareParam
+				$delta = Compare-AdcAccessRules @compareParam
 	
 				if ($delta) {
 					New-TestResult @resultDefaults -Type Update -Changed $delta -ADObject $adAclObject -Identity $foundADObject.DistinguishedName
@@ -238,7 +179,7 @@
 				ObjectType = 'AccessRule'
 			}
 			parameters               = $parameters
-			adminSDHolderRules       = Get-AdminSDHolderRules @parameters
+			adminSDHolderRules       = $adminSDHolderRules
 			schemaDefaultPermissions = $script:schemaObjectDefaultPermission["$Server"]
 			accessRuleConfiguration  = @{
 				accessRules         = $script:accessRules
@@ -248,6 +189,7 @@
 			stringTable              = $script:nameReplacementTable
 		}
 		$modules = @(
+			(Get-Module ADMF.Core).ModuleBase
 			(Get-Module DomainManagement).ModuleBase
 			(Get-Module ADSec).ModuleBase
 		)
@@ -270,14 +212,14 @@
 				}
 			}
 
-			$global:convertCmdName = { Convert-DMSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
+			$global:convertCmdName = { Convert-AdcSchemaGuid @parameters -OutType Name }.GetSteppablePipeline()
 			$global:convertCmdName.Begin($true)
-			$global:convertCmdGuid = { Convert-DMSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
+			$global:convertCmdGuid = { Convert-AdcSchemaGuid @parameters -OutType Guid }.GetSteppablePipeline()
 			$global:convertCmdGuid.Begin($true)
 
-			$global:cmdCompareAccessRules = & (Get-Module DomainManagement) { Get-Command Compare-AccessRules }
-			$global:cmdConvertAccessRuleIdentity = & (Get-Module DomainManagement) { Get-Command Convert-AccessRuleIdentity }
-			$global:cmdGetCategoryBasedRules = & (Get-Module DomainManagement) { Get-Command Get-CategoryBasedRules }
+			$global:cmdCompareAccessRules = Get-Command Compare-AdcAccessRules
+			$global:cmdConvertAccessRuleIdentity = Get-Command Convert-AdcAccessRuleIdentity
+			$global:cmdGetCategoryBasedRules = Get-Command Get-AdcCategoryBasedRules
 		}
 		$process = {
 			$count = 0
@@ -287,7 +229,7 @@
 					$adAclObject = Get-AdsAcl @parameters -Path $foundADObject.DistinguishedName
 					$compareParam = @{
 						ADRules         = & $global:cmdConvertAccessRuleIdentity -InputObject $adAclObject.Access @parameters
-						DefaultRules    = Get-DMObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
+						DefaultRules    = Get-AdcObjectDefaultPermission @parameters -ObjectClass $foundADObject.ObjectClass
 						ConfiguredRules = & $global:cmdGetCategoryBasedRules -ADObject $foundADObject @parameters -ConvertNameCommand $convertCmdName -ConvertGuidCommand $convertCmdGuid
 						ADObject        = $foundADObject
 					}

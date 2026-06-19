@@ -1,10 +1,10 @@
 ﻿function Test-DMAcl {
 	<#
 		.SYNOPSIS
-			Tests whether the configured groups match a domain's configuration.
+			Tests whether the configured ACLs match a domain's configuration.
 		
 		.DESCRIPTION
-			Tests whether the configured groups match a domain's configuration.
+			Tests whether the configured ACLs match a domain's configuration.
 		
 		.PARAMETER Server
 			The server / domain to work with.
@@ -15,8 +15,9 @@
 		.EXAMPLE
 			PS C:\> Test-DMGroup
 
-			Tests whether the configured groups' state matches the current domain group setup.
+			Tests whether the configured ACLs' state matches the current domain ACL setup.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer]
@@ -60,6 +61,7 @@
 			Add-Member -InputObject $changeItem -MemberType ScriptMethod -Name ToString -Value { '{0}->{1}' -f $this.Type, $this.New } -Force -PassThru
 		}
 		function Get-ChangeByCategory {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 			[CmdletBinding()]
 			param (
 				$ADObject,
@@ -75,11 +77,27 @@
 
 			# Ensure Owner Name is present - may not always resolve
 			$ownerSID = $aclObject.GetOwner([System.Security.Principal.SecurityIdentifier])
-			$configuredSID = $Category.Owner | Resolve-String | Convert-Principal @parameters -OutputType SID
+			$simpleOwner = $true
+			if ($Category.Owner -match '^__.+__$') {
+				$simpleOwner = $false
+				Invoke-PSFProtectedCommand -ActionString 'Test-DMAcl.ResolveOwner' -ActionStringValues $Category.Owner.Trim('_'),$ADObject.DistinguishedName -Target $Category -ScriptBlock {
+					$ownerSet = Resolve-AdcPrivilegedGroupSet -Type $Category.Owner.Trim('_') @parameters
+				} -Continue -PSCmdlet $PSCmdlet
+			}
+			else {
+				$configuredSID = $Category.Owner | Resolve-String | Convert-AdcPrincipal @parameters -OutputType SID
+			}
 
 			[System.Collections.ArrayList]$changes = @()
-			if ("$ownerSID" -ne "$configuredSID") {
-				$null = $changes.Add((New-Change -Identity $ADObject -Type Owner -OldValue $aclObject.Owner -NewValue ($Category.Owner | Resolve-String) -OldSID $ownerSID -NewSID $configuredSID))
+			if ($simpleOwner) {
+				if ("$ownerSID" -ne "$configuredSID") {
+					$null = $changes.Add((New-Change -Identity $resolvedPath -Type Owner -OldValue $aclObject.Owner -NewValue ($Category.Owner | Resolve-String) -OldSID $ownerSID -NewSID $configuredSID))
+				}
+			}
+			else {
+				if ("$ownerSID" -notin $ownerSet.SIDs) {
+					$null = $changes.Add((New-Change -Identity $resolvedPath -Type Owner -OldValue $aclObject.Owner -NewValue ($Category.Owner | Resolve-String) -OldSID $ownerSID -NewSID $ownerSet.DefaultSID))
+				}
 			}
 			if ($Category.NoInheritance -ne $aclObject.AreAccessRulesProtected) {
 				# If AdminCount -eq 1, then inheritance should be disabled, no matter the configuration
@@ -111,7 +129,7 @@
 				if ($aclDefinition.Optional) { continue }
 				Write-PSFMessage -String 'Test-DMAcl.ADObjectNotFound' -StringValues $resolvedPath -Tag 'panic', 'failed' -Target $aclDefinition
 				New-TestResult @resultDefaults -Type 'MissingADObject'
-				Continue
+				continue
 			}
 
 			try { $aclObject = Get-AdsAcl @parameters -Path $resolvedPath -EnableException }
@@ -119,15 +137,31 @@
 				if ($aclDefinition.Optional) { continue }
 				Write-PSFMessage -String 'Test-DMAcl.NoAccess' -StringValues $resolvedPath -Tag 'panic', 'failed' -Target $aclDefinition -ErrorRecord $_
 				New-TestResult @resultDefaults -Type 'NoAccess'
-				Continue
+				continue
 			}
 			# Ensure Owner Name is present - may not always resolve
 			$ownerSID = $aclObject.GetOwner([System.Security.Principal.SecurityIdentifier])
-			$configuredSID = $aclDefinition.Owner | Resolve-String | Convert-Principal @parameters -OutputType SID
+			$simpleOwner = $true
+			if ($aclDefinition.Owner -match '^__.+__$') {
+				$simpleOwner = $false
+				Invoke-PSFProtectedCommand -ActionString 'Test-DMAcl.ResolveOwner' -ActionStringValues $aclDefinition.Owner.Trim('_'),$resolvedPath -Target $aclDefinition -ScriptBlock {
+					$ownerSet = Resolve-AdcPrivilegedGroupSet
+				} -Continue -PSCmdlet $PSCmdlet
+			}
+			else {
+				$configuredSID = $aclDefinition.Owner | Resolve-String | Convert-AdcPrincipal @parameters -OutputType SID
+			}
 
 			[System.Collections.ArrayList]$changes = @()
-			if ("$ownerSID" -ne "$configuredSID") {
-				$null = $changes.Add((New-Change -Identity $resolvedPath -Type Owner -OldValue $aclObject.Owner -NewValue ($aclDefinition.Owner | Resolve-String) -OldSID $ownerSID -NewSID $configuredSID))
+			if ($simpleOwner) {
+				if ("$ownerSID" -ne "$configuredSID") {
+					$null = $changes.Add((New-Change -Identity $resolvedPath -Type Owner -OldValue $aclObject.Owner -NewValue ($aclDefinition.Owner | Resolve-String) -OldSID $ownerSID -NewSID $configuredSID))
+				}
+			}
+			else {
+				if ("$ownerSID" -notin $ownerSet.SIDs) {
+					$null = $changes.Add((New-Change -Identity $resolvedPath -Type Owner -OldValue $aclObject.Owner -NewValue ($aclDefinition.Owner | Resolve-String) -OldSID $ownerSID -NewSID $ownerSet.DefaultSID))
+				}
 			}
 			if ($aclDefinition.NoInheritance -ne $aclObject.AreAccessRulesProtected) {
 				$null = $changes.Add((New-Change -Identity $resolvedPath -Type NoInheritance -OldValue $aclObject.AreAccessRulesProtected -NewValue $aclDefinition.NoInheritance))
@@ -142,7 +176,7 @@
 		if ($script:contentMode.ExcludeComponents.ACLs) { return }
 
 		#region check if all ADObjects are managed
-		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters -NoContainer)) {
+		$foundADObjects = foreach ($searchBase in (Resolve-ContentSearchBase @parameters)) {
 			Get-ADObject @parameters -LDAPFilter '(objectCategory=*)' -SearchBase $searchBase.SearchBase -SearchScope $searchBase.SearchScope -Properties AdminCount
 		}
 		
@@ -162,7 +196,7 @@
 			if ($foundADObject.DistinguishedName -in $resolvedConfiguredPaths) { continue }
 			
 			if ($script:aclByCategory.Count -gt 0) {
-				$category = Resolve-DMObjectCategory -ADObject $foundADObject @parameters
+				$category = Resolve-AdcObjectCategory -ADObject $foundADObject @parameters
 				if ($matchingCategory = $category | Where-Object Name -In $script:aclByCategory.Keys | Select-Object -First 1) {
 					Get-ChangeByCategory -ADObject $foundADObject -Category $script:aclByCategory[$matchingCategory.Name] -ResultDefaults $resultDefaults -Parameters $parameters
 					continue

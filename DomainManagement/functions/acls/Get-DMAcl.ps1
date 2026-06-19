@@ -1,5 +1,4 @@
-﻿function Get-DMAcl
-{
+﻿function Get-DMAcl {
 	<#
 		.SYNOPSIS
 			Lists registered acls.
@@ -22,10 +21,9 @@
 		$Path = '*'
 	)
 	
-	process
-	{
-		($script:acls.Values) | Where-Object Path -like $Path
-		($script:aclsByCategory.Values) | Where-Object Category -like $Path
-		$script:aclDefaultOwner | Where-Object Path -like $Path
+	process {
+		($script:acls.Values) | Where-Object Path -Like $Path
+		($script:aclsByCategory.Values) | Where-Object Category -Like $Path
+		$script:aclDefaultOwner | Where-Object Path -Like $Path
 	}
 }

@@ -145,6 +145,7 @@
 				$Action
 			)
 
+			if (-not $PolicyName) { $PolicyName = "<inaccessible: $($PolicyDN -replace '^CN=([^,]+).+','$1')>" }
 			$update = [PSCustomObject]@{
 				PSTypeName       = 'DomainManagement.GPLink.Update'
 				Policy           = $PolicyName

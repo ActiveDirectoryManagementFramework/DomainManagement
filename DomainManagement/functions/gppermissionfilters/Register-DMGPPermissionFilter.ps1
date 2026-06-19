@@ -34,7 +34,7 @@
 		Whether the path is optional.
 		By default, when evaluating a path filter, processing of GP permission terminates if the designated path does not exist, as we cannot guarantee a consistent permission-set being applied.
 		With this setting enabled, instead processing silently continues.
-		(Even if this is enabled, a silent log entry will be added  for tracking purposes!)
+		(Even if this is enabled, a silent log entry will be added for tracking purposes!)
 	
 	.PARAMETER GPName
 		Name of the GP to filter for.

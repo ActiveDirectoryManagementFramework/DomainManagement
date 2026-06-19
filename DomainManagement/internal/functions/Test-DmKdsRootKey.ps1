@@ -45,7 +45,7 @@
 			return $true
 		}
 
-		$domain = Get-Domain2 @parameters
+		$domain = Get-AdcDomain @parameters
 		$rootKeys = Invoke-Command @parameters { Get-KdsRootKey }
 		if ($rootKeys | Where-Object {
 			$_.EffectiveTime -LT (Get-Date).AddHours(-10) -and

@@ -57,6 +57,8 @@
 			}
 		}
 
+		$rootDSE = Get-ADRootDSE @parameters
+
 		$script:domainContext.Name = $domainObject.Name
 		$script:domainContext.Fqdn = $domainObject.DNSRoot
 		$script:domainContext.DN = $domainObject.DistinguishedName
@@ -72,11 +74,13 @@
 		Register-DMNameMapping -Name '%RootDomainDN%' -Value $forestRootDomain.DistinguishedName
 		Register-DMNameMapping -Name '%RootDomainSID%' -Value $forestRootSID
 		Register-DMNameMapping -Name '%ForestFqdn%' -Value $forestObject.Name
+		Register-StringMapping -Name '%ConfigurationDN%' -Value $rootDSE.configurationNamingContext
+		Register-StringMapping -Name '%SchemaDN%' -Value $rootDSE.schemaNamingContext
 
 		if ($Credential) {
-			Set-DMDomainCredential -Domain $domainObject.DNSRoot -Credential $Credential
-			Set-DMDomainCredential -Domain $domainObject.Name -Credential $Credential
-			Set-DMDomainCredential -Domain $domainObject.DistinguishedName -Credential $Credential
+			Set-AdcDomainCredential -Domain $domainObject.DNSRoot -Credential $Credential
+			Set-AdcDomainCredential -Domain $domainObject.Name -Credential $Credential
+			Set-AdcDomainCredential -Domain $domainObject.DistinguishedName -Credential $Credential
 		}
 	}
 }

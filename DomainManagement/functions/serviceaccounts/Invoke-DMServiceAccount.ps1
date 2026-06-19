@@ -64,7 +64,7 @@
 			)
 			
 			if (-not $Categories.ContainsKey($Name)) {
-				$Categories[$Name] = (Find-DMObjectCategoryItem -Name $Name @parameters -Property SamAccountName).SamAccountName
+				$Categories[$Name] = (Find-AdcObjectCategoryItem -Name $Name @parameters -Property SamAccountName).SamAccountName
 			}
 			$Categories[$Name]
 		}

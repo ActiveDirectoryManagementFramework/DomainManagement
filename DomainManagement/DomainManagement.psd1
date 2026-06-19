@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.9.249'
+	ModuleVersion      = '1.10.257'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -46,14 +46,10 @@
 	# Functions to export from this module
 	FunctionsToExport  = @(
 		'Clear-DMConfiguration'
-		'Convert-DMSchemaGuid'
-		'Find-DMObjectCategoryItem'
 		'Get-DMAccessRule'
-		'Get-DMAccessRuleMode'
 		'Get-DMAcl'
 		'Get-DMCallback'
 		'Get-DMContentMode'
-		'Get-DMDomainCredential'
 		'Get-DMDomainData'
 		'Get-DMDomainLevel'
 		'Get-DMExchange'
@@ -67,8 +63,6 @@
 		'Get-DMGroupPolicy'
 		'Get-DMNameMapping'
 		'Get-DMObject'
-		'Get-DMObjectCategory'
-		'Get-DMObjectDefaultPermission'
 		'Get-DMOrganizationalUnit'
 		'Get-DMPasswordPolicy'
 		'Get-DMServiceAccount'
@@ -92,9 +86,7 @@
 		'Invoke-DMUser'
 		'Invoke-DMWmiFilter'
 		'Register-DMAccessRule'
-		'Register-DMAccessRuleMode'
 		'Register-DMAcl'
-		'Register-DMBuiltInSID'
 		'Register-DMCallback'
 		'Register-DMDomainData'
 		'Register-DMDomainLevel'
@@ -109,18 +101,13 @@
 		'Register-DMGroupPolicy'
 		'Register-DMNameMapping'
 		'Register-DMObject'
-		'Register-DMObjectCategory'
 		'Register-DMOrganizationalUnit'
 		'Register-DMPasswordPolicy'
 		'Register-DMServiceAccount'
 		'Register-DMUser'
 		'Register-DMWmiFilter'
-		'Reset-DMDomainCredential'
-		'Resolve-DMAccessRuleMode'
-		'Resolve-DMObjectCategory'
 		'Set-DMContentMode'
 		'Set-DMDomainContext'
-		'Set-DMDomainCredential'
 		'Set-DMRedForestContext'
 		'Test-DMAccessRule'
 		'Test-DMAcl'
@@ -140,7 +127,6 @@
 		'Test-DMUser'
 		'Test-DMWmiFilter'
 		'Unregister-DMAccessRule'
-		'Unregister-DMAccessRuleMode'
 		'Unregister-DMAcl'
 		'Unregister-DMCallback'
 		'Unregister-DMDomainData'
@@ -156,7 +142,6 @@
 		'Unregister-DMGroupPolicy'
 		'Unregister-DMNameMapping'
 		'Unregister-DMObject'
-		'Unregister-DMObjectCategory'
 		'Unregister-DMOrganizationalUnit'
 		'Unregister-DMPasswordPolicy'
 		'Unregister-DMServiceAccount'
@@ -165,13 +150,13 @@
 	)
 	
 	# Cmdlets to export from this module
-	CmdletsToExport    = ''
+	CmdletsToExport    = @()
 	
 	# Variables to export from this module
-	VariablesToExport  = ''
+	VariablesToExport  = @()
 	
 	# Aliases to export from this module
-	AliasesToExport    = ''
+	AliasesToExport    = @()
 	
 	# List of all modules packaged with this module
 	ModuleList         = @()

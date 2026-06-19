@@ -1,5 +1,4 @@
-﻿function Register-DMAcl
-{
+﻿function Register-DMAcl {
 	<#
 	.SYNOPSIS
 		Registers an active directory acl.
@@ -73,42 +72,38 @@
 		[string]
 		$ContextName = '<Undefined>'
 	)
-	process
-	{
+	process {
 		switch ($PSCmdlet.ParameterSetName) {
-			'path'
-			{
+			'path' {
 				$script:acls[$Path] = [PSCustomObject]@{
-					PSTypeName = 'DomainManagement.Acl'
-					Path = $Path
-					Owner = $Owner
+					PSTypeName    = 'DomainManagement.Acl'
+					Path          = $Path
+					Owner         = $Owner
 					NoInheritance = $NoInheritance
-					Optional = $Optional
-					ContextName = $ContextName
+					Optional      = $Optional
+					ContextName   = $ContextName
 				}
 			}
-			'category'
-			{
+			'category' {
 				$script:aclByCategory[$ObjectCategory] = [PSCustomObject]@{
-					PSTypeName = 'DomainManagement.Acl'
-					Category = $ObjectCategory
-					Owner = $Owner
+					PSTypeName    = 'DomainManagement.Acl'
+					Category      = $ObjectCategory
+					Owner         = $Owner
 					NoInheritance = $NoInheritance
-					Optional = $Optional
-					ContextName = $ContextName
+					Optional      = $Optional
+					ContextName   = $ContextName
 				}
 			}
-			'DefaultOwner'
-			{
+			'DefaultOwner' {
 				# Array to appease Assert-Configuration
 				$script:aclDefaultOwner = @([PSCustomObject]@{
-					PSTypeName = 'DomainManagement.Acl'
-					Path = '<default>'
-					Owner = $Owner
-					NoInheritance = $false
-					Optional = $null
-					ContextName = $ContextName
-				})
+						PSTypeName    = 'DomainManagement.Acl'
+						Path          = '<default>'
+						Owner         = $Owner
+						NoInheritance = $false
+						Optional      = $null
+						ContextName   = $ContextName
+					})
 			}
 		}
 	}
