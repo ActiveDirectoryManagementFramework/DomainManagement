@@ -166,8 +166,6 @@
 	
 	'Resolve-GPTargetServer.Info.ChangingToPDC'                         = 'Changing target server from "{0}" to the PDC Emulator: "{1}". Group Policy components default to working against the PDC, as most GPO tools (including the default GPMC console) do the same. This behavior can be disabled in the module configuration settings.' # $Server, $domainObject.PDCEmulator
 
-	'Resolve-Identity.ParentObject.NoSecurityPrincipal'                 = 'Error processing parent of {0} : {1} of type {2} is no legal security principal and cannot be assigned permissions!' # $ADObject, $parentObject.Name, $parentObject.ObjectClass
-	
 	'Resolve-PolicyRevision.Result.ErrorOnConfigImport'                 = 'Failed to read configuration for {0}: {1}' # $Policy.DisplayName, $result.Error.Exception.Message
 	'Resolve-PolicyRevision.Result.PolicyError'                         = 'Policy object not found in filesystem: {0}. Check existence and permissions!' # $Policy.DisplayName
 	'Resolve-PolicyRevision.Result.Result.SuccessNotYetManaged'         = 'Policy found: {0}. Has not yet been managed, will need to be overwritten.' # $Policy.DisplayName
@@ -182,6 +180,7 @@
 	
 	'Test-DMAcl.ADObjectNotFound'                                       = 'The target object could not be found: {0}' # $resolvedPath
 	'Test-DMAcl.NoAccess'                                               = 'Failed to access Acl on {0}' # $resolvedPath
+	'Test-DMAcl.ResolveOwner'                                           = 'Resolving acceptable owners via Privileged Group Set {0} for object {1}' # $Category.Owner.Trim('_'),$ADObject.DistinguishedName
 	
 	'Test-DMGPLink.OUNotFound'                                          = 'Failed to find the configured OU: {0} - Please validate your OU configuration and bring your OU estate into the desired state first!' # $ouDatum.OrganizationalUnit
 	

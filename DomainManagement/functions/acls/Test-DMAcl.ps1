@@ -17,6 +17,7 @@
 
 			Tests whether the configured ACLs' state matches the current domain ACL setup.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 	[CmdletBinding()]
 	param (
 		[PSFComputer]
@@ -60,6 +61,7 @@
 			Add-Member -InputObject $changeItem -MemberType ScriptMethod -Name ToString -Value { '{0}->{1}' -f $this.Type, $this.New } -Force -PassThru
 		}
 		function Get-ChangeByCategory {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 			[CmdletBinding()]
 			param (
 				$ADObject,

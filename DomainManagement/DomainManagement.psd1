@@ -46,7 +46,6 @@
 	# Functions to export from this module
 	FunctionsToExport  = @(
 		'Clear-DMConfiguration'
-		'Convert-AdcSchemaGuid'
 		'Get-DMAccessRule'
 		'Get-DMAcl'
 		'Get-DMCallback'
@@ -88,7 +87,6 @@
 		'Invoke-DMWmiFilter'
 		'Register-DMAccessRule'
 		'Register-DMAcl'
-		'Register-DMBuiltInSID'
 		'Register-DMCallback'
 		'Register-DMDomainData'
 		'Register-DMDomainLevel'
