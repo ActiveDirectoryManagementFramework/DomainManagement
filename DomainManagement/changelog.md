@@ -1,11 +1,15 @@
 ﻿# Changelog
 
-## ???
+## 1.10.257 (2026-06-19)
 
 - Upd: ACLs - removed exclusion from considering Containers.
 - Upd: Get-DMObjectDefaultPermission - removed the command, as part of the AccessRule switch-over to Admf.Core
+- Upd: AccessRules tooling - migrated a large portion of the tooling to Admf.Core
 - Fix: GPLink - deleting links for GPOs that are not accessible will show with an empty name in the test results
 - Fix: GPPermission - fixed error message when using a path-based GPPermission filter and the path does not exist
+- Rem: AccessRuleMode - Migrated component to Admf.Core.
+- Rem: DomainCredential - Migrated component to Admf.Core.
+- Rem: ObjectCategories - Migrated component to Admf.Core.
 
 ## 1.9.249 (2026-02-12)
 

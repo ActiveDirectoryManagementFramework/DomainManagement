@@ -3,7 +3,7 @@
 	RootModule         = 'DomainManagement.psm1'
 	
 	# Version number of this module.
-	ModuleVersion      = '1.9.249'
+	ModuleVersion      = '1.10.257'
 	
 	# ID used to uniquely identify this module
 	GUID               = '0a405382-ebc2-445b-8325-541535810193'
@@ -152,13 +152,13 @@
 	)
 	
 	# Cmdlets to export from this module
-	CmdletsToExport    = ''
+	CmdletsToExport    = @()
 	
 	# Variables to export from this module
-	VariablesToExport  = ''
+	VariablesToExport  = @()
 	
 	# Aliases to export from this module
-	AliasesToExport    = ''
+	AliasesToExport    = @()
 	
 	# List of all modules packaged with this module
 	ModuleList         = @()
